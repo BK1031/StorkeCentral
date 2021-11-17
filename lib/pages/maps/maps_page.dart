@@ -31,6 +31,7 @@ class _MapsPageState extends State<MapsPage> {
   void dispose() {
     super.dispose();
     positionStream?.cancel();
+    mapController?.dispose();
   }
 
   Future<void> _determinePosition() async {
@@ -50,7 +51,6 @@ class _MapsPageState extends State<MapsPage> {
         setState(() {
           this.position = position;
         });
-        mapController!.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position.latitude, position.longitude), 15));
       }
     });
   }
@@ -61,29 +61,13 @@ class _MapsPageState extends State<MapsPage> {
         appBar: AppBar(
           title: const Text("Map", style: TextStyle(fontWeight: FontWeight.bold),),
         ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(myLocationTrackingMode == MyLocationTrackingMode.Tracking ? Icons.gps_fixed : Icons.location_searching, color: Colors.white,),
-          onPressed: () {
-            setState(() {
-              if (myLocationTrackingMode == MyLocationTrackingMode.None) {
-                myLocationTrackingMode = MyLocationTrackingMode.Tracking;
-                print("Tracking Mode: Tracking");
-              }
-              else {
-                myLocationTrackingMode = MyLocationTrackingMode.None;
-                print("Tracking Mode: None");
-              }
-            });
-          },
-        ),
-        backgroundColor: Colors.greenAccent,
         body: MapboxMap(
           accessToken: MAPBOX_ACCESS_TOKEN,
           initialCameraPosition: const CameraPosition(target: LatLng(34.413563, -119.846482), zoom: 14),
           myLocationRenderMode: MyLocationRenderMode.COMPASS,
           onMapCreated: (controller) {
             mapController = controller;
-            controller.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position?.latitude ?? 34.413563, position?.longitude ?? -119.846482), 18));
+            // controller.animateCamera(CameraUpdate.newLatLngZoom(LatLng(position?.latitude ?? 34.413563, position?.longitude ?? -119.846482), 18));
           },
           myLocationEnabled: true,
         )

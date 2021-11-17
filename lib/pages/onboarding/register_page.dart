@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);

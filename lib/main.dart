@@ -9,7 +9,7 @@ import 'package:storke_central/pages/home/dining/dining_hall_camera_page.dart';
 import 'package:storke_central/pages/home/dining/dining_hall_page.dart';
 import 'package:storke_central/pages/home/news/news_article_page.dart';
 import 'package:storke_central/pages/home/overdose_response/overdose_response_page.dart';
-import 'package:storke_central/pages/onboarding/auth_checker.dart';
+import 'package:storke_central/pages/onboarding/auth_checker_page.dart';
 import 'package:storke_central/pages/onboarding/onboarding_page.dart';
 import 'package:storke_central/pages/onboarding/register_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
