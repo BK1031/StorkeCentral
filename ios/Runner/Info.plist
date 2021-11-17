@@ -22,6 +22,20 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>instagram</string>
+	</array>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location in order to provide you with campus maps, suggest nearby buildings, present travel times, and navigation.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location in order to provide you with campus maps, suggest nearby buildings, present travel times, and navigation.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

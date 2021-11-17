@@ -42,6 +42,25 @@ dependencies:
   firebase_storage: ^10.0.6
   cloud_firestore: ^3.1.0
   intl: ^0.17.0
+  geolocator: ^7.7.1
+  curved_navigation_bar: ^1.0.1
+  mapbox_gl: ^0.14.0
+  cool_alert: ^1.1.0
+  http: ^0.13.3
+  percent_indicator: ^3.0.1
+  network_info_plus: ^1.1.0
+  extended_image: ^4.1.0
+  share_plus: ^3.0.4
+  adaptive_theme: ^2.2.0
+  flutter_dotenv: ^5.0.2
+  localstorage: ^4.0.0+1
+  easy_web_view2: ^0.0.3
+  connectivity_plus: ^2.0.3
+  url_launcher: ^6.0.13
+  progress_indicators: ^1.0.0
+  shared_preferences: ^2.0.6
+  syncfusion_flutter_calendar: ^19.3.44
+  skeleton_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:
