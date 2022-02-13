@@ -9,7 +9,7 @@ public class StandardResponse {
     public static String success(String data, String service) {
         return "{" +
                 "\"status\":\"" + "SUCCESS" + "\"," +
-                "\"gateway\":\"" + Config.VERSION + "\"," +
+                "\"gateway\":\"" + "Montecito v" + Config.VERSION + "\"," +
                 "\"service\":\"" + service + "\"," +
                 "\"date\":\"" + new Date().toString() + "\"," +
                 "\"data\":" + data +
@@ -19,7 +19,7 @@ public class StandardResponse {
     public static String error(String data, String service) {
         return "{" +
                 "\"status\":\"" + "ERROR" + "\"," +
-                "\"gateway\":\"" + Config.VERSION + "\"," +
+                "\"gateway\":\"" + "Montecito v" + Config.VERSION + "\"," +
                 "\"service\":\"" + service + "\"," +
                 "\"date\":\"" + new Date().toString() + "\"," +
                 "\"data\":" + data +

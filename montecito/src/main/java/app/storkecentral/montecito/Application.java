@@ -15,7 +15,7 @@ public class Application {
         port(Config.PORT);
         init();
         DiscordService.connect();
-        DatabaseService.connect();
+//        DatabaseService.connect();
 
         RouteController routeController = new RouteController();
     }
