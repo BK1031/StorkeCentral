@@ -5,7 +5,14 @@ import java.util.Date;
 
 public class Token {
     private String key;
+    private String agent;
     private Date created;
+
+    public Token(String key, String agent, Date created) {
+        this.key = key;
+        this.agent = agent;
+        this.created = created;
+    }
 
     public String getKey() {
         return key;
@@ -21,5 +28,13 @@ public class Token {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    public String getAgent() {
+        return agent;
+    }
+
+    public void setAgent(String agent) {
+        this.agent = agent;
     }
 }

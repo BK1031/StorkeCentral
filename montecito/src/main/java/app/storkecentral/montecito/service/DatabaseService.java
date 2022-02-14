@@ -17,7 +17,6 @@ public class DatabaseService {
             Properties props = new Properties();
             props.setProperty("user", Config.USER);
             props.setProperty("password", Config.PASSWORD);
-            props.setProperty("autosave", "always");
             connection = DriverManager.getConnection(Config.URL, props);
             System.out.println("Connected to the PostgreSQL server successfully.");
             System.out.println(Config.URL);

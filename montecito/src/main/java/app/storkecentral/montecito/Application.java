@@ -3,11 +3,12 @@ package app.storkecentral.montecito;
 import static spark.Spark.*;
 
 import app.storkecentral.montecito.controller.RouteController;
+import app.storkecentral.montecito.service.AuthService;
 import app.storkecentral.montecito.service.DatabaseService;
 import app.storkecentral.montecito.service.DiscordService;
-import app.storkecentral.montecito.service.RouteService;
+import app.storkecentral.montecito.service.MigrationService;
 
-import javax.security.auth.login.LoginException;
+import java.sql.SQLException;
 
 public class Application {
 
@@ -15,8 +16,13 @@ public class Application {
         port(Config.PORT);
         init();
         DiscordService.connect();
-//        DatabaseService.connect();
-
+        DatabaseService.connect();
+        try {
+            MigrationService.v1(DatabaseService.db);
+            AuthService.getAllTokens();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         RouteController routeController = new RouteController();
     }
 }

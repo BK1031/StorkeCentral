@@ -11,6 +11,6 @@ public class Config {
     public static String DISCORD_CHANNEL = System.getenv("DISCORD_CHANNEL");
 
     public static String URL = System.getenv("JDBC");
-    public static String USER = System.getenv("POSTGRES_USERNAME");
+    public static String USER = System.getenv("POSTGRES_USER");
     public static String PASSWORD = System.getenv("POSTGRES_PASSWORD");
 }

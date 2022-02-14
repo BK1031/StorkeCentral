@@ -40,6 +40,5 @@ public class RouteService {
     public static void postflightLogging(Request request, Response response) {
         System.out.println("RESPONSE CODE: " + response.status());
         System.out.println("RESPONSE BODY: " + response.body());
-        System.out.println("-------------------------------------------------------------------");
     }
 }

@@ -14,6 +14,7 @@ public class RouteController {
         beforeFilters();
         afterFilters();
         ping();
+        refreshTokens();
     }
 
     public void handleCors() {
@@ -28,7 +29,7 @@ public class RouteController {
             if (!AuthService.checkAuth(request, response)) {
                 System.out.println("INVALID AUTHENTICATION!");
                 response.type("application/json");
-                halt(401, StandardResponse.error("{\"message\": \"" + "Invalid authentication token" + "\"}", "Montecito v" + Config.VERSION));
+                halt(401, StandardResponse.error("{\"message\": \"" + "Invalid/missing authentication token" + "\"}", "Montecito v" + Config.VERSION));
             }
         });
     }
@@ -42,7 +43,15 @@ public class RouteController {
 
     public void ping() {
         get("/montecito/ping", (req, res) -> {
-            res.body(StandardResponse.success("{\"message\": \"" + "Montecito v" + Config.VERSION + "\"}", "Montecito v" + Config.VERSION));
+            res.body(StandardResponse.success("{\"message\": \"" + "Montecito v" + Config.VERSION + " is online!" + "\"}", "Montecito v" + Config.VERSION));
+            return res;
+        });
+    }
+
+    public void refreshTokens() {
+        get("/montecito/refresh-tokens", (req, res) -> {
+            AuthService.getAllTokens();
+            res.body(StandardResponse.success("{\"message\": \"" + "API Tokens have been refreshed!" + "\"}", "Montecito v" + Config.VERSION));
             return res;
         });
     }
