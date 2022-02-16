@@ -5,10 +5,28 @@ import (
 	"net/http"
 	"rincon/model"
 	"rincon/service"
+	"strconv"
 )
 
+func GetAllServices(c *gin.Context) {
+	result := service.GetAllServices()
+	c.JSON(http.StatusOK, result)
+}
+
 func GetService(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": service.GetServiceByName(c.Param("name"))})
+	if i, err := strconv.Atoi(c.Param("name")); err == nil {
+		// integer id passed
+		result := service.GetServiceByID(i)
+		if result.ID != i {
+			c.JSON(http.StatusNotFound, gin.H{"message": "No service with id " + strconv.Itoa(i) + " found"})
+			return
+		}
+		c.JSON(http.StatusOK, result)
+		return
+	}
+	// string name passed
+	result := service.GetServiceByName(c.Param("name"))
+	c.JSON(http.StatusOK, result)
 }
 
 func CreateService(c *gin.Context) {
@@ -19,6 +37,7 @@ func CreateService(c *gin.Context) {
 	}
 	if err := service.CreateService(input); err != nil {
 		c.JSON(http.StatusBadRequest, err)
+		return
 	}
 	c.JSON(http.StatusOK, input)
 }

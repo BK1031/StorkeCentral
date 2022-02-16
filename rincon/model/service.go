@@ -3,7 +3,7 @@ package model
 import "time"
 
 type Service struct {
-	ID uint `gorm:"primaryKey" json:"id"`
+	ID int `gorm:"primaryKey" json:"id"`
 	Name string `json:"name"`
 	URL string `json:"url"`
 	Port uint `json:"port"`
