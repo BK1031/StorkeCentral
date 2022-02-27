@@ -30,3 +30,10 @@ func CreateService(service model.Service) error {
 	}
 	return nil
 }
+
+func RemoveService(service model.Service) error {
+	if result := DB.Delete(&service); result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

@@ -15,6 +15,10 @@ func GetServiceStatus(service model.Service) gin.H {
 	res, err := http.Get(service.URL + "/" + strings.ToLower(service.Name) + "/ping")
 	if err != nil {
 		SendStatusEmail(service, false)
+		// Remove service from registry
+		if err := RemoveService(service); err != nil {
+			println("Failed to remove service from registry")
+		}
 		return gin.H{"status": "404", "message": "Failed to make contact with specified service", "service": service}
 	}
 	println(res.Status)
