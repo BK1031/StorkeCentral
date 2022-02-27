@@ -17,6 +17,7 @@ func setupRouter() *gin.Engine {
 func main() {
 	router = setupRouter()
 	service.InitializeDB()
+	service.SetupGomailClient()
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }
