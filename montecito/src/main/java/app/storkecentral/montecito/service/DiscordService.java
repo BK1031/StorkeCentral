@@ -17,7 +17,7 @@ public class DiscordService {
             builder.setActivity(Activity.playing("with my tower"));
             client = builder.build();
             client.awaitReady();
-            client.getGuildById(Config.DISCORD_GUILD).getTextChannelById("940873583406751764").sendMessage(":white_check_mark: Montecito v" + Config.VERSION + " online!").queue();
+            client.getGuildById(Config.DISCORD_GUILD).getTextChannelById(Config.DISCORD_CHANNEL).sendMessage(":white_check_mark: Montecito v" + Config.VERSION + " online!").queue();
         } catch (InterruptedException | LoginException e) {
             e.printStackTrace();
         }

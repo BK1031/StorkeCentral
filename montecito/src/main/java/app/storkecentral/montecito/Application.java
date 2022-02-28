@@ -2,6 +2,8 @@ package app.storkecentral.montecito;
 
 import static spark.Spark.*;
 
+import app.storkecentral.montecito.controller.AuthController;
+import app.storkecentral.montecito.controller.PingController;
 import app.storkecentral.montecito.controller.RouteController;
 import app.storkecentral.montecito.service.AuthService;
 import app.storkecentral.montecito.service.DatabaseService;
@@ -24,5 +26,7 @@ public class Application {
             e.printStackTrace();
         }
         RouteController routeController = new RouteController();
+        AuthController authController = new AuthController();
+        PingController pingController = new PingController();
     }
 }

@@ -29,6 +29,7 @@ public class AuthService {
 
     public static boolean checkAuth(Request request, Response response) {
         if (request.requestMethod().equals("OPTIONS")) return true;
+        if (request.url().contains("ping")) return true;
         if (request.headers("SC_API_TOKEN") != null) {
             String key = request.headers("SC_API_TOKEN").replaceAll(" ", "");
             System.out.println("API TOKEN: " + key);

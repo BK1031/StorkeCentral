@@ -1,7 +1,7 @@
 package app.storkecentral.montecito;
 
 public class Config {
-    final public static String VERSION = "1.0.0";
+    final public static String VERSION = "1.0.3";
 
     public static String ENV = System.getenv("ENV");
     public static int PORT = Integer.parseInt(System.getenv("PORT"));

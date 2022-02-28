@@ -13,8 +13,6 @@ public class RouteController {
         handleCors();
         beforeFilters();
         afterFilters();
-        ping();
-        refreshTokens();
     }
 
     public void handleCors() {
@@ -40,20 +38,4 @@ public class RouteController {
             RouteService.postflightLogging(request, response);
         });
     }
-
-    public void ping() {
-        get("/montecito/ping", (req, res) -> {
-            res.body(StandardResponse.success("{\"message\": \"" + "Montecito v" + Config.VERSION + " is online!" + "\"}", "Montecito v" + Config.VERSION));
-            return res;
-        });
-    }
-
-    public void refreshTokens() {
-        get("/montecito/refresh-tokens", (req, res) -> {
-            AuthService.getAllTokens();
-            res.body(StandardResponse.success("{\"message\": \"" + "API Tokens have been refreshed!" + "\"}", "Montecito v" + Config.VERSION));
-            return res;
-        });
-    }
-
 }
