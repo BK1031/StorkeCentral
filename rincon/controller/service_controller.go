@@ -3,13 +3,16 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"rincon/config"
 	"rincon/model"
 	"rincon/service"
 	"strconv"
+	"time"
 )
 
 func GetAllServices(c *gin.Context) {
 	result := service.GetAllServices()
+
 	c.JSON(http.StatusOK, result)
 }
 
@@ -37,8 +40,21 @@ func CreateService(c *gin.Context) {
 		return
 	}
 	if err := service.CreateService(input); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusOK, input)
+}
+
+func RegisterSelf() {
+	id, err := service.GenerateServiceID(6); if err != nil {}
+	var s model.Service
+	s.ID, _ = strconv.Atoi(id)
+	s.Name = "Rincon"
+	s.Version = config.Version
+	s.URL = "http://localhost:" + config.Port
+	s.Port, _ = strconv.Atoi(config.Port)
+	s.StatusEmail = config.StatusEmail
+	s.CreatedAt = time.Now()
+	service.CreateService(s)
 }
