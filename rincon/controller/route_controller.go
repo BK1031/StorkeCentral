@@ -2,9 +2,11 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"math/rand"
 	"net/http"
 	"rincon/model"
 	"rincon/service"
+	"strings"
 )
 
 func InitializeRoutes(router *gin.Engine)  {
@@ -15,15 +17,34 @@ func InitializeRoutes(router *gin.Engine)  {
 	router.POST("/services", CreateService)
 	router.GET("/status", GetAllServiceStatus)
 	router.GET("/status/:name", GetServiceStatus)
-	router.GET("/routes/match/:route", MatchRoute)
 	router.GET("/routes", GetAllRoutes)
 	router.GET("/routes/:route", GetRoute)
 	router.POST("/routes", CreateRoute)
 	router.DELETE("/routes/:route", RemoveRoute)
+	router.GET("/routes/match/:route/*a", MatchRoute)
 }
 
 func MatchRoute(c *gin.Context) {
-
+	var routeUrl = strings.Split(c.Request.URL.Path, "/routes/match")[1]
+	print(routeUrl)
+	allRoutes := service.GetAllRoutes()
+	for i := 0; i < len(allRoutes); i++ {
+		if strings.HasPrefix(routeUrl, allRoutes[i].Route) {
+			matchedServices := service.GetServiceByName(allRoutes[i].ServiceName)
+			if len(matchedServices) == 0 {
+				// No services found to handle route
+				service.RemoveRoute(allRoutes[i])
+				c.JSON(http.StatusNotFound, gin.H{"message": "No service found to handle: " + routeUrl})
+				return
+			} else {
+				// Select a service instance from list
+				c.JSON(http.StatusOK, matchedServices[rand.Intn(len(matchedServices))])
+				return
+			}
+		}
+	}
+	c.JSON(http.StatusNotFound, gin.H{"message": "No service found to handle: " + routeUrl})
+	return
 }
 
 func GetAllRoutes(c *gin.Context) {

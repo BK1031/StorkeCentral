@@ -5,11 +5,6 @@ import (
 	"rincon/model"
 )
 
-func MatchRoute(route string) string {
-	var returnUrl = ""
-	return returnUrl
-}
-
 func GetAllRoutes() []model.Route {
 	var routes []model.Route
 	result := DB.Find(&routes)
