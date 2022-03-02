@@ -12,7 +12,6 @@ import (
 
 func GetAllServices(c *gin.Context) {
 	result := service.GetAllServices()
-
 	c.JSON(http.StatusOK, result)
 }
 
@@ -47,9 +46,7 @@ func CreateService(c *gin.Context) {
 }
 
 func RegisterSelf() {
-	id, err := service.GenerateServiceID(6); if err != nil {}
 	var s model.Service
-	s.ID, _ = strconv.Atoi(id)
 	s.Name = "Rincon"
 	s.Version = config.Version
 	s.URL = "http://localhost:" + config.Port

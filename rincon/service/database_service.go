@@ -17,7 +17,7 @@ func InitializeDB() {
 		//panic("failed to connect database")
 	}
 	println("Connected to postgres database")
-	db.AutoMigrate(&model.Service{})
+	db.AutoMigrate(&model.Service{}, &model.Route{})
 	println("AutoMigration complete")
 	DB = db
 }
