@@ -46,7 +46,7 @@ func SendStatusEmail(service model.Service, status bool) {
 	if err := gomail.Send(sender, m); err != nil {
 		log.Printf("Could not send email to %q: %v", service.StatusEmail, err)
 	}
-	_, _ = discord.ChannelMessageSend(config.DiscordChannel, "Statuspage update email sent")
+	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Statuspage update email sent")
 	m.Reset()
 }
 
@@ -81,5 +81,5 @@ func SendStatusLog(service model.Service, status bool) {
 		IconURL:      "",
 		ProxyIconURL: "",
 	}
-	_, _ = discord.ChannelMessageSendEmbed(config.DiscordChannel, &embed)
+	_, _ = Discord.ChannelMessageSendEmbed(config.DiscordChannel, &embed)
 }

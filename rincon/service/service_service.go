@@ -37,7 +37,7 @@ func CreateService(service model.Service) error {
 	if result := DB.Create(&service); result.Error != nil {
 		return result.Error
 	}
-	_, _ = discord.ChannelMessageSend(config.DiscordChannel, "New service (" + strconv.Itoa(service.ID) + ") " + service.Name + " added to registry")
+	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "New service (" + strconv.Itoa(service.ID) + ") " + service.Name + " added to registry")
 	return nil
 }
 
@@ -45,7 +45,7 @@ func RemoveService(service model.Service) error {
 	if result := DB.Delete(&service); result.Error != nil {
 		return result.Error
 	}
-	_, _ = discord.ChannelMessageSend(config.DiscordChannel, "Service (" + strconv.Itoa(service.ID) + ") " + service.Name + " removed from registry")
+	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Service (" + strconv.Itoa(service.ID) + ") " + service.Name + " removed from registry")
 	return nil
 }
 

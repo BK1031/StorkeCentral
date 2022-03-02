@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"math/rand"
 	"net/http"
+	"rincon/config"
 	"rincon/model"
 	"rincon/service"
 	"strings"
@@ -21,12 +22,12 @@ func InitializeRoutes(router *gin.Engine)  {
 	router.GET("/routes/:route", GetRoute)
 	router.POST("/routes", CreateRoute)
 	router.DELETE("/routes/:route", RemoveRoute)
-	router.GET("/routes/match/:route/*a", MatchRoute)
+	router.GET("/routes/match/:route", MatchRoute)
 }
 
 func MatchRoute(c *gin.Context) {
-	var routeUrl = strings.Split(c.Request.URL.Path, "/routes/match")[1]
-	print(routeUrl)
+	var routeUrl = "/" + strings.ReplaceAll(c.Param("route"), "-", "/")
+	println(routeUrl)
 	allRoutes := service.GetAllRoutes()
 	for i := 0; i < len(allRoutes); i++ {
 		if strings.HasPrefix(routeUrl, allRoutes[i].Route) {
@@ -35,15 +36,18 @@ func MatchRoute(c *gin.Context) {
 				// No services found to handle route
 				service.RemoveRoute(allRoutes[i])
 				c.JSON(http.StatusNotFound, gin.H{"message": "No service found to handle: " + routeUrl})
+				service.Discord.ChannelMessageSend(config.DiscordChannel, "Failed to find active service `" + allRoutes[i].ServiceName + "` for route `" + allRoutes[i].Route + "`")
 				return
 			} else {
 				// Select a service instance from list
 				c.JSON(http.StatusOK, matchedServices[rand.Intn(len(matchedServices))])
+				service.Discord.ChannelMessageSend(config.DiscordChannel, "Successfully mapped active service `" + allRoutes[i].ServiceName + "` to route `" + allRoutes[i].Route + "` for route `" + routeUrl + "`")
 				return
 			}
 		}
 	}
 	c.JSON(http.StatusNotFound, gin.H{"message": "No service found to handle: " + routeUrl})
+	service.Discord.ChannelMessageSend(config.DiscordChannel, "Failed to find mapped route for route `" + routeUrl + "`")
 	return
 }
 
@@ -53,7 +57,7 @@ func GetAllRoutes(c *gin.Context) {
 }
 
 func GetRoute(c *gin.Context) {
-	var r = c.Param("route")
+	var r = "/" + strings.ReplaceAll(c.Param("route"), "-", "/")
 	result := service.GetRouteByID(r)
 	if result.Route != r {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No route registered for " + r})
@@ -81,7 +85,7 @@ func CreateRoute(c *gin.Context) {
 }
 
 func RemoveRoute(c *gin.Context) {
-	var r = c.Param("route")
+	var r = "/" + strings.ReplaceAll(c.Param("route"), "-", "/")
 	result := service.GetRouteByID(r)
 	if result.Route != r {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No route registered for " + r})
