@@ -46,6 +46,7 @@ func CreateService(c *gin.Context) {
 }
 
 func RegisterSelf() {
+	// Register service with registry
 	var s model.Service
 	s.Name = "Rincon"
 	s.Version = config.Version
@@ -54,4 +55,25 @@ func RegisterSelf() {
 	s.StatusEmail = config.StatusEmail
 	s.CreatedAt = time.Now()
 	service.CreateService(s)
+	// Register routes with service
+	service.CreateRoute(model.Route{
+		Route:       "/rincon",
+		ServiceName: "Rincon",
+		CreatedAt:   time.Now(),
+	})
+	service.CreateRoute(model.Route{
+		Route:       "/status",
+		ServiceName: "Rincon",
+		CreatedAt:   time.Now(),
+	})
+	service.CreateRoute(model.Route{
+		Route:       "/services",
+		ServiceName: "Rincon",
+		CreatedAt:   time.Now(),
+	})
+	service.CreateRoute(model.Route{
+		Route:       "/routes",
+		ServiceName: "Rincon",
+		CreatedAt:   time.Now(),
+	})
 }

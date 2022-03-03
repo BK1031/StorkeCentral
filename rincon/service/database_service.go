@@ -11,13 +11,14 @@ import (
 var DB *gorm.DB
 
 func InitializeDB() {
-	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=storke_central port=5432 sslmode=disable TimeZone=UTC", config.PostgresUser, config.PostgresPassword)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=storke_central port=%s sslmode=disable TimeZone=UTC", config.PostgresHost, config.PostgresUser, config.PostgresPassword, config.PostgresPort)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		//panic("failed to connect database")
+	} else {
+		println("Connected to postgres database")
+		db.AutoMigrate(&model.Service{}, &model.Route{})
+		println("AutoMigration complete")
+		DB = db
 	}
-	println("Connected to postgres database")
-	db.AutoMigrate(&model.Service{}, &model.Route{})
-	println("AutoMigration complete")
-	DB = db
 }
