@@ -21,5 +21,6 @@ func main() {
 	service.ConnectDiscord()
 	controller.InitializeRoutes(router)
 	controller.RegisterSelf()
+	controller.RegisterStatusCronJob()
 	router.Run(":" + config.Port)
 }

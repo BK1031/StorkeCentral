@@ -16,3 +16,5 @@ var DiscordGuild = os.Getenv("DISCORD_GUILD")
 var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
 
 var StatusEmail = os.Getenv("STATUS_EMAIL")
+
+var RegistryUpdateDelay = os.Getenv("REGISTRY_UPDATE_DELAY")
