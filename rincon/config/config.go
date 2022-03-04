@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-var Version = "1.2.2"
+var Version = "1.3.0"
 var Port = os.Getenv("PORT")
 
 var PostgresHost = os.Getenv("POSTGRES_HOST")

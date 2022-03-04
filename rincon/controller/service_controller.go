@@ -46,6 +46,12 @@ func CreateService(c *gin.Context) {
 }
 
 func RegisterSelf() {
+	// Remove any previously registered Rincon instances
+	services := service.GetServiceByName("Rincon")
+	for i, s := range services {
+		println("Removing existing instance " + strconv.Itoa(i) + " of Rincon from Registry")
+		_ = service.RemoveService(s)
+	}
 	// Register service with registry
 	var s model.Service
 	s.Name = "Rincon"
