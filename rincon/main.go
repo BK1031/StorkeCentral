@@ -10,6 +10,9 @@ import (
 var router *gin.Engine
 
 func setupRouter() *gin.Engine {
+	if config.Env == "PROD" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	return r
 }
@@ -21,6 +24,8 @@ func main() {
 	service.ConnectDiscord()
 	controller.InitializeRoutes(router)
 	controller.RegisterSelf()
-	controller.RegisterStatusCronJob()
+	if config.Env == "PROD" {
+		controller.RegisterStatusCronJob()
+	}
 	router.Run(":" + config.Port)
 }

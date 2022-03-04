@@ -15,7 +15,7 @@ func ConnectDiscord() {
 		return
 	}
 	Discord = dg
-	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Rincon v" + config.Version + " online!")
+	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Rincon v" + config.Version + " online! `[ENV = " + config.Env + "]`")
 	if err != nil {
 		fmt.Println("Error sending Discord message, ", err)
 		return
