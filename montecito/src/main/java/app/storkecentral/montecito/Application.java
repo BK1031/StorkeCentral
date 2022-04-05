@@ -5,18 +5,17 @@ import static spark.Spark.*;
 import app.storkecentral.montecito.controller.AuthController;
 import app.storkecentral.montecito.controller.PingController;
 import app.storkecentral.montecito.controller.RouteController;
-import app.storkecentral.montecito.service.AuthService;
-import app.storkecentral.montecito.service.DatabaseService;
-import app.storkecentral.montecito.service.DiscordService;
-import app.storkecentral.montecito.service.MigrationService;
+import app.storkecentral.montecito.service.*;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 public class Application {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         port(Config.PORT);
         init();
+        FirebaseService.initialize();
         DiscordService.connect();
         DatabaseService.connect();
         try {
@@ -25,8 +24,9 @@ public class Application {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        RouteController routeController = new RouteController();
-        AuthController authController = new AuthController();
+        RinconService.register();
         PingController pingController = new PingController();
+        AuthController authController = new AuthController();
+        RouteController routeController = new RouteController();
     }
 }

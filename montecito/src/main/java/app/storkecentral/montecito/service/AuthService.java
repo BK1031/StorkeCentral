@@ -27,7 +27,7 @@ public class AuthService {
         System.out.println("Refreshed token list!");
     }
 
-    public static boolean checkAuth(Request request, Response response) {
+    public static boolean checkAuth(Request request) {
         if (request.requestMethod().equals("OPTIONS")) return true;
         if (request.url().contains("ping")) return true;
         if (request.headers("SC_API_TOKEN") != null) {
@@ -36,6 +36,13 @@ public class AuthService {
             for (Token token : tokenList) {
                 if (token.getKey().equals(key)) return true;
             }
+        }
+        return false;
+    }
+
+    public static boolean checkUserToken(Request request) {
+        if (request.headers("FB_USER_TOKEN") != null) {
+
         }
         return false;
     }
