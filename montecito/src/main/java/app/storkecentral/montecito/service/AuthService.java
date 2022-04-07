@@ -15,7 +15,7 @@ public class AuthService {
 
     public static void getAllTokens() throws SQLException {
         tokenList.clear();
-        System.out.println("Fetching latest token list...");
+        System.out.println("Fetching latest api keys...");
         String sql = "SELECT * FROM \"api_key\"";
         ResultSet rs = DatabaseService.db.createStatement().executeQuery(sql);
         while(rs.next()) {
@@ -30,9 +30,9 @@ public class AuthService {
     public static boolean checkAuth(Request request) {
         if (request.requestMethod().equals("OPTIONS")) return true;
         if (request.url().contains("ping")) return true;
-        if (request.headers("SC_API_TOKEN") != null) {
-            String key = request.headers("SC_API_TOKEN").replaceAll(" ", "");
-            System.out.println("API TOKEN: " + key);
+        if (request.headers("SC-API-KEY") != null) {
+            String key = request.headers("SC-API-KEY").replaceAll(" ", "");
+            System.out.println("API KEY: " + key);
             for (Token token : tokenList) {
                 if (token.getKey().equals(key)) return true;
             }

@@ -11,6 +11,7 @@ import spark.Response;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Date;
+import java.util.UUID;
 
 
 public class RouteService {
@@ -52,7 +53,7 @@ public class RouteService {
         System.out.println("RESPONSE BODY: " + response.body());
     }
 
-    public static Service matchRoute(Request request) {
+    public static Service matchRoute(Request request, Response response) {
         String queryRoute = request.uri().replaceFirst("/", "").replaceAll("/", "-");
         System.out.println(queryRoute);
         Service service = new Service();
