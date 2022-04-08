@@ -50,12 +50,15 @@ public class RouteService {
         System.out.println("RESPONSE BODY: " + response.body());
     }
 
-    public static Service matchRoute(Request request, Response response) {
+    public static Service matchRoute(Request request, Response response, String requestID) {
         String queryRoute = request.uri().replaceFirst("/", "").replaceAll("/", "-");
         Service service = new Service();
         try {
             HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
             HttpRequest rinconRequest = requestFactory.buildGetRequest(new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/routes/match/" + queryRoute));
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Request-ID", requestID);
+            rinconRequest.setHeaders(headers);
             HttpResponse rinconResponse = rinconRequest.execute();
             if (rinconResponse.getStatusCode() == 200) {
                 service = gson.fromJson(rinconResponse.parseAsString(), Service.class);
