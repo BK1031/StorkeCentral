@@ -14,6 +14,7 @@ func setupRouter() *gin.Engine {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.Default()
+	r.Use(controller.RequestLogger())
 	return r
 }
 

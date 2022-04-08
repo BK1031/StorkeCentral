@@ -25,6 +25,13 @@ func InitializeRoutes(router *gin.Engine)  {
 	router.GET("/routes/match/:route", MatchRoute)
 }
 
+func RequestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		println("GATEWAY REQUEST ID: " + c.GetHeader("Request-ID"))
+		c.Next()
+	}
+}
+
 func MatchRoute(c *gin.Context) {
 	var routeUrl = "/" + strings.ReplaceAll(c.Param("route"), "-", "/")
 	println(routeUrl)
