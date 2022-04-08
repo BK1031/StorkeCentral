@@ -47,7 +47,7 @@ public class AuthService {
     public static String decodeUserToken(Request request) {
         if (request.headers("Authorization") != null) {
             try {
-                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.headers("Authorization"));
+                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.headers("Authorization").split("Bearer ")[1]);
                 System.out.println("DECODED TOKEN USER \"" + decodedToken.getUid() + "\"");
                 return decodedToken.getUid();
             } catch (FirebaseAuthException e) {
