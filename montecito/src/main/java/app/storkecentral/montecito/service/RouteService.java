@@ -9,10 +9,7 @@ import spark.Request;
 import spark.Response;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.util.Date;
-import java.util.UUID;
-
 
 public class RouteService {
 
@@ -45,7 +42,7 @@ public class RouteService {
         System.out.println(new Date());
         System.out.println("REQUESTED ROUTE: " + request.url() + " [" + request.requestMethod() + "]");
         System.out.println("REQUEST BODY: " + request.body());
-        System.out.println("REQUEST ORIGIN: " + request.host() + " [" + request.ip() + "]");
+        System.out.println("REQUEST ORIGIN: " + request.ip());
     }
 
     public static void postflightLogging(Request request, Response response) {
@@ -55,7 +52,6 @@ public class RouteService {
 
     public static Service matchRoute(Request request, Response response) {
         String queryRoute = request.uri().replaceFirst("/", "").replaceAll("/", "-");
-        System.out.println(queryRoute);
         Service service = new Service();
         try {
             HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();

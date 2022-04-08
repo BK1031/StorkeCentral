@@ -4,6 +4,7 @@ import app.storkecentral.montecito.Config;
 import app.storkecentral.montecito.model.Service;
 import app.storkecentral.montecito.model.StandardResponse;
 import app.storkecentral.montecito.service.AuthService;
+import app.storkecentral.montecito.service.DiscordService;
 import app.storkecentral.montecito.service.RinconService;
 import app.storkecentral.montecito.service.RouteService;
 import com.google.api.client.http.*;
@@ -37,6 +38,7 @@ public class RouteController {
                 response.type("application/json");
                 halt(401, StandardResponse.error("{\"message\": \"" + "Invalid/missing authentication key" + "\"}", "Montecito v" + Config.VERSION));
             }
+            AuthService.decodeUserToken(request);
         });
     }
 
@@ -84,6 +86,7 @@ public class RouteController {
                 response.status(503);
                 response.body(StandardResponse.error("{\"message\": \"" + "No service found to handle: " + request.uri() + "\"}", "Rincon v" + RinconService.service.getVersion()));
             }
+            DiscordService.logRequest(uuid, request, response);
             return response;
         });
     }

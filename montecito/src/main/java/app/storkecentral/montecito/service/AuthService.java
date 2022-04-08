@@ -1,6 +1,10 @@
 package app.storkecentral.montecito.service;
 
 import app.storkecentral.montecito.model.Token;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import spark.Request;
 import spark.Response;
 
@@ -40,11 +44,17 @@ public class AuthService {
         return false;
     }
 
-    public static boolean checkUserToken(Request request) {
-        if (request.headers("FB_USER_TOKEN") != null) {
-
+    public static String decodeUserToken(Request request) {
+        if (request.headers("Authorization") != null) {
+            try {
+                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.headers("Authorization"));
+                System.out.println("DECODED TOKEN USER \"" + decodedToken.getUid() + "\"");
+                return decodedToken.getUid();
+            } catch (FirebaseAuthException e) {
+                e.printStackTrace();
+            }
         }
-        return false;
+        return "null";
     }
 
 }
