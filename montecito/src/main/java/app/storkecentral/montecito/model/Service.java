@@ -1,5 +1,7 @@
 package app.storkecentral.montecito.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Service {
 
     private int id;
@@ -7,6 +9,7 @@ public class Service {
     private String version;
     private String url;
     private int port;
+    @SerializedName("status_email")
     private String statusEmail;
 
     public int getId() {
