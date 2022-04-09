@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-var Version = "1.3.1"
+var Version = "1.3.2"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 
