@@ -55,13 +55,17 @@ public class RouteService {
         Service service = new Service();
         try {
             HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
-            HttpRequest rinconRequest = requestFactory.buildGetRequest(new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/routes/match/" + queryRoute));
+//            HttpRequest rinconRequest = requestFactory.buildGetRequest(new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/routes/match/" + queryRoute));
+            HttpRequest rinconRequest = requestFactory.buildGetRequest(new GenericUrl("http://rincon:" + Config.RINCON_PORT + "/routes/match/" + queryRoute));
             HttpHeaders headers = new HttpHeaders();
             headers.set("Request-ID", requestID);
             rinconRequest.setHeaders(headers);
             HttpResponse rinconResponse = rinconRequest.execute();
             if (rinconResponse.getStatusCode() == 200) {
                 service = gson.fromJson(rinconResponse.parseAsString(), Service.class);
+                if (service.getName().equals("Rincon")) {
+                    RinconService.service = service;
+                }
             }
             else {
                 System.out.println("Route Matching Error!");

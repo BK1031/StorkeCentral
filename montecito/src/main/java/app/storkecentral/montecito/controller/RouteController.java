@@ -62,7 +62,9 @@ public class RouteController {
                 System.out.println("PROXIED TO: (" + service.getId() + ") " + service.getName());
                 try {
                     HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
-                    HttpRequest proxyRequest = requestFactory.buildGetRequest(new GenericUrl(service.getUrl() + request.uri()));
+                    HttpRequest proxyRequest = requestFactory.buildGetRequest(
+                        new GenericUrl(service.getUrl() + request.uri())
+                    );
                     HttpHeaders headers = new HttpHeaders();
                     for (String h : request.headers()) {
                         if (!h.equals("Content-Type") && !h.equals("Content-Length") && !h.equals("Connection") && !h.equals("Host")) {
@@ -203,7 +205,9 @@ public class RouteController {
                 System.out.println("PROXIED TO: (" + service.getId() + ") " + service.getName());
                 try {
                     HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
-                    HttpRequest proxyRequest = requestFactory.buildDeleteRequest(new GenericUrl(service.getUrl() + request.uri()));
+                    HttpRequest proxyRequest = requestFactory.buildDeleteRequest(
+                        new GenericUrl(service.getUrl() + request.uri())
+                    );
                     HttpHeaders headers = new HttpHeaders();
                     for (String h : request.headers()) {
                         if (!h.equals("Content-Type") && !h.equals("Content-Length") && !h.equals("Connection") && !h.equals("Host")) {

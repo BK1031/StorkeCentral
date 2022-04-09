@@ -23,14 +23,15 @@ public class RinconService {
         try {
             Service montecito = new Service();
             montecito.setName("Montecito");
-            montecito.setUrl("http://localhost:" + Config.PORT);
+            montecito.setUrl("http://montecito:" + Config.PORT);
             montecito.setPort(Config.PORT);
             montecito.setStatusEmail(Config.STATUS_EMAIL);
             montecito.setVersion(Config.VERSION);
 
             HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
             HttpRequest request = requestFactory.buildPostRequest(
-                    new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/services"),
+//                    new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/services"),
+                    new GenericUrl("http://rincon:" + Config.RINCON_PORT + "/services"),
                     ByteArrayContent.fromString("application/json", gson.toJson(montecito))
             );
             HttpResponse response = request.execute();
@@ -61,7 +62,8 @@ public class RinconService {
         try {
             HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
             HttpRequest request = requestFactory.buildPostRequest(
-                    new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/routes"),
+//                    new GenericUrl("http://localhost:" + Config.RINCON_PORT + "/routes"),
+                    new GenericUrl("http://rincon:" + Config.RINCON_PORT + "/routes"),
                     ByteArrayContent.fromString("application/json", "{\n" +
                             "  \"route\": \"/montecito\",\n" +
                             "  \"service_name\": \"montecito\"\n" +
