@@ -20,7 +20,7 @@ func InitializeDB() {
 	if err != nil {
 		if retries < 15 {
 			retries++
-			println("failed to connect database, retrying in 5s...")
+			println("failed to connect database, retrying in 5s... ")
 			time.Sleep(time.Second * 5)
 			InitializeDB()
 		} else {

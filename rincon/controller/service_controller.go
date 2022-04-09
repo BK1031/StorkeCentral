@@ -56,7 +56,7 @@ func RegisterSelf() {
 	var s model.Service
 	s.Name = "Rincon"
 	s.Version = config.Version
-	s.URL = "http://localhost:" + config.Port
+	s.URL = "http://rincon:" + config.Port
 	s.Port, _ = strconv.Atoi(config.Port)
 	s.StatusEmail = config.StatusEmail
 	s.CreatedAt = time.Now()
