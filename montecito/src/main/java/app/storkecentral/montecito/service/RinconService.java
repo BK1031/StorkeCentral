@@ -17,6 +17,8 @@ public class RinconService {
 
     static Gson gson = new Gson();
 
+    static int retries = 0;
+
     public static void register() {
         try {
             Service montecito = new Service();
@@ -37,7 +39,21 @@ public class RinconService {
                 registerRoutes();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+            if (retries < 15) {
+                retries++;
+                System.out.println("Retrying Rincon connection attempt in 5s...");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                register();
+            }
+            else {
+                System.out.println("Failed to connect after 15 attempts, terminating program...");
+                System.exit(100);
+            }
         }
     }
 

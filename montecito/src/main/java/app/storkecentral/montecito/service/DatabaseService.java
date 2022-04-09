@@ -11,6 +11,8 @@ public class DatabaseService {
 
     public static Connection db;
 
+    static int retries = 0;
+
     public static void connect() {
         Connection connection = null;
         try {
@@ -20,10 +22,24 @@ public class DatabaseService {
             connection = DriverManager.getConnection(Config.URL, props);
             System.out.println("Connected to the PostgreSQL server successfully.");
             System.out.println(Config.URL);
+            db = connection;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            if (retries < 15) {
+                retries++;
+                System.out.println("Retrying connection attempt in 5s...");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                connect();
+            }
+            else {
+                System.out.println("Failed to connect after 15 attempts, terminating program...");
+                System.exit(100);
+            }
         }
-        db = connection;
     }
 
 }
