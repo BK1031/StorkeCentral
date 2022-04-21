@@ -30,6 +30,12 @@ func GetServiceByName(name string) []model.Service {
 }
 
 func CreateService(service model.Service) error {
+	var existingServices []model.Service
+	_ = DB.Where("url = ?", service.URL).Find(&existingServices)
+	for i, s := range existingServices {
+		println("Removing existing service (" + strconv.Itoa(i) + ") with duplicate url: " + s.URL)
+		_ = RemoveService(existingServices[i])
+	}
 	id, err := GenerateServiceID(6); if err != nil {
 		return err
 	}

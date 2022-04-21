@@ -6,7 +6,7 @@ type Service struct {
 	ID int `gorm:"primaryKey" json:"id"`
 	Name string `json:"name"`
 	Version string `json:"version"`
-	URL string `json:"url"`
+	URL string `gorm:"unique" json:"url"`
 	Port int `json:"port"`
 	StatusEmail string `json:"status_email"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
