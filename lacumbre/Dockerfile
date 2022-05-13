@@ -1,21 +1,28 @@
-# Use latest stable channel SDK.
-FROM dart:stable AS build
+FROM golang:1.17.7-alpine3.15 as builder
 
-# Resolve app dependencies.
+ENV GOOS=linux
+
+RUN apk --no-cache add ca-certificates
+RUN apk add --no-cache tzdata
+
 WORKDIR /app
-COPY pubspec.* ./
-RUN dart pub get
 
-# Copy app source code (except anything in .dockerignore) and AOT compile app.
-COPY . .
-RUN dart compile exe bin/server.dart -o bin/server
+COPY go.mod ./
+COPY go.sum ./
 
-# Build minimal serving image from AOT-compiled `/server`
-# and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
-FROM scratch
-COPY --from=build /runtime/ /
-COPY --from=build /app/bin/server /app/bin/
+RUN go mod download
 
-# Start server.
-EXPOSE 8080
-CMD ["/app/bin/server"]
+COPY . ./
+
+RUN go build -o /lacumbre
+
+##
+## Deploy
+##
+FROM alpine:3.15
+
+WORKDIR /
+
+COPY --from=builder /lacumbre /lacumbre
+
+ENTRYPOINT ["/lacumbre"]
