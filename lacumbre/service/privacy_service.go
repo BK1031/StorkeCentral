@@ -10,8 +10,10 @@ func GetPrivacyForUser(userID string) model.Privacy {
 }
 
 func SetPrivacyForUser(userID string, privacy model.Privacy) error {
-	if result := DB.Where("user_id = ?", userID).Updates(&privacy); result.Error != nil {
-		return result.Error
+	if DB.Where("user_id = ?", userID).Updates(&privacy).RowsAffected == 0 {
+		if result := DB.Create(&privacy); result.Error != nil {
+			return result.Error
+		}
 	}
 	return nil
 }
