@@ -12,7 +12,7 @@ type User struct {
 	ProfilePictureURL string `json:"profile_picture_url"`
 	Roles []Role `gorm:"-" json:"roles"`
 	Friends []Friend `gorm:"-" json:"friends"`
-	Privacy []Privacy `gorm:"-" json:"privacy"`
+	Privacy Privacy `gorm:"-" json:"privacy"`
 	Logins []Login `gorm:"-" json:"logins"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`

@@ -8,7 +8,7 @@ import (
 )
 
 func GetRolesForUser(c *gin.Context) {
-	result := service.GetAllUsers()
+	result := service.GetRolesForUser(c.Param("userID"))
 	c.JSON(http.StatusOK, result)
 }
 
