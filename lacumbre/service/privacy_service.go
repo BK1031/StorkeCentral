@@ -11,9 +11,12 @@ func GetPrivacyForUser(userID string) model.Privacy {
 
 func SetPrivacyForUser(userID string, privacy model.Privacy) error {
 	if DB.Where("user_id = ?", userID).Updates(&privacy).RowsAffected == 0 {
+		println("New privacy settings created for user with id: " + userID)
 		if result := DB.Create(&privacy); result.Error != nil {
 			return result.Error
 		}
+	} else {
+		println("Existing privacy settings updated for user with id: " + userID)
 	}
 	return nil
 }

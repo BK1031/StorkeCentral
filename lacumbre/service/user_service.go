@@ -21,14 +21,20 @@ func GetUserByID(userID string) model.User {
 
 func CreateUser(user model.User) error {
 	if DB.Where("id = ?", user.ID).Updates(&user).RowsAffected == 0 {
+		println("New user created with id: " + user.ID)
 		if result := DB.Create(&user); result.Error != nil {
 			return result.Error
 		}
+	} else {
+		println("User with id: " + user.ID + " has been updated!")
 	}
 	if user.Privacy.UserID != "" {
+		println("User with id: " + user.ID + " has non-empty privacy object, setting privacy in db...")
 		if err := SetPrivacyForUser(user.ID, user.Privacy); err != nil {
 			return err
 		}
+	} else {
+		println("User with id: " + user.ID + " has empty privacy object, nothing to do here!")
 	}
 	return nil
 }
