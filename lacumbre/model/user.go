@@ -20,3 +20,7 @@ type User struct {
 func (User) TableName() string {
 	return "user"
 }
+
+func (user User) String() string {
+	return "(" + user.ID + ")" + " " + user.FirstName + " " + user.LastName
+}

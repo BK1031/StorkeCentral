@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"lacumbre/config"
 	"lacumbre/model"
 	"lacumbre/service"
 	"net/http"
@@ -18,12 +19,17 @@ func CreateFriendRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if service.GetUserByID(input.FromUserID).ID != "" && service.GetUserByID(input.ToUserID).ID != "" {
+	from := service.GetUserByID(input.FromUserID)
+	to := service.GetUserByID(input.ToUserID)
+	if from.ID != "" && to.ID != "" {
 		if service.GetFriendRequestByID(input.ID).ID != "" {
 			println("Friend request already exists, updating request in db...")
 			if err := service.UpdateFriendRequest(input); err != nil {
 				c.JSON(http.StatusInternalServerError, err)
 				return
+			}
+			if input.Status == "ACCEPTED" {
+				service.Discord.ChannelMessageSend(config.DiscordChannel, from.String() + " is now friends with " + to.String())
 			}
 		} else {
 			println("Creating new friend request...")
@@ -31,6 +37,7 @@ func CreateFriendRequest(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, err)
 				return
 			}
+			service.Discord.ChannelMessageSend(config.DiscordChannel, from.String() + " just sent a friend request to " + to.String())
 		}
 		c.JSON(http.StatusOK, service.GetFriendRequestByID(input.ID))
 	} else {
