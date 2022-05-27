@@ -15,12 +15,14 @@ func setupRouter() *gin.Engine {
 	}
 	r := gin.Default()
 	r.Use(controller.RequestLogger())
+	r.Use(controller.AuthChecker())
 	return r
 }
 
 func main() {
 	router = setupRouter()
 	service.InitializeDB()
+	service.InitializeFirebase()
 	service.ConnectDiscord()
 	service.RegisterRincon()
 	controller.InitializeRoutes(router)

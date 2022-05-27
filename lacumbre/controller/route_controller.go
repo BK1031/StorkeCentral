@@ -20,3 +20,10 @@ func RequestLogger() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func AuthChecker() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Next()
+	}
+}
