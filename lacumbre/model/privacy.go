@@ -3,7 +3,7 @@ package model
 import "time"
 
 type Privacy struct {
-	UserID string `json:"user_id"`
+	UserID string `gorm:"primaryKey" json:"user_id"`
 	Email string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
 	Location string `json:"location"`

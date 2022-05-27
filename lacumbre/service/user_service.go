@@ -7,6 +7,7 @@ func GetAllUsers() []model.User {
 	result := DB.Find(&users)
 	if result.Error != nil {}
 	for _, user := range users {
+		user.Roles = GetRolesForUser(user.ID)
 		user.Privacy = GetPrivacyForUser(user.ID)
 	}
 	return users
@@ -16,6 +17,8 @@ func GetUserByID(userID string) model.User {
 	var user model.User
 	result := DB.Where("id = ?", userID).Find(&user)
 	if result.Error != nil {}
+	user.Roles = GetRolesForUser(user.ID)
+	user.Privacy = GetPrivacyForUser(user.ID)
 	return user
 }
 
@@ -30,6 +33,7 @@ func CreateUser(user model.User) error {
 	}
 	if user.Privacy.UserID != "" {
 		println("User with id: " + user.ID + " has non-empty privacy object, setting privacy in db...")
+		user.Privacy.UserID = user.ID
 		if err := SetPrivacyForUser(user.ID, user.Privacy); err != nil {
 			return err
 		}

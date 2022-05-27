@@ -9,6 +9,9 @@ func InitializeRoutes(router *gin.Engine)  {
 	router.POST("/users", CreateUser)
 	router.GET("/users/:userID/roles", GetRolesForUser)
 	router.POST("/users/:userID/roles", SetRolesForUser)
+	router.GET("/users/:userID/friends", GetFriendsForUser)
+	router.POST("/users/:userID/friends", CreateFriendRequest)
+	router.DELETE("/users/:userID/friends/:requestID", DeleteFriendRequest)
 }
 
 func RequestLogger() gin.HandlerFunc {

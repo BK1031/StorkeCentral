@@ -23,7 +23,7 @@ func SetRolesForUser(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, err)
 			return
 		}
-		c.JSON(http.StatusOK, input)
+		c.JSON(http.StatusOK, service.GetRolesForUser(c.Param("userID")))
 	} else {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No user found with given id: " + c.Param("userID")})
 	}

@@ -31,5 +31,5 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, input)
+	c.JSON(http.StatusOK, service.GetUserByID(input.ID))
 }
