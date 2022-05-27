@@ -4,6 +4,7 @@ import "time"
 
 type User struct {
 	ID string `gorm:"primaryKey" json:"id"`
+	UserName string `gorm:"unique" json:"user_name"`
 	FirstName string `json:"first_name"`
 	LastName string `json:"last_name"`
 	PreferredName string `json:"preferred_name"`

@@ -1,6 +1,8 @@
 package service
 
-import "lacumbre/model"
+import (
+	"lacumbre/model"
+)
 
 func GetAllUsers() []model.User {
 	var users []model.User
@@ -30,6 +32,7 @@ func CreateUser(user model.User) error {
 		if result := DB.Create(&user); result.Error != nil {
 			return result.Error
 		}
+		DiscordLogNewUser(user)
 	} else {
 		println("User with id: " + user.ID + " has been updated!")
 	}
