@@ -1,11 +1,11 @@
 class Privacy {
   String userID = "";
-  String email = "";
-  String phoneNumber = "";
-  String pronouns = "";
-  String gender = "";
-  String location = "";
-  String pushNotifications = "";
+  String email = "PUBLIC";
+  String phoneNumber = "FRIENDS";
+  String pronouns = "PRIVATE";
+  String gender = "PRIVATE";
+  String location = "DISABLED";
+  String pushNotifications = "DISABLED";
   String pushNotificationToken = "";
   DateTime updatedAt = DateTime.now().toUtc();
   DateTime createdAt = DateTime.now().toUtc();

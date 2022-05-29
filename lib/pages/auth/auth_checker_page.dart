@@ -52,6 +52,8 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       } else {
         // User logged in
         anonMode = user.isAnonymous;
+        await loadPreferences();
+        await Future.delayed(const Duration(milliseconds: 500));
         router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
       }
     });

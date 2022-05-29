@@ -14,7 +14,7 @@ class User {
   String phoneNumber = "";
   String profilePictureURL = "";
   String bio = "";
-  String gender = "";
+  String gender = "Male";
   List<Role> roles = [];
   List<Friend> friends = [];
   Privacy privacy = Privacy();

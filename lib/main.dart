@@ -17,6 +17,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
+  SC_API_KEY = dotenv.env["SC_API_KEY"]!;
   UCSB_API_KEY = dotenv.env["UCSB_API_KEY"]!;
   UCSB_DINING_CAM_KEY = dotenv.env['UCSB_DINING_KEY']!;
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
