@@ -1,10 +1,13 @@
 lib/utils/secrets.dart
-
-# Firebase
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
 lib/.env
 .env
+
+# Firebase
+serviceAccountKey.json
+lib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+ios/firebase_app_id_file.json
 
 # Miscellaneous
 *.class

@@ -9,7 +9,7 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
@@ -17,50 +17,30 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile", style: TextStyle(fontWeight: FontWeight.bold),),
+        title: const Text("Profile"),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: anonMode ? Column(
-          children: [
-            Text("Signed in anonymously"),
-            SwitchListTile.adaptive(
-              value: Theme.of(context).brightness == Brightness.dark,
-              title: const Text("Dark Mode"),
-              onChanged: (value) {
-                setState(() {
-                  AdaptiveTheme.of(context).setThemeMode(value ? AdaptiveThemeMode.dark : AdaptiveThemeMode.light);
-                });
-              },
-            ),
-            CupertinoButton(
-              child: Text("Sign Out", style: TextStyle(color: Colors.red),),
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-                router.navigateTo(context, "/auth", transition: TransitionType.fadeIn, clearStack: true, replace: true);
-              },
-            )
-          ],
-        ) : Column(
-          children: [
-            SwitchListTile.adaptive(
-              value: Theme.of(context).brightness == Brightness.dark,
-              title: const Text("Dark Mode"),
-              onChanged: (value) {
-                setState(() {
-                  AdaptiveTheme.of(context).setThemeMode(value ? AdaptiveThemeMode.dark : AdaptiveThemeMode.light);
-                });
-              },
-            ),
-            CupertinoButton(
-              child: Text("Sign Out", style: TextStyle(color: Colors.red),),
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-                router.navigateTo(context, "/auth", transition: TransitionType.fadeIn, clearStack: true, replace: true);
-              },
-            )
-          ],
-        ),
+      body: Column(
+        children: [
+          const Center(
+            child: Text("Profile page!"),
+          ),
+          SwitchListTile.adaptive(
+            title: const Text("Dark Mode"),
+            value: AdaptiveTheme.of(context).mode.isDark,
+            onChanged: (val) {
+              val ? AdaptiveTheme.of(context).setDark() : AdaptiveTheme.of(context).setLight();
+              setState(() {});
+            },
+          ),
+          CupertinoButton(
+            child: const Text("Sign out"),
+            color: Colors.redAccent,
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
+            },
+          )
+        ],
       ),
     );
   }

@@ -4,7 +4,7 @@ class SchedulePage extends StatefulWidget {
   const SchedulePage({Key? key}) : super(key: key);
 
   @override
-  _SchedulePageState createState() => _SchedulePageState();
+  State<SchedulePage> createState() => _SchedulePageState();
 }
 
 class _SchedulePageState extends State<SchedulePage> {
@@ -12,15 +12,10 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Schedule", style: TextStyle(fontWeight: FontWeight.bold),),
+        title: const Text("Schedule"),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: const [
-            Text("Shit here soon...")
-          ],
-        ),
+      body: const Center(
+        child: Text("Schedule goes here, hopefully"),
       ),
     );
   }

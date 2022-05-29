@@ -48,6 +48,7 @@ public class RouteController {
     public void afterFilters() {
         after((request, response) -> {
             RouteService.setCorsHeaders(request, response);
+            response.header("Server", "Montecito Gateway v" + Config.VERSION + " (Jetty)");
             RouteService.postflightLogging(request, response);
         });
     }

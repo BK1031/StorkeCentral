@@ -1,0 +1,82 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14.1-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: storke_central
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  montecito:
+    container_name: montecito
+    depends_on:
+      - db
+      - rincon
+    build: ./montecito
+    image: bk1031/sc_montecito
+    ports:
+      - "9001:9001"
+    environment:
+      ENV: $MONTECITO_ENV
+      PORT: 9001
+      RINCON_PORT: 9002
+      DISCORD_TOKEN: $MONTECITO_DISCORD_TOKEN
+      DISCORD_GUILD: $MONTECITO_DISCORD_GUILD
+      DISCORD_CHANNEL: $MONTECITO_DISCORD_CHANNEL
+      JDBC: $MONTECITO_JDBC
+      POSTGRES_USER: $MONTECITO_POSTGRES_USER
+      POSTGRES_PASSWORD: $MONTECITO_POSTGRES_PASSWORD
+      STATUS_EMAIL: $MONTECITO_STATUS_EMAIL
+
+  rincon:
+    container_name: rincon
+    depends_on:
+      - db
+    build: ./rincon
+    image: bk1031/sc_rincon
+    ports:
+      - "9002:9002"
+    environment:
+      ENV: $RINCON_ENV
+      PORT: 9002
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PORT: $POSTGRES_PORT
+      EMAIL_ADDRESS: $RINCON_EMAIL_ADDRESS
+      EMAIL_PASSWORD: $RINCON_EMAIL_PASSWORD
+      DISCORD_TOKEN: $RINCON_DISCORD_TOKEN
+      DISCORD_GUILD: $RINCON_DISCORD_GUILD
+      DISCORD_CHANNEL: $RINCON_DISCORD_CHANNEL
+      STATUS_EMAIL: $RINCON_STATUS_EMAIL
+      REGISTRY_UPDATE_DELAY: $RINCON_REGISTRY_UPDATE_DELAY
+
+  lacumbre:
+    container_name: lacumbre
+    depends_on:
+      - db
+      - rincon
+    build: ./lacumbre
+    image: bk1031/sc_lacumbre
+    ports:
+      - "9003:9003"
+    environment:
+      ENV: $RINCON_ENV
+      PORT: 9003
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PORT: $POSTGRES_PORT
+      DISCORD_TOKEN: $LACUMBRE_DISCORD_TOKEN
+      DISCORD_GUILD: $LACUMBRE_DISCORD_GUILD
+      DISCORD_CHANNEL: $LACUMBRE_DISCORD_CHANNEL
+      STATUS_EMAIL: $LACUMBRE_STATUS_EMAIL
+      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+
+volumes:
+  pgdata:

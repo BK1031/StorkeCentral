@@ -1,26 +1,34 @@
+import 'package:cool_alert/cool_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:storke_central/utils/config.dart';
-import 'package:storke_central/utils/theme.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
 
-  void loginGoogle() {
-
+  Future<void> loginGoogle() async {
+    // Google sign in
+    GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ["email", "profile", "openid"]);
+    try {
+      await _googleSignIn.signIn();
+    } catch (err) {
+      print(err);
+      CoolAlert.show(context: context, type: CoolAlertType.error, title: "Error", widget: Text(err.toString()));
+    }
   }
 
-  void loginAnon() {
+  Future<void> loginAnon() async {
     FirebaseAuth.instance.signInAnonymously().then((value) {
-      router.navigateTo(context, "/auth", transition: TransitionType.fadeIn, replace: true);
+      router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
     });
   }
 
@@ -35,9 +43,12 @@ class _RegisterPageState extends State<RegisterPage> {
               SizedBox(
                 height: 250,
                 width: MediaQuery.of(context).size.width,
-                child: const Image(
-                  image: AssetImage('images/henley.jpeg'),
-                  fit: BoxFit.cover,
+                child: const Hero(
+                  tag: "storke-banner",
+                  child: Image(
+                    image: AssetImage('images/storke.jpeg'),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const Padding(

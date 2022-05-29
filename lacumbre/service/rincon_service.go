@@ -22,8 +22,7 @@ func RegisterRincon() {
 		"status_email": config.StatusEmail,
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
-	resp, err := http.Post("http://localhost:" + config.RinconPort + "/services", "application/json", responseBody)
-	defer resp.Body.Close()
+	_, err := http.Post("http://rincon:" + config.RinconPort + "/services", "application/json", responseBody)
 	if err != nil {
 		if rinconRetries < 15 {
 			rinconRetries++
@@ -47,8 +46,7 @@ func RegisterRinconRoute(route string) {
 		"service_name": "Lacumbre",
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
-	resp, err := http.Post("http://localhost:" + config.RinconPort + "/routes", "application/json", responseBody)
-	defer resp.Body.Close()
+	_, err := http.Post("http://rincon:" + config.RinconPort + "/routes", "application/json", responseBody)
 	if err != nil {}
 	println("Registered route " + route)
 }

@@ -22,7 +22,6 @@ func GetService(c *gin.Context) {
 		if result.ID != i {
 			c.JSON(http.StatusNotFound, gin.H{"message": "No service with id " + strconv.Itoa(i) + " found"})
 			return
-
 		}
 		c.JSON(http.StatusOK, result)
 		return

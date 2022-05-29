@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 bool darkMode = false;
-
 
 Color sbNavy = const Color(0xFF003660);
 Color sbGold = const Color(0xFFfebc11);
@@ -30,6 +28,7 @@ final ThemeData lightTheme = ThemeData(
     secondary: sbNavy,
     onSecondary: Colors.white,
   ),
+  fontFamily: "Product Sans",
   accentColor: sbNavy,
   primaryColor: sbNavy,
   backgroundColor: lightBackgroundColor,
@@ -60,6 +59,7 @@ final ThemeData darkTheme = ThemeData(
     primary: sbNavy,
     secondary: sbNavy,
   ),
+  fontFamily: "Product Sans",
   accentColor: sbNavy,
   primaryColor: sbNavy,
   canvasColor: darkCanvasColor,
