@@ -18,7 +18,7 @@ func GetAllUsers() []model.User {
 
 func GetUserByID(userID string) model.User {
 	var user model.User
-	result := DB.Where("id = ?", userID).Find(&user)
+	result := DB.Where("id = ? OR user_name = ?", userID, userID).Find(&user)
 	if result.Error != nil {}
 	user.Roles = GetRolesForUser(user.ID)
 	user.Friends = GetFriendsForUser(user.ID)

@@ -4,8 +4,13 @@ import 'package:flutter/rendering.dart';
 
 bool darkMode = false;
 
-Color sbNavy = const Color(0xFF003660);
-Color sbGold = const Color(0xFFfebc11);
+Color SB_NAVY = const Color(0xFF003660);
+Color SB_GOLD = const Color(0xFFfebc11);
+
+Color SB_LT_BLUE = const Color(0xFF0098ff);
+Color SB_RED = const Color(0xFFf33535);
+Color SB_AMBER = const Color(0xFFffca28);
+Color SB_GREEN = const Color(0xFF00ca70);
 
 // LIGHT THEME
 const lightTextColor = Colors.black;
@@ -24,13 +29,13 @@ const darkDividerColor = Color(0xFF545454);
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
   colorScheme: const ColorScheme.light().copyWith(
-    primary: sbNavy,
-    secondary: sbNavy,
+    primary: SB_NAVY,
+    secondary: SB_NAVY,
     onSecondary: Colors.white,
   ),
   fontFamily: "Product Sans",
-  accentColor: sbNavy,
-  primaryColor: sbNavy,
+  accentColor: SB_NAVY,
+  primaryColor: SB_NAVY,
   backgroundColor: lightBackgroundColor,
   scaffoldBackgroundColor: lightBackgroundColor,
   cardColor: lightCardColor,
@@ -56,12 +61,12 @@ final ThemeData lightTheme = ThemeData(
 final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark().copyWith(
-    primary: sbNavy,
-    secondary: sbNavy,
+    primary: SB_NAVY,
+    secondary: SB_NAVY,
   ),
   fontFamily: "Product Sans",
-  accentColor: sbNavy,
-  primaryColor: sbNavy,
+  accentColor: SB_NAVY,
+  primaryColor: SB_NAVY,
   canvasColor: darkCanvasColor,
   scaffoldBackgroundColor: darkBackgroundColor,
   cardColor: darkCardColor,

@@ -1,4 +1,5 @@
 import 'package:fluro/fluro.dart';
+import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
@@ -14,6 +15,8 @@ String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
 
 bool offlineMode = false;
 bool anonMode = false;
+
+User currentUser = User();
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names
