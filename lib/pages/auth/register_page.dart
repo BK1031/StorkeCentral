@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:js_util/js_util_wasm.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
@@ -8,8 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
 
@@ -32,6 +35,12 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
 
+  var phoneMaskFormatter = MaskTextInputFormatter(
+      mask: '(###) ###-####',
+      filter: { "#": RegExp(r'[0-9]') },
+      type: MaskAutoCompletionType.lazy
+  );
+
   List<String> genderList = ["Male", "Female", "Other", "Prefer not to say"];
 
   Future<void> loginGoogle() async {
@@ -49,17 +58,25 @@ class _RegisterPageState extends State<RegisterPage> {
           );
           fb.UserCredential fbUser = await fb.FirebaseAuth.instance.signInWithCredential(credential);
           setState(() {
-              registerUser.id = fbUser.user!.uid;
-              registerUser.firstName = fbUser.user!.displayName!.split(" ")[0];
-              registerUser.lastName = fbUser.user!.displayName!.split(" ")[1];
-              registerUser.email = fbUser.user!.email!;
-              registerUser.phoneNumber = fbUser.user!.phoneNumber ?? "";
-              registerUser.profilePictureURL = fbUser.user!.photoURL!;
+            registerUser.id = fbUser.user!.uid;
+            registerUser.firstName = fbUser.user!.displayName!.split(" ")[0];
+            registerUser.lastName = fbUser.user!.displayName!.split(" ")[1];
+            registerUser.email = fbUser.user!.email!;
+            registerUser.phoneNumber = fbUser.user!.phoneNumber ?? "";
+            registerUser.profilePictureURL = fbUser.user!.photoURL!;
           });
-          firstNameController.text = registerUser.firstName;
-          lastNameController.text = registerUser.lastName;
-          emailController.text = registerUser.email;
-          _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+          await checkIfUserExists().then((userExists) {
+            if (userExists) {
+              print("User already has StorkeCentral account");
+              router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+            } else {
+              print("User does not have a StorkeCentral account");
+              firstNameController.text = registerUser.firstName;
+              lastNameController.text = registerUser.lastName;
+              emailController.text = registerUser.email;
+              _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+            }
+          });
         } else {
           CoolAlert.show(
               context: context,
@@ -90,6 +107,17 @@ class _RegisterPageState extends State<RegisterPage> {
     fb.FirebaseAuth.instance.signInAnonymously().then((value) {
       router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
     });
+  }
+
+  Future<bool> checkIfUserExists() async {
+    await http.get(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY}).then((value) {
+      if (value.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    return false;
   }
 
   Future<void> usernameCheck() async {
@@ -180,7 +208,8 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> registerUserAccount() async {
     try {
       // Verify that username is not already taken
-      var usernameCheck = await http.get(Uri.parse("$API_HOST/users/${registerUser.userName}"), headers: {"SC-API-KEY": SC_API_KEY});
+      await AuthService.getAuthToken();
+      var usernameCheck = await http.get(Uri.parse("$API_HOST/users/${registerUser.userName}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       if (usernameCheck.statusCode == 200) {
         // User exists with username
         CoolAlert.show(
@@ -198,9 +227,9 @@ class _RegisterPageState extends State<RegisterPage> {
       } else {
         // Setting privacy object's userID so privacy will be set in the backend
         registerUser.privacy.userID = registerUser.id;
-        var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY}, body: jsonEncode(registerUser));
+        await AuthService.getAuthToken();
+        var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         if (createUser.statusCode == 200) {
-          currentUser = User.fromJson(jsonDecode(createUser.body)["data"]);
           CoolAlert.show(
               context: context,
               type: CoolAlertType.success,
@@ -210,7 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
               confirmBtnColor: SB_GREEN,
               confirmBtnText: "OK",
               onConfirmBtnTap: () {
-                router.navigateTo(context, "/home", transition: TransitionType.fadeIn, clearStack: true, replace: true);
+                router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, clearStack: true, replace: true);
               }
           );
         } else {
@@ -436,13 +465,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   Expanded(
                     child: TextField(
                       controller: phoneNumberController,
+                      inputFormatters: [phoneMaskFormatter],
                       textAlign: TextAlign.end,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         hintText: "(510) 123-4567",
                       ),
-                      textCapitalization: TextCapitalization.words,
-                      keyboardType: TextInputType.name,
+                      keyboardType: TextInputType.datetime,
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
                         setState(() {

@@ -3,9 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
 
@@ -46,15 +47,23 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       if (user == null) {
         // Not logged in
         await Future.delayed(const Duration(milliseconds: 500));
-        await loadPreferences();
-        await Future.delayed(const Duration(milliseconds: 500));
         router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
       } else {
         // User logged in
         anonMode = user.isAnonymous;
-        await loadPreferences();
-        await Future.delayed(const Duration(milliseconds: 500));
-        router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+        try {
+          if (!anonMode) await AuthService.getUser(user.uid);
+          if (currentUser.id == "") {
+            router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          }
+          await loadPreferences();
+          await Future.delayed(const Duration(milliseconds: 500));
+          router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+        } catch (err) {
+          print(err);
+          await loadOfflineMode();
+          router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+        }
       }
     });
   }
@@ -64,6 +73,10 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     if (!prefs.containsKey("PREF_UNITS")) prefs.setString("PREF_UNITS", PREF_UNITS);
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
     if (mounted) setState(() {percent = 1;});
+  }
+
+  Future<void> loadOfflineMode() async {
+
   }
 
   @override

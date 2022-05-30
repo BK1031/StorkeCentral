@@ -11,6 +11,8 @@ String API_HOST = "http://localhost:9001";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names
+String SC_AUTH_TOKEN = "sc-auth-token";
+// ignore: non_constant_identifier_names
 String UCSB_API_KEY = "ucsb-api-key";
 // ignore: non_constant_identifier_names
 String UCSB_DINING_CAM_KEY = "ucsb-dining-key";
