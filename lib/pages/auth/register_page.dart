@@ -112,7 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!serviceEnabled) {
       print("Location services not enabled!");
       setState(() {
-          currentUser.privacy.location = "DISABLED";
+          registerUser.privacy.location = "DISABLED";
       });
     } else {
       // LocationPermission permission = await Geolocator.checkPermission();
@@ -120,28 +120,40 @@ class _RegisterPageState extends State<RegisterPage> {
       if (permission == LocationPermission.denied) {
         print("Location permission denied");
         setState(() {
-          currentUser.privacy.location = "DISABLED";
+          registerUser.privacy.location = "DISABLED";
         });
       }
       if (permission == LocationPermission.deniedForever) {
         print("Location permission denied forever");
         setState(() {
-          currentUser.privacy.location = "DISABLED_FOREVER";
+          registerUser.privacy.location = "DISABLED_FOREVER";
         });
+        showLocationDisabledAlert();
       }
       if (permission == LocationPermission.whileInUse) {
         print("Location permission enabled when in use");
         setState(() {
-          currentUser.privacy.location = "ENABLED_WHEN_IN_USE";
+          registerUser.privacy.location = "ENABLED_WHEN_IN_USE";
         });
       }
-      if (permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.always) {
         print("Location permission enabled always");
         setState(() {
-          currentUser.privacy.location = "ENABLED_ALWAYS";
+          registerUser.privacy.location = "ENABLED_ALWAYS";
         });
       }
     }
+  }
+
+  void showLocationDisabledAlert() {
+    CoolAlert.show(
+      context: context,
+      type: CoolAlertType.error,
+      title: "Permission Error",
+      widget: const Text("Please enable location access under StorkeCentral in the Settings app."),
+      confirmBtnColor: SB_RED,
+      confirmBtnText: "OK"
+    );
   }
 
   Future<void> requestNotifications() async {
@@ -150,7 +162,81 @@ class _RegisterPageState extends State<RegisterPage> {
       setState(() {
           registerUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
       });
+      if (!accepted) showNotificationsDisabledAlert();
     });
+  }
+
+  void showNotificationsDisabledAlert() {
+    CoolAlert.show(
+        context: context,
+        type: CoolAlertType.error,
+        title: "Permission Error",
+        widget: const Text("Please enable push notifications under StorkeCentral in the Settings app."),
+        confirmBtnColor: SB_RED,
+        confirmBtnText: "OK"
+    );
+  }
+
+  Future<void> registerUserAccount() async {
+    try {
+      // Verify that username is not already taken
+      var usernameCheck = await http.get(Uri.parse("$API_HOST/users/${registerUser.userName}"), headers: {"SC-API-KEY": SC_API_KEY});
+      if (usernameCheck.statusCode == 200) {
+        // User exists with username
+        CoolAlert.show(
+            context: context,
+            type: CoolAlertType.error,
+            title: "Invalid Username",
+            widget: Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
+            backgroundColor: SB_NAVY,
+            confirmBtnColor: SB_RED,
+            confirmBtnText: "OK",
+            onConfirmBtnTap: () {
+              _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+            }
+        );
+      } else {
+        // Setting privacy object's userID so privacy will be set in the backend
+        registerUser.privacy.userID = registerUser.id;
+        var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY}, body: jsonEncode(registerUser));
+        if (createUser.statusCode == 200) {
+          currentUser = User.fromJson(jsonDecode(createUser.body)["data"]);
+          CoolAlert.show(
+              context: context,
+              type: CoolAlertType.success,
+              title: "Account Created",
+              widget: const Text("Your account has been successfully created. Welcome to StorkeCentral!"),
+              backgroundColor: SB_NAVY,
+              confirmBtnColor: SB_GREEN,
+              confirmBtnText: "OK",
+              onConfirmBtnTap: () {
+                router.navigateTo(context, "/home", transition: TransitionType.fadeIn, clearStack: true, replace: true);
+              }
+          );
+        } else {
+          CoolAlert.show(
+              context: context,
+              type: CoolAlertType.error,
+              title: "Account Creation Error",
+              widget: Text(jsonDecode(createUser.body)["message"].toString()),
+              backgroundColor: SB_NAVY,
+              confirmBtnColor: SB_RED,
+              confirmBtnText: "OK"
+          );
+        }
+      }
+    } catch (err) {
+      print(err);
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Account Creation Error",
+          widget: Text(err.toString()),
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_RED,
+          confirmBtnText: "OK"
+      );
+    }
   }
 
   Widget buildPage1(BuildContext context) {
@@ -465,7 +551,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               const Text("Location Access", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
               Visibility(
-                visible: currentUser.privacy.location == "ENABLED",
+                visible: registerUser.privacy.location.contains("ENABLED"),
                 child: Icon(Icons.check_circle, color: SB_GREEN,)
               )
             ],
@@ -479,7 +565,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ],
           ),
           Visibility(
-            visible: currentUser.privacy.location.contains("DISABLED"),
+            visible: registerUser.privacy.location.contains("DISABLED"),
             child: CupertinoButton(
               child: const Text("Share Location"),
               onPressed: requestLocationAccess,
@@ -491,7 +577,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               const Text("Push Notifications", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
               Visibility(
-                  visible: currentUser.privacy.pushNotifications == "ENABLED",
+                  visible: registerUser.privacy.pushNotifications == "ENABLED",
                   child: Icon(Icons.check_circle, color: SB_GREEN,)
               )
             ],
@@ -505,7 +591,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ],
           ),
           Visibility(
-            visible: currentUser.privacy.pushNotifications == "DISABLED",
+            visible: registerUser.privacy.pushNotifications == "DISABLED",
             child: CupertinoButton(
               child: const Text("Allow Notifications"),
               onPressed: requestNotifications
@@ -516,7 +602,9 @@ class _RegisterPageState extends State<RegisterPage> {
             width: MediaQuery.of(context).size.width,
             child: CupertinoButton.filled(
               child: const Text("Create Account"),
-              onPressed: () {}
+              onPressed: () {
+                registerUserAccount();
+              }
             ),
           )
         ],

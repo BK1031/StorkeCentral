@@ -30,7 +30,7 @@ Future<void> main() async {
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   //Remove this method to stop OneSignal Debugging
-  OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+  // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
   OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
