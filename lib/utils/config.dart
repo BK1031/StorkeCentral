@@ -16,6 +16,8 @@ String UCSB_API_KEY = "ucsb-api-key";
 String UCSB_DINING_CAM_KEY = "ucsb-dining-key";
 // ignore: non_constant_identifier_names
 String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
+// ignore: non_constant_identifier_names
+String ONESIGNAL_APP_ID = "onesignal-app-id";
 
 bool offlineMode = false;
 bool anonMode = false;

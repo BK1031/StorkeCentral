@@ -4,6 +4,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/home/home_page.dart';
@@ -21,11 +22,16 @@ Future<void> main() async {
   UCSB_API_KEY = dotenv.env["UCSB_API_KEY"]!;
   UCSB_DINING_CAM_KEY = dotenv.env['UCSB_DINING_KEY']!;
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
+  ONESIGNAL_APP_ID = dotenv.env['ONESIGNAL_APP_ID']!;
 
   print("StorkeCentral v${appVersion.toString()}");
   FirebaseApp app = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print("Initialized default app $app");
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
+  //Remove this method to stop OneSignal Debugging
+  OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+  OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
   router.define("/", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {

@@ -5,8 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
@@ -105,6 +107,52 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
+  Future<void> requestLocationAccess() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print("Location services not enabled!");
+      setState(() {
+          currentUser.privacy.location = "DISABLED";
+      });
+    } else {
+      // LocationPermission permission = await Geolocator.checkPermission();
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print("Location permission denied");
+        setState(() {
+          currentUser.privacy.location = "DISABLED";
+        });
+      }
+      if (permission == LocationPermission.deniedForever) {
+        print("Location permission denied forever");
+        setState(() {
+          currentUser.privacy.location = "DISABLED_FOREVER";
+        });
+      }
+      if (permission == LocationPermission.whileInUse) {
+        print("Location permission enabled when in use");
+        setState(() {
+          currentUser.privacy.location = "ENABLED_WHEN_IN_USE";
+        });
+      }
+      if (permission == LocationPermission.deniedForever) {
+        print("Location permission enabled always");
+        setState(() {
+          currentUser.privacy.location = "ENABLED_ALWAYS";
+        });
+      }
+    }
+  }
+
+  Future<void> requestNotifications() async {
+    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+      print("Accepted permission: $accepted");
+      setState(() {
+          registerUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
+      });
+    });
+  }
+
   Widget buildPage1(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -194,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: const Text("Next"),
                   onPressed: () {
                     if (validUsername && registerUser.userName != "") {
-                      _pageController.animateToPage(2, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+                      _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                     } else {
                       CoolAlert.show(
                           context: context,
@@ -327,7 +375,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: () {
                     if (validUsername && registerUser.userName != "") {
                       if (registerUser.firstName != "" && registerUser.lastName != "") {
-                        _pageController.animateToPage(3, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+                        _pageController.animateToPage(3, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                       }
                       else {
                         CoolAlert.show(
@@ -412,38 +460,63 @@ class _RegisterPageState extends State<RegisterPage> {
             ],
           ),
           const Padding(padding: EdgeInsets.all(8)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Location Access", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+              Visibility(
+                visible: currentUser.privacy.location == "ENABLED",
+                child: Icon(Icons.check_circle, color: SB_GREEN,)
+              )
+            ],
+          ),
+          const Padding(padding: EdgeInsets.all(2)),
+          Row(
+            children: const [
+              Icon(Icons.near_me, color: Colors.black54, size: 60),
+              Padding(padding: EdgeInsets.all(4)),
+              Expanded(child: Text("We ask that you share your location with us in order to see nearby buildings, travel times, and navigation directions.", style: TextStyle(fontSize: 16),)),
+            ],
+          ),
+          Visibility(
+            visible: currentUser.privacy.location.contains("DISABLED"),
+            child: CupertinoButton(
+              child: const Text("Share Location"),
+              onPressed: requestLocationAccess,
+            ),
+          ),
+          const Padding(padding: EdgeInsets.all(8)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Push Notifications", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+              Visibility(
+                  visible: currentUser.privacy.pushNotifications == "ENABLED",
+                  child: Icon(Icons.check_circle, color: SB_GREEN,)
+              )
+            ],
+          ),
+          const Padding(padding: EdgeInsets.all(2)),
+          Row(
+            children: const [
+              Icon(Icons.notifications_active_rounded, color: Colors.black54, size: 60),
+              Padding(padding: EdgeInsets.all(4)),
+              Expanded(child: Text("Enabling push notifications will allow us to send you important updates and reminders. You can update this setting at any time.", style: TextStyle(fontSize: 16),)),
+            ],
+          ),
+          Visibility(
+            visible: currentUser.privacy.pushNotifications == "DISABLED",
+            child: CupertinoButton(
+              child: const Text("Allow Notifications"),
+              onPressed: requestNotifications
+            ),
+          ),
+          const Padding(padding: EdgeInsets.all(8)),
           SizedBox(
             width: MediaQuery.of(context).size.width,
             child: CupertinoButton.filled(
               child: const Text("Create Account"),
-              onPressed: () {
-                if (validUsername && registerUser.userName != "") {
-                  if (registerUser.firstName != "" && registerUser.lastName != "") {
-                    _pageController.animateToPage(1, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
-                  }
-                  else {
-                    CoolAlert.show(
-                        context: context,
-                        type: CoolAlertType.error,
-                        title: "Empty Name",
-                        widget: const Text("Please enter your first and last name."),
-                        backgroundColor: SB_NAVY,
-                        confirmBtnColor: SB_RED,
-                        confirmBtnText: "OK"
-                    );
-                  }
-                } else {
-                  CoolAlert.show(
-                      context: context,
-                      type: CoolAlertType.error,
-                      title: "Invalid Username",
-                      widget: Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
-                      backgroundColor: SB_NAVY,
-                      confirmBtnColor: SB_RED,
-                      confirmBtnText: "OK"
-                  );
-                }
-              },
+              onPressed: () {}
             ),
           )
         ],

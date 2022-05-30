@@ -54,6 +54,8 @@ dependencies:
   google_sign_in: ^5.3.2
   cool_alert: ^1.1.0
   http: ^0.13.4
+  geolocator: ^8.2.1
+  onesignal_flutter: ^3.3.1
 
 dev_dependencies:
   flutter_test:
