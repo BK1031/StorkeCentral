@@ -23,8 +23,8 @@ class Friend {
       "from_user_id": fromUserID,
       "to_user_id": toUserID,
       "status": status,
-      "updated_at": updatedAt.toString(),
-      "created_at": createdAt.toString()
+      "updated_at": updatedAt.toIso8601String(),
+      "created_at": createdAt.toIso8601String()
     };
   }
 }

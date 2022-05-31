@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -53,9 +54,15 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
         anonMode = user.isAnonymous;
         print("anonMode: $anonMode");
         try {
-          if (!anonMode) await AuthService.getUser(user.uid);
-          if (!anonMode && currentUser.id == "") {
-            router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          if (!anonMode) {
+            await AuthService.getUser(user.uid);
+            if (currentUser.id == "") {
+              router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+              return;
+            }
+            FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
+          } else {
+            FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
           }
           await loadPreferences();
           await Future.delayed(const Duration(milliseconds: 500));

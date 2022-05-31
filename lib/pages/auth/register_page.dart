@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
@@ -104,6 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> loginAnon() async {
     fb.FirebaseAuth.instance.signInAnonymously().then((value) {
+      FirebaseAnalytics.instance.logSignUp(signUpMethod: "Anonymous");
       router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
     });
   }
@@ -227,6 +229,7 @@ class _RegisterPageState extends State<RegisterPage> {
         print(registerUser.toJson());
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
+        FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
         if (createUser.statusCode == 200) {
           CoolAlert.show(
               context: context,

@@ -58,6 +58,7 @@ Future<void> main() async {
       onGenerateRoute: router.generator,
       theme: theme,
       darkTheme: darkTheme,
+      debugShowCheckedModeBanner: false,
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: analytics)
       ],
