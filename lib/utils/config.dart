@@ -1,4 +1,6 @@
 import 'package:fluro/fluro.dart';
+import 'package:storke_central/models/dining_hall.dart';
+import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/version.dart';
 
@@ -25,6 +27,11 @@ bool offlineMode = false;
 bool anonMode = false;
 
 User currentUser = User();
+
+List<DiningHall> diningHallList = [];
+DiningHall selectedDiningHall = DiningHall();
+
+NewsArticle selectedArticle = NewsArticle();
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names

@@ -30,8 +30,8 @@ class TabBarController extends StatefulWidget {
 class _TabBarControllerState extends State<TabBarController> {
 
   int _currPage = 0;
+  List<String> pageTitles = ["Home", "Schedule", "Maps", "Profile"];
   final PageController _pageController = PageController();
-
 
   @override
   void initState() {
@@ -99,6 +99,12 @@ class _TabBarControllerState extends State<TabBarController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          pageTitles[_currPage],
+          style: const TextStyle(fontWeight: FontWeight.bold)
+        ),
+      ),
       bottomNavigationBar: CurvedNavigationBar(
         animationDuration: const Duration(milliseconds: 200),
         backgroundColor: Colors.transparent,
