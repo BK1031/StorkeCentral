@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:js_util/js_util_wasm.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
@@ -110,14 +109,12 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<bool> checkIfUserExists() async {
-    await http.get(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY}).then((value) {
-      if (value.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
-    });
-    return false;
+    var userExistCheck = await http.get(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY});
+    if (userExistCheck.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   Future<void> usernameCheck() async {
@@ -227,6 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
       } else {
         // Setting privacy object's userID so privacy will be set in the backend
         registerUser.privacy.userID = registerUser.id;
+        print(registerUser.toJson());
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         if (createUser.statusCode == 200) {
@@ -247,7 +245,7 @@ class _RegisterPageState extends State<RegisterPage> {
               context: context,
               type: CoolAlertType.error,
               title: "Account Creation Error",
-              widget: Text(jsonDecode(createUser.body)["message"].toString()),
+              widget: Text(jsonDecode(createUser.body)["data"].toString()),
               backgroundColor: SB_NAVY,
               confirmBtnColor: SB_RED,
               confirmBtnText: "OK"
@@ -511,7 +509,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           widget: Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
                           backgroundColor: SB_NAVY,
                           confirmBtnColor: SB_RED,
-                          confirmBtnText: "OK"
+                          confirmBtnText: "OK",
+                          onConfirmBtnTap: () {
+                            router.pop(context);
+                            _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                          }
                       );
                     }
                   },

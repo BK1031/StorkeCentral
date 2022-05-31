@@ -51,9 +51,10 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       } else {
         // User logged in
         anonMode = user.isAnonymous;
+        print("anonMode: $anonMode");
         try {
           if (!anonMode) await AuthService.getUser(user.uid);
-          if (currentUser.id == "") {
+          if (!anonMode && currentUser.id == "") {
             router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
           }
           await loadPreferences();
@@ -76,7 +77,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> loadOfflineMode() async {
-
+    print("Failed to reach server, entering offline mode!");
   }
 
   @override

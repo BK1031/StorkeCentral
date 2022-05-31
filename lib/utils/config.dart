@@ -4,7 +4,7 @@ import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
 
-Version appVersion = Version("2.0.0+1");
+Version appVersion = Version("2.1.0+1");
 
 // ignore: non_constant_identifier_names
 String API_HOST = "http://localhost:9001";

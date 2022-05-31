@@ -35,8 +35,8 @@ class Privacy {
       "location": location,
       "push_notifications": pushNotifications,
       "push_notification_token": pushNotificationToken,
-      "updated_at": updatedAt.toString(),
-      "created_at": createdAt.toString()
+      "updated_at": updatedAt.toIso8601String(),
+      "created_at": createdAt.toIso8601String()
     };
   }
 }

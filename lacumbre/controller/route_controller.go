@@ -41,17 +41,22 @@ func AuthChecker() gin.HandlerFunc {
 		if err != nil {
 			log.Fatalf("error getting Auth client: %v\n", err)
 		}
-		token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[0])
-		if err != nil {
-			println("error verifying ID token")
-			requestUserID = "null"
-		} else {
-			println("Decoded User ID: " + token.UID)
-			requestUserID = token.UID
-			roles := service.GetRolesForUser(requestUserID)
-			for _, role := range roles {
-				requestUserRoles = append(requestUserRoles, role.Role)
+		if c.GetHeader("Authorization") != "" {
+			token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[1])
+			if err != nil {
+				println("error verifying ID token")
+				requestUserID = "null"
+			} else {
+				println("Decoded User ID: " + token.UID)
+				requestUserID = token.UID
+				roles := service.GetRolesForUser(requestUserID)
+				for _, role := range roles {
+					requestUserRoles = append(requestUserRoles, role.Role)
+				}
 			}
+		} else {
+			println("No user token provided")
+			requestUserID = "null"
 		}
 
 		// The main authentication gateway per request path
