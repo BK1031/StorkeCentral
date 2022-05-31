@@ -20,7 +20,7 @@ services:
     build: ./montecito
     image: bk1031/sc_montecito
     ports:
-      - "9001:9001"
+      - "4001:4001"
     environment:
       ENV: $MONTECITO_ENV
       PORT: $MONTECITO_PORT
@@ -40,7 +40,7 @@ services:
     build: ./rincon
     image: bk1031/sc_rincon
     ports:
-      - "9002:9002"
+      - "4002"
     environment:
       ENV: $RINCON_ENV
       PORT: $RINCON_PORT
@@ -64,7 +64,7 @@ services:
     build: ./lacumbre
     image: bk1031/sc_lacumbre
     ports:
-      - "9003:9003"
+      - "4003"
     environment:
       ENV: $RINCON_ENV
       PORT: $LACUMBRE_PORT
