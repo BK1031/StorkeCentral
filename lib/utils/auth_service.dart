@@ -23,8 +23,8 @@ class AuthService {
     }
     else {
       // logged but not user data found!
-      print("StorkeCentral account not found! Signing user out.");
-      signOut();
+      print("StorkeCentral account not found!");
+      // signOut();
     }
   }
 
@@ -35,6 +35,7 @@ class AuthService {
 
   static Future<void> getAuthToken() async {
     SC_AUTH_TOKEN = await fb.FirebaseAuth.instance.currentUser!.getIdToken(true);
+    print("Retrieved auth token: ...${SC_AUTH_TOKEN.substring(SC_AUTH_TOKEN.length - 20)}");
     // await Future.delayed(const Duration(milliseconds: 100));
   }
 }

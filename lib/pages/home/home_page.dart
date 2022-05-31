@@ -32,8 +32,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _determinePosition();
-    getDiningHalls();
     getNewsHeadline();
+    getDining();
   }
 
 
@@ -44,37 +44,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _determinePosition() async {
-    bool serviceEnabled;
     LocationPermission permission;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to retrieve location!",
-          text: "We were unable to retrieve device location. Please verify that Location Services are enabled for this app in System Settings."
-      );
-    }
     permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return CoolAlert.show(
-            context: context,
-            type: CoolAlertType.error,
-            title: "Failed to retrieve location!",
-            text: "We were unable to retrieve device location. Please verify that Location Services are enabled for this app in System Settings."
-        );
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      return CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to retrieve location!",
-          text: "We were unable to retrieve device location. Please verify that Location Services are enabled for this app in System Settings."
-      );
-    }
     positionStream = Geolocator.getPositionStream().listen((Position position) {
       // print(position == null ? 'Unknown' : position.latitude.toString() + ', ' + position.longitude.toString());
       if (mounted) {
@@ -85,77 +56,80 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> getDiningHalls() async {
-    try {
-      http.get(Uri.parse("https://api.ucsb.edu/dining/commons/v1/"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
-        var diningHallJson = jsonDecode(value.body);
-        diningHallList.clear();
-        for (int i = 0; i < diningHallJson.length; i++) {
-          DiningHall diningHall = DiningHall.fromJson(diningHallJson[i]);
-          diningHall.distanceFromUser = Geolocator.distanceBetween(diningHall.latitude, diningHall.longitude, position!.latitude, position!.longitude);
-          print("Distance to ${diningHall.name}: ${diningHall.distanceFromUser} m");
-          setState(() {
-            diningHallList.add(diningHall);
-            diningHallList.sort((a, b) => a.distanceFromUser.compareTo(b.distanceFromUser));
-          });
-          http.get(Uri.parse("https://api.ucsb.edu/dining/commons/v1/hours/${DateFormat("yyyy-MM-dd").format(DateTime.now())}/${diningHall.code}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
-            var diningHallJson = jsonDecode(value.body);
-            for (int i = 0; i < diningHallJson.length; i++) {
-              if (diningHallJson[i]["open"] != null) {
-                DiningHallMeal meal = DiningHallMeal.fromJson(diningHallJson[i]);
-                diningHall.meals.add(meal);
-              }
-            }
-            setState(() {
-              diningHallList.firstWhere((element) => element.code == diningHall.code).status = getDiningHallStatus(diningHall);
-            });
-          });
-        }
-      });
-    } catch(e) {
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to retrieve dining halls!",
-          text: e.toString()
-      );
-    }
-  }
-
-  String getDiningHallStatus(DiningHall diningHall) {
-    // Calculate dining hall status
-    for (int i = 0; i < diningHall.meals.length; i++) {
-      if (diningHall.meals[i].open.isAfter(DateTime.now())) {
-        return ("${diningHall.meals[i].mealCode.capitalize()} at ${DateFormat("jm").format(diningHall.meals[i].open)}");
-      }
-      else if (diningHall.meals[i].open.isBefore(DateTime.now()) && diningHall.meals[i].close.isAfter(DateTime.now())) {
-        return ("${diningHall.meals[i].mealCode.capitalize()} until ${DateFormat("jm").format(diningHall.meals[i].close)}");
-      }
-    }
-    // TODO: get next days breakfast
-    return "Closed Today";
-  }
-
   Future<void> getNewsHeadline() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 100));
-      setState(() {
-        selectedArticle = NewsArticle.fromJson({
-          'headline': "Daily Nexus front page article",
-          'byline': "Daily Nexus",
-          'date': DateTime.now(),
-          'excerpt': "The letter was published on Reddit on Oct. 26 following the Oct. 5 Design Review Committee (DRC) meeting.",
-          'coverUrl': "https://i1.wp.com/dailynexus.s3.us-west-1.amazonaws.com/dailynexus/wp-content/uploads/2022/04/03135030/UCSBReturnsTuitions_DNFilePhoto.jpg",
-          'articleUrl': "https://dailynexus.com",
+    if (!offlineMode) {
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        setState(() {
+          selectedArticle = NewsArticle.fromJson({
+            'headline': "Daily Nexus front page article",
+            'byline': "Daily Nexus",
+            'date': DateTime.now(),
+            'excerpt': "The letter was published on Reddit on Oct. 26 following the Oct. 5 Design Review Committee (DRC) meeting.",
+            'coverUrl': "https://i1.wp.com/dailynexus.s3.us-west-1.amazonaws.com/dailynexus/wp-content/uploads/2022/04/03135030/UCSBReturnsTuitions_DNFilePhoto.jpg",
+            'articleUrl': "https://dailynexus.com",
+          });
         });
-      });
-    } catch(e) {
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to retrieve news headlines!",
-          text: e.toString()
-      );
+      } catch(e) {
+        CoolAlert.show(
+            context: context,
+            type: CoolAlertType.error,
+            title: "Failed to retrieve news headlines!",
+            text: e.toString(),
+            backgroundColor: SB_NAVY,
+            confirmBtnColor: SB_RED,
+            confirmBtnText: "OK",
+        );
+      }
+    } else {
+      print("Offline mode, searching cache for news...");
+    }
+  }
+
+  Future<void> getDining() async {
+    if (!offlineMode) {
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        diningHallList.clear();
+        setState(() {
+            diningHallList.add(DiningHall.fromJson({
+              'name': "Dining Hall 1",
+              'code': "carrillo",
+              'hasSackMeal': false,
+              'hasTakeOut': false,
+              'hasDiningCam': true,
+              'location': {'latitude': 0.0, 'longitude': 0.0}
+            }));
+            diningHallList.add(DiningHall.fromJson({
+              'name': "Dining Hall 2",
+              'code': "de-la-guerra",
+              'hasSackMeal': false,
+              'hasTakeOut': false,
+              'hasDiningCam': true,
+              'location': {'latitude': 0.0, 'longitude': 0.0}
+            }));
+            diningHallList.add(DiningHall.fromJson({
+              'name': "Dining Hall 3",
+              'code': "portola",
+              'hasSackMeal': false,
+              'hasTakeOut': false,
+              'hasDiningCam': true,
+              'location': {'latitude': 0.0, 'longitude': 0.0}
+            }));
+        });
+      } catch(e) {
+        CoolAlert.show(
+            context: context,
+            type: CoolAlertType.error,
+            title: "Failed to retrieve dining information!",
+            text: e.toString(),
+            backgroundColor: SB_NAVY,
+            confirmBtnColor: SB_RED,
+            confirmBtnText: "OK",
+        );
+      }
+    } else {
+      print("Offline mode, searching cache for dining...");
     }
   }
 
@@ -214,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
                     child: Row(
                       children: const [
                         Icon(Icons.fastfood),
@@ -242,24 +216,24 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   child: Stack(
                                     children: [
-                                      Hero(
-                                        tag: diningHallList[i].code,
-                                        child: Image.asset(
-                                          "images/${diningHallList[i].code}.jpeg",
-                                          fit: BoxFit.cover,
-                                          height: 150,
-                                          width: 150,
-                                        ),
-                                      ),
+                                      // Hero(
+                                      //   tag: diningHallList[i].code,
+                                      //   child: Image.asset(
+                                      //     "images/${diningHallList[i].code}.jpeg",
+                                      //     fit: BoxFit.cover,
+                                      //     height: 150,
+                                      //     width: 150,
+                                      //   ),
+                                      // ),
                                       Container(
                                         height: 350.0,
                                         decoration: BoxDecoration(
-                                            color: Colors.white,
                                             gradient: LinearGradient(
                                                 begin: FractionalOffset.topCenter,
                                                 end: FractionalOffset.bottomCenter,
                                                 colors: [
-                                                  Colors.grey.withOpacity(0.0),
+                                                  Colors.grey.withOpacity(1.0),
+                                                  // Colors.grey.withOpacity(0.0),
                                                   Colors.black,
                                                 ],
                                                 stops: const [0, 1]

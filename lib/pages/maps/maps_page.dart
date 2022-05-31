@@ -11,9 +11,6 @@ class _MapsPageState extends State<MapsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Maps"),
-      ),
       body: const Center(
         child: Text("Map coming soon!")
       ),
