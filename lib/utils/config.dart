@@ -1,4 +1,5 @@
 import 'package:fluro/fluro.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/user.dart';
@@ -6,11 +7,11 @@ import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
 
-Version appVersion = Version("2.1.0+1");
+Version appVersion = Version("2.2.2+1");
 
 // ignore: non_constant_identifier_names
-// String API_HOST = "https://api.storkecentral.app";
-String API_HOST = "http://localhost:4001";
+String API_HOST = "https://api.storkecentr.al";
+// String API_HOST = "http://localhost:4001";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names
@@ -28,6 +29,8 @@ bool offlineMode = false;
 bool anonMode = false;
 
 User currentUser = User();
+
+Position? currentPosition;
 
 List<DiningHall> diningHallList = [];
 DiningHall selectedDiningHall = DiningHall();

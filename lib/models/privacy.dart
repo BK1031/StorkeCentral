@@ -5,6 +5,7 @@ class Privacy {
   String pronouns = "PRIVATE";
   String gender = "PRIVATE";
   String location = "DISABLED";
+  String status = "PUBLIC";
   String pushNotifications = "DISABLED";
   String pushNotificationToken = "";
   DateTime updatedAt = DateTime.now().toUtc();
@@ -19,6 +20,7 @@ class Privacy {
     pronouns = json["pronouns"] ?? "";
     gender = json["gender"] ?? "";
     location = json["location"] ?? "";
+    status = json["status"] ?? "";
     pushNotifications = json["push_notifications"] ?? "";
     pushNotificationToken = json["push_notification_token"] ?? "";
     updatedAt = DateTime.tryParse(json["updated_at"]) ?? DateTime.now().toUtc();
@@ -33,6 +35,7 @@ class Privacy {
       "pronouns": pronouns,
       "gender": gender,
       "location": location,
+      "status": status,
       "push_notifications": pushNotifications,
       "push_notification_token": pushNotificationToken,
       "updated_at": updatedAt.toIso8601String(),

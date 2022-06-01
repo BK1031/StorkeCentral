@@ -31,29 +31,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _determinePosition();
     getNewsHeadline();
     getDining();
-  }
-
-
-  @override
-  void dispose() {
-    super.dispose();
-    positionStream?.cancel();
-  }
-
-  Future<void> _determinePosition() async {
-    LocationPermission permission;
-    permission = await Geolocator.checkPermission();
-    positionStream = Geolocator.getPositionStream().listen((Position position) {
-      // print(position == null ? 'Unknown' : position.latitude.toString() + ', ' + position.longitude.toString());
-      if (mounted) {
-        setState(() {
-          this.position = position;
-        });
-      }
-    });
   }
 
   Future<void> getNewsHeadline() async {

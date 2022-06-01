@@ -15,6 +15,7 @@ class User {
   String profilePictureURL = "";
   String bio = "";
   String gender = "Male";
+  String status = "";
   List<Role> roles = [];
   List<Friend> friends = [];
   Privacy privacy = Privacy();
@@ -35,6 +36,7 @@ class User {
     profilePictureURL = json["profile_picture_url"] ?? "";
     bio = json["bio"] ?? "";
     gender = json["gender"] ?? "";
+    status = json["status"] ?? "";
     for (int i = 0; i < json["roles"].length; i++) {
       roles.add(Role.fromJson(json["roles"][i]));
     }
@@ -59,6 +61,7 @@ class User {
       "profile_picture_url": profilePictureURL,
       "bio": bio,
       "gender": gender,
+      "status": status,
       "roles": roles,
       "friends": friends,
       "privacy": privacy,

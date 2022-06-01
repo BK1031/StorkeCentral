@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -27,17 +29,49 @@ class TabBarController extends StatefulWidget {
   State<TabBarController> createState() => _TabBarControllerState();
 }
 
-class _TabBarControllerState extends State<TabBarController> {
+class _TabBarControllerState extends State<TabBarController> with WidgetsBindingObserver {
 
   int _currPage = 0;
   List<String> pageTitles = ["Home", "Schedule", "Maps", "Profile"];
   final PageController _pageController = PageController();
+  StreamSubscription<Position>? _positionStream;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _determinePosition();
     firebaseAnalytics();
-    sendLoginEvent();
+    if (!anonMode && !offlineMode) sendLoginEvent();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      print("App has been resumed");
+      _determinePosition();
+      if (!anonMode && !offlineMode) sendLoginEvent();
+    } else {
+      print("App has been backgrounded");
+      if (!anonMode && !offlineMode) setUserStatus("OFFLINE");
+      _positionStream?.cancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _positionStream?.cancel();
+  }
+
+  Future<void> _determinePosition() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+      _positionStream = Geolocator.getPositionStream().listen((Position position) {
+        // print(position == null ? 'Unknown' : position.latitude.toString() + ', ' + position.longitude.toString());
+        currentPosition = position;
+      });
+    }
   }
 
   Future<void> firebaseAnalytics() async {
@@ -57,10 +91,24 @@ class _TabBarControllerState extends State<TabBarController> {
     login.deviceVersion = "${Platform.operatingSystem.toUpperCase()} ${Platform.operatingSystemVersion}";
 
     LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      currentUser.privacy.location = "DISABLED";
+    } else if (permission == LocationPermission.deniedForever) {
+      currentUser.privacy.location = "DISABLED_FOREVER";
+    } else if (permission == LocationPermission.whileInUse) {
+      currentUser.privacy.location = "ENABLED_WHEN_IN_USE";
+    } else if (permission == LocationPermission.always) {
+      currentUser.privacy.location = "ENABLED_ALWAYS";
+    }
     if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
-      Position position = await Geolocator.getCurrentPosition();
-      login.latitude = position.latitude;
-      login.longitude = position.longitude;
+      if (currentPosition?.latitude != null) {
+        login.latitude = currentPosition!.latitude;
+        login.longitude = currentPosition!.longitude;
+      } else {
+        Position? lastPosition = await Geolocator.getLastKnownPosition();
+        login.latitude = lastPosition?.latitude ?? 0.0;
+        login.longitude = lastPosition?.longitude ?? 0.0;
+      }
     } else {
       if (Random().nextBool()) {
         CoolAlert.show(
@@ -91,9 +139,19 @@ class _TabBarControllerState extends State<TabBarController> {
     OneSignal.shared.setExternalUserId(currentUser.id);
     OneSignal.shared.setEmail(email: currentUser.email);
     final oneSignal = await OneSignal.shared.getDeviceState();
-    currentUser.privacy.pushNotificationToken = oneSignal!.userId ?? "";
+    currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
+    currentUser.status = "ONLINE";
+    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": "ONLINE"});
     await AuthService.getAuthToken();
-    var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+    await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+  }
+
+  void setUserStatus(String status) {
+    currentUser.status = status;
+    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status});
+    AuthService.getAuthToken().then((_) {
+      http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+    });
   }
 
   @override
