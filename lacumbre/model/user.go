@@ -14,6 +14,7 @@ type User struct {
 	ProfilePictureURL string `json:"profile_picture_url"`
 	Bio string `json:"bio"`
 	Gender string `json:"gender"`
+	Status string `json:"status"`
 	Roles []Role `gorm:"-" json:"roles"`
 	Friends []Friend `gorm:"-" json:"friends"`
 	Privacy Privacy `gorm:"-" json:"privacy"`
