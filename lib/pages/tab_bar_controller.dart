@@ -140,15 +140,12 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     OneSignal.shared.setEmail(email: currentUser.email);
     final oneSignal = await OneSignal.shared.getDeviceState();
     currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
-    currentUser.status = "ONLINE";
-    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": "ONLINE"});
-    await AuthService.getAuthToken();
-    await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+    setUserStatus("ONLINE");
   }
 
   void setUserStatus(String status) {
     currentUser.status = status;
-    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status});
+    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
     AuthService.getAuthToken().then((_) {
       http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });

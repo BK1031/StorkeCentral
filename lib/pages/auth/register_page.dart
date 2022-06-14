@@ -51,10 +51,10 @@ class _RegisterPageState extends State<RegisterPage> {
       if (googleUser != null) {
         print("Signed into Google as ${googleUser.displayName} (${googleUser.email})");
         if (googleUser.email.contains("ucsb.edu")) {
-          final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+          final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
           final credential = fb.GoogleAuthProvider.credential(
-            accessToken: googleAuth?.accessToken,
-            idToken: googleAuth?.idToken,
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
           );
           fb.UserCredential fbUser = await fb.FirebaseAuth.instance.signInWithCredential(credential);
           setState(() {

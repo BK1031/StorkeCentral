@@ -43,6 +43,14 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     if (mounted) setState(() {percent = 0.2;});
   }
 
+  Future<void> checkServerStatus() async {
+    var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
+    print("Server Status: ${serverStatus.statusCode}");
+    if (serverStatus.statusCode != 200) {
+      offlineMode = true;
+    }
+  }
+
   Future<void> checkAuthState() async {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
