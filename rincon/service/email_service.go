@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"gopkg.in/gomail.v2"
 	"rincon/config"
 )
@@ -11,7 +12,7 @@ func SetupGomailClient() {
 	d := gomail.NewDialer("smtp.gmail.com", 587, config.EmailAddress, config.EmailPassword)
 	s, err := d.Dial()
 	if err != nil {
-		panic(err)
+		fmt.Println("Error connecting to Gmail SMTP, ", err)
 	}
 	sender = s;
 }
