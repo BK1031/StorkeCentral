@@ -21,7 +21,6 @@ class AuthCheckerPage extends StatefulWidget {
 class _AuthCheckerPageState extends State<AuthCheckerPage> {
 
   double percent = 0.0;
-  bool connected = true;
   final info = NetworkInfo();
 
   @override
@@ -34,8 +33,10 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.mobile) {
       print("Connected to Cellular");
+      offlineMode = false;
     } else if (connectivityResult == ConnectivityResult.wifi) {
       print("Connected to WiFi");
+      offlineMode = false;
     } else {
       print("No Connection!");
       offlineMode = true;

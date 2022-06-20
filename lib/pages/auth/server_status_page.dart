@@ -33,7 +33,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
   @override
   void initState() {
     getAllServiceStatuses();
-    timer = Timer.periodic(const Duration(seconds: 5), (Timer t) => getAllServiceStatuses());
+    timer = Timer.periodic(const Duration(seconds: 10), (Timer t) => getAllServiceStatuses());
   }
 
   @override
@@ -123,17 +123,21 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
                       ],
                     )).toList(),
                   ),
+                  const Padding(padding: EdgeInsets.all(8),),
                   Column(
                     children: [
-                      const Text("This page will automatically refresh every 5 seconds"),
+                      const Text("This page will automatically refresh every 10 seconds"),
                       const Padding(padding: EdgeInsets.all(8),),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: CupertinoButton.filled(
-                          child: const Text("Back to Login"),
-                          onPressed: () {
-                            router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
-                          },
+                      Visibility(
+                        visible: criticalSystemsOnline,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          child: CupertinoButton.filled(
+                            child: const Text("Back to Login"),
+                            onPressed: () {
+                              router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+                            },
+                          ),
                         ),
                       ),
                     ],
