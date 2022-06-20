@@ -10,8 +10,8 @@ final router = FluroRouter();
 Version appVersion = Version("2.2.2+1");
 
 // ignore: non_constant_identifier_names
-String API_HOST = "https://api.storkecentr.al";
-// String API_HOST = "http://localhost:4001";
+// String API_HOST = "https://api.storkecentr.al";
+String API_HOST = "http://localhost:4001";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names

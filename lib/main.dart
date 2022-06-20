@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
+import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/home/home_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
@@ -39,6 +40,9 @@ Future<void> main() async {
   }));
   router.define("/check-auth", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const AuthCheckerPage();
+  }));
+  router.define("/server-status", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const ServerStatusPage();
   }));
   router.define("/register", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const RegisterPage();

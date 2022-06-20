@@ -41,14 +41,20 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       offlineMode = true;
     }
     if (mounted) setState(() {percent = 0.2;});
+    if (!offlineMode) await checkServerStatus();
   }
 
   Future<void> checkServerStatus() async {
-    var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
-    print("Server Status: ${serverStatus.statusCode}");
-    if (serverStatus.statusCode != 200) {
+    try {
+      var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
+      print("Server Status: ${serverStatus.statusCode}");
+      if (serverStatus.statusCode != 200) {
+        offlineMode = true;
+      }
+    } catch (err) {
       offlineMode = true;
     }
+    if (mounted) setState(() {percent = 0.5;});
   }
 
   Future<void> checkAuthState() async {
@@ -56,7 +62,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       if (user == null) {
         // Not logged in
         await Future.delayed(const Duration(milliseconds: 500));
-        router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+        if (!offlineMode) {
+          router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+        }
+        else {
+          router.navigateTo(context, "/server-status", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          return;
+        }
       } else {
         // User logged in
         anonMode = user.isAnonymous;
