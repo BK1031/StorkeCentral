@@ -41,7 +41,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       print("No Connection!");
       offlineMode = true;
     }
-    if (mounted) setState(() {percent = 0.2;});
+    if (mounted) setState(() {percent = 0.3;});
     if (!offlineMode) await checkServerStatus();
   }
 
@@ -62,7 +62,6 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
         // Not logged in
-        await Future.delayed(const Duration(milliseconds: 500));
         if (!offlineMode) {
           router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         }
@@ -85,8 +84,9 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
           } else {
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
           }
+          if (mounted) setState(() {percent = 0.8;});
           await loadPreferences();
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future.delayed(const Duration(milliseconds: 400));
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         } catch (err) {
           print(err);
@@ -106,6 +106,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
 
   Future<void> loadOfflineMode() async {
     print("Failed to reach server, entering offline mode!");
+    loadPreferences();
   }
 
   @override
