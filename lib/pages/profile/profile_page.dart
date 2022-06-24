@@ -62,18 +62,28 @@ class _ProfilePageState extends State<ProfilePage> {
                 router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
               },
             ),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    title: const Text("Offline Mode"),
-                      trailing: Text(offlineMode.toString())
-                  ),
-                  ListTile(
-                    title: const Text("Anon Mode"),
-                    trailing: Text(anonMode.toString())
-                  ),
-                ],
+            Container(
+              padding: const EdgeInsets.all(8),
+              child: Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text("Offline Mode"),
+                        trailing: Text(offlineMode.toString())
+                    ),
+                    ListTile(
+                      title: const Text("Anon Mode"),
+                      trailing: Text(anonMode.toString())
+                    ),
+                    ListTile(
+                      title: const Text("Session Logs"),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: () {
+                        router.navigateTo(context, "/developer/logger", transition: TransitionType.native);
+                      },
+                    ),
+                  ],
+                ),
               ),
             )
           ],
