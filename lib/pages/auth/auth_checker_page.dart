@@ -9,6 +9,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
 
 class AuthCheckerPage extends StatefulWidget {
@@ -32,13 +33,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   Future<void> checkConnectivity() async {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.mobile) {
-      print("Connected to Cellular");
+      log("Connected to Cellular");
       offlineMode = false;
     } else if (connectivityResult == ConnectivityResult.wifi) {
-      print("Connected to WiFi");
+      log("Connected to WiFi");
       offlineMode = false;
     } else {
-      print("No Connection!");
+      log("No Connection!");
       offlineMode = true;
     }
     if (mounted) setState(() {percent = 0.3;});
@@ -48,7 +49,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   Future<void> checkServerStatus() async {
     try {
       var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
-      print("Server Status: ${serverStatus.statusCode}");
+      log("Server Status: ${serverStatus.statusCode}");
       if (serverStatus.statusCode != 200) {
         offlineMode = true;
       }
@@ -72,7 +73,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       } else {
         // User logged in
         anonMode = user.isAnonymous;
-        print("anonMode: $anonMode");
+        log("anonMode: $anonMode");
         try {
           if (!anonMode) {
             await AuthService.getUser(user.uid);
@@ -89,7 +90,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
           await Future.delayed(const Duration(milliseconds: 400));
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         } catch (err) {
-          print(err);
+          log(err);
           await loadOfflineMode();
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         }
@@ -105,7 +106,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> loadOfflineMode() async {
-    print("Failed to reach server, entering offline mode!");
+    log("Failed to reach server, entering offline mode!");
     loadPreferences();
   }
 

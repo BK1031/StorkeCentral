@@ -8,10 +8,10 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
-import 'package:storke_central/pages/home/home_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
 import 'firebase_options.dart';
 
@@ -25,9 +25,9 @@ Future<void> main() async {
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
   ONESIGNAL_APP_ID = dotenv.env['ONESIGNAL_APP_ID']!;
 
-  print("StorkeCentral v${appVersion.toString()}");
+  log("StorkeCentral v${appVersion.toString()}");
   FirebaseApp app = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("Initialized default app $app");
+  log("Initialized default app $app");
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   //Remove this method to stop OneSignal Debugging

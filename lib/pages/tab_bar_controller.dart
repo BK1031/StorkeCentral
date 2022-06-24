@@ -19,6 +19,7 @@ import 'package:storke_central/pages/profile/profile_page.dart';
 import 'package:storke_central/pages/schedule/schedule_page.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
 import 'package:http/http.dart' as http;
 
@@ -48,11 +49,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      print("App has been resumed");
+      log("App has been resumed");
       _determinePosition();
       if (!anonMode && !offlineMode) sendLoginEvent();
     } else {
-      print("App has been backgrounded");
+      log("App has been backgrounded");
       if (!anonMode && !offlineMode) setUserStatus("OFFLINE");
       _positionStream?.cancel();
     }
@@ -68,7 +69,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
       _positionStream = Geolocator.getPositionStream().listen((Position position) {
-        // print(position == null ? 'Unknown' : position.latitude.toString() + ', ' + position.longitude.toString());
+        // log(position == null ? 'Unknown' : position.latitude.toString() + ', ' + position.longitude.toString());
         currentPosition = position;
       });
     }
@@ -133,8 +134,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
     await AuthService.getAuthToken();
     var loginResponse = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/logins"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(login));
-    if (loginResponse.statusCode == 200) print("Sent login event: ${loginResponse.body}");
-    else print("Login event silently failed");
+    if (loginResponse.statusCode == 200) log("Sent login event: ${loginResponse.body}");
+    else log("Login event silently failed");
 
     OneSignal.shared.setExternalUserId(currentUser.id);
     OneSignal.shared.setEmail(email: currentUser.email);

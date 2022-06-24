@@ -13,6 +13,7 @@ import 'package:progress_indicators/progress_indicators.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
 
@@ -54,7 +55,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
     });
     try {
       var serviceStatus = await http.get(Uri.parse("$API_HOST/$service/ping"));
-      print("$service: ${serviceStatus.statusCode}");
+      log("$service: ${serviceStatus.statusCode}");
       setState(() {
         status[service] = serviceStatus.statusCode == 200 ? "ONLINE" : "OFFLINE";
       });
@@ -69,7 +70,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
         });
       }
     } catch (err) {
-      print("$service: $err");
+      log("$service: $err");
       setState(() {
         status[service] = "OFFLINE";
       });

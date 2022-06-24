@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 
 class AuthService {
 
@@ -15,15 +16,15 @@ class AuthService {
     var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       currentUser = User.fromJson(jsonDecode(response.body)["data"]);
-      print("====== USER DEBUG INFO ======");
-      print("FIRST NAME: ${currentUser.firstName}");
-      print("LAST NAME: ${currentUser.lastName}");
-      print("EMAIL: ${currentUser.email}");
-      print("====== =============== ======");
+      log("====== USER DEBUG INFO ======");
+      log("FIRST NAME: ${currentUser.firstName}");
+      log("LAST NAME: ${currentUser.lastName}");
+      log("EMAIL: ${currentUser.email}");
+      log("====== =============== ======");
     }
     else {
       // logged but not user data found!
-      print("StorkeCentral account not found!");
+      log("StorkeCentral account not found!");
       // signOut();
     }
   }
@@ -35,7 +36,7 @@ class AuthService {
 
   static Future<void> getAuthToken() async {
     SC_AUTH_TOKEN = await fb.FirebaseAuth.instance.currentUser!.getIdToken(true);
-    print("Retrieved auth token: ...${SC_AUTH_TOKEN.substring(SC_AUTH_TOKEN.length - 20)}");
+    log("Retrieved auth token: ...${SC_AUTH_TOKEN.substring(SC_AUTH_TOKEN.length - 20)}");
     // await Future.delayed(const Duration(milliseconds: 100));
   }
 }

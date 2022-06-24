@@ -61,6 +61,20 @@ class _ProfilePageState extends State<ProfilePage> {
                 FirebaseAuth.instance.signOut();
                 router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
               },
+            ),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    title: const Text("Offline Mode"),
+                      trailing: Text(offlineMode.toString())
+                  ),
+                  ListTile(
+                    title: const Text("Anon Mode"),
+                    trailing: Text(anonMode.toString())
+                  ),
+                ],
+              ),
             )
           ],
         ),

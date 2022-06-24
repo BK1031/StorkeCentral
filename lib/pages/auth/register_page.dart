@@ -14,6 +14,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -49,7 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
-        print("Signed into Google as ${googleUser.displayName} (${googleUser.email})");
+        log("Signed into Google as ${googleUser.displayName} (${googleUser.email})");
         if (googleUser.email.contains("ucsb.edu")) {
           final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
           final credential = fb.GoogleAuthProvider.credential(
@@ -67,10 +68,10 @@ class _RegisterPageState extends State<RegisterPage> {
           });
           await checkIfUserExists().then((userExists) {
             if (userExists) {
-              print("User already has StorkeCentral account");
+              log("User already has StorkeCentral account");
               router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
             } else {
-              print("User does not have a StorkeCentral account");
+              log("User does not have a StorkeCentral account");
               firstNameController.text = registerUser.firstName;
               lastNameController.text = registerUser.lastName;
               emailController.text = registerUser.email;
@@ -90,7 +91,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
     } catch (err) {
-      print(err);
+      log(err);
       CoolAlert.show(
           context: context,
           type: CoolAlertType.error,
@@ -137,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> requestLocationAccess() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print("Location services not enabled!");
+      log("Location services not enabled!");
       setState(() {
           registerUser.privacy.location = "DISABLED";
       });
@@ -145,26 +146,26 @@ class _RegisterPageState extends State<RegisterPage> {
       // LocationPermission permission = await Geolocator.checkPermission();
       LocationPermission permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        print("Location permission denied");
+        log("Location permission denied");
         setState(() {
           registerUser.privacy.location = "DISABLED";
         });
       }
       if (permission == LocationPermission.deniedForever) {
-        print("Location permission denied forever");
+        log("Location permission denied forever");
         setState(() {
           registerUser.privacy.location = "DISABLED_FOREVER";
         });
         showLocationDisabledAlert();
       }
       if (permission == LocationPermission.whileInUse) {
-        print("Location permission enabled when in use");
+        log("Location permission enabled when in use");
         setState(() {
           registerUser.privacy.location = "ENABLED_WHEN_IN_USE";
         });
       }
       if (permission == LocationPermission.always) {
-        print("Location permission enabled always");
+        log("Location permission enabled always");
         setState(() {
           registerUser.privacy.location = "ENABLED_ALWAYS";
         });
@@ -185,7 +186,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> requestNotifications() async {
     OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
-      print("Accepted permission: $accepted");
+      log("Accepted permission: $accepted");
       setState(() {
           registerUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
       });
@@ -226,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
       } else {
         // Setting privacy object's userID so privacy will be set in the backend
         registerUser.privacy.userID = registerUser.id;
-        print(registerUser.toJson());
+        log(registerUser.toJson());
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
@@ -256,7 +257,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
     } catch (err) {
-      print(err);
+      log(err);
       CoolAlert.show(
           context: context,
           type: CoolAlertType.error,

@@ -10,6 +10,7 @@ import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,9 +35,6 @@ class _HomePageState extends State<HomePage> {
     getNewsHeadline();
     getDining();
   }
-
-  // convert time to IST
-
 
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
@@ -64,7 +62,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } else {
-      print("Offline mode, searching cache for news...");
+      log("Offline mode, searching cache for news...");
     }
   }
 
@@ -111,7 +109,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } else {
-      print("Offline mode, searching cache for dining...");
+      log("Offline mode, searching cache for dining...");
     }
   }
 
