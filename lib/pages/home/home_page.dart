@@ -35,6 +35,9 @@ class _HomePageState extends State<HomePage> {
     getDining();
   }
 
+  // convert time to IST
+
+
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
       try {
@@ -257,7 +260,7 @@ class _HomePageState extends State<HomePage> {
           ),
           Visibility(
             // visible: true,
-            visible: DateTime.now().hour > 17 && DateTime.now().weekday == 5 || DateTime.now().weekday == 6,
+            visible: (DateTime.now().hour > 17 || DateTime.now().hour < 3) && (DateTime.now().weekday == 5 || DateTime.now().weekday == 6),
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Card(
