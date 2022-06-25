@@ -1,4 +1,5 @@
 lib/utils/secrets.dart
+lib/firebase_options.dart
 lib/.env
 .env
 
