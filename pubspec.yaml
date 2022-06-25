@@ -41,7 +41,7 @@ dependencies:
   firebase_storage: ^10.2.17
   flutter_dotenv: ^5.0.2
   fluro: ^2.0.3
-  intl: ^
+  intl: ^0.17.0
   curved_navigation_bar: ^1.0.3
   adaptive_theme: ^3.0.0
   shared_preferences: ^2.0.15

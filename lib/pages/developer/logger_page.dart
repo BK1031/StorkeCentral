@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
 
@@ -10,6 +12,9 @@ class LoggerPage extends StatefulWidget {
 }
 
 class _LoggerPageState extends State<LoggerPage> {
+
+  bool showTimestamps = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,30 +24,73 @@ class _LoggerPageState extends State<LoggerPage> {
             style: TextStyle(fontWeight: FontWeight.bold)
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8),
+        child: Row(
+          children: [
+            CupertinoButton(
+              color: darkCardColor,
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  Icon(showTimestamps ? Icons.visibility_off : Icons.visibility),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  Text(showTimestamps ? "Hide Timestamps" : "Show Timestamps"),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                    showTimestamps = !showTimestamps;
+                });
+              },
+            ),
+            const Padding(padding: EdgeInsets.all(4)),
+            CupertinoButton(
+              color: darkCardColor,
+              padding: EdgeInsets.all(8),
+              child: Row(
+                children: [],
+              ),
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ),
       backgroundColor: darkBackgroundColor,
       body: ListView.builder(
+        itemCount: logs.length,
         itemBuilder: (context, index) => Container(
+          padding: const EdgeInsets.all(2),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                logs[index].time.toLocal().toString(),
-                style: TextStyle(
-                  fontFamily: "Courier New",
-                  color: Colors.white60
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                width: showTimestamps ? 72 : 0,
+                child: Text(
+                  showTimestamps ? DateFormat("Hms").format(logs[index].time.toLocal()).toString() : "",
+                  style: const TextStyle(
+                    fontFamily: "Courier New",
+                    color: Colors.white60
+                  ),
                 ),
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    logs[index].message,
-                    style: TextStyle(
-                      color: logs[index].level == LogLevel.error ? SB_RED : logs[index].level == LogLevel.warn ? SB_AMBER : Colors.white,
-                      fontFamily: "Courier New"
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      logs[index].message,
+                      style: TextStyle(
+                        color: logs[index].level == LogLevel.error ? SB_RED : logs[index].level == LogLevel.warn ? SB_AMBER : Colors.white,
+                        fontFamily: "Courier New"
+                      ),
                     ),
-                  )
-                ],
+                  ],
+                ),
               ),
             ],
           ),
