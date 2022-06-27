@@ -1,17 +1,9 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import 'package:http/http.dart' as http;
-import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:progress_indicators/progress_indicators.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/string_extension.dart';
@@ -34,7 +26,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
   @override
   void initState() {
     getAllServiceStatuses();
-    timer = Timer.periodic(const Duration(seconds: 10), (Timer t) => getAllServiceStatuses());
+    timer = Timer.periodic(const Duration(seconds: 5), (Timer t) => getAllServiceStatuses());
   }
 
   @override
@@ -127,7 +119,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
                   const Padding(padding: EdgeInsets.all(8),),
                   Column(
                     children: [
-                      const Text("This page will automatically refresh every 10 seconds"),
+                      const Text("This page will automatically refresh every 5 seconds"),
                       const Padding(padding: EdgeInsets.all(8),),
                       Visibility(
                         visible: criticalSystemsOnline,

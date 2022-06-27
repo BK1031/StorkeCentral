@@ -3,7 +3,6 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +21,6 @@ class AuthCheckerPage extends StatefulWidget {
 class _AuthCheckerPageState extends State<AuthCheckerPage> {
 
   double percent = 0.0;
-  final info = NetworkInfo();
 
   @override
   void initState() {
@@ -52,6 +50,8 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       log("Server Status: ${serverStatus.statusCode}");
       if (serverStatus.statusCode != 200) {
         offlineMode = true;
+      } else {
+        offlineMode = false;
       }
     } catch (err) {
       offlineMode = true;
@@ -107,6 +107,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
 
   Future<void> loadOfflineMode() async {
     log("Failed to reach server, entering offline mode!");
+    offlineMode = true;
     loadPreferences();
   }
 
