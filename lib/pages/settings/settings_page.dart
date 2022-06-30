@@ -161,36 +161,39 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
-              child: Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
-                      child: Text(
-                        "Developer",
-                        // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+            Visibility(
+              visible: currentUser.roles.any((element) => element.role == "ADMIN"),
+              child: Container(
+                padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+                child: Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                        child: Text(
+                          "Developer",
+                          // "Developer".toUpperCase(),
+                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    ListTile(
-                        title: const Text("Offline Mode"),
-                        trailing: Text(offlineMode.toString())
-                    ),
-                    ListTile(
-                        title: const Text("Anon Mode"),
-                        trailing: Text(anonMode.toString())
-                    ),
-                    ListTile(
-                      title: const Text("Session Logs"),
-                      trailing: const Icon(Icons.arrow_forward_ios_rounded),
-                      onTap: () {
-                        router.navigateTo(context, "/developer/logger", transition: TransitionType.native);
-                      },
-                    ),
-                  ],
+                      ListTile(
+                          title: const Text("Offline Mode"),
+                          trailing: Text(offlineMode.toString())
+                      ),
+                      ListTile(
+                          title: const Text("Anon Mode"),
+                          trailing: Text(anonMode.toString())
+                      ),
+                      ListTile(
+                        title: const Text("Session Logs"),
+                        trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                        onTap: () {
+                          router.navigateTo(context, "/developer/logger", transition: TransitionType.native);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )
