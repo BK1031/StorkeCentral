@@ -1,8 +1,8 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/pages/auth/auth_checker_page.dart';
@@ -10,10 +10,12 @@ import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/developer/logger_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
+import 'package:storke_central/pages/settings/settings_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
+
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -53,6 +55,9 @@ Future<void> main() async {
     return const TabBarController();
   }));
 
+  router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const SettingsPage();
+  }));
   router.define("/developer/logger", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoggerPage();
   }));

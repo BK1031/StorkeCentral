@@ -75,6 +75,9 @@ final ThemeData darkTheme = ThemeData(
     elevation: 0,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
+  listTileTheme: ListTileThemeData(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  ),
   buttonTheme: ButtonThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
   ),

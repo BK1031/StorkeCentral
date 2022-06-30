@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/login.dart';
@@ -21,7 +23,6 @@ import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
-import 'package:http/http.dart' as http;
 
 class TabBarController extends StatefulWidget {
   const TabBarController({Key? key}) : super(key: key);
@@ -156,6 +157,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: SB_NAVY,
         title: Text(
           pageTitles[_currPage],
           style: const TextStyle(fontWeight: FontWeight.bold)

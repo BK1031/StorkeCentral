@@ -86,7 +86,11 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
           }
           if (mounted) setState(() {percent = 0.8;});
-          await loadPreferences();
+          if (offlineMode) {
+            await loadOfflineMode();
+          } else {
+            await loadPreferences();
+          }
           await Future.delayed(const Duration(milliseconds: 400));
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         } catch (err) {
