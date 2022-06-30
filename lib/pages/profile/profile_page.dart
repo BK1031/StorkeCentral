@@ -60,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             Container(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.only(left: 8, top: 8, right: 8),
               child: Row(
                 children: [
                   Expanded(
@@ -70,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       onPressed: () {
                         router.navigateTo(context, "/profile/edit", transition: TransitionType.native);
                       },
-                      child: Text("Edit Profile", style: TextStyle(color: Theme.of(context).textTheme.button!.color),),
+                      child: Text("Edit Profile", style: TextStyle(color: Theme.of(context).textTheme.button!.color)),
                     ),
                   ),
                   const Padding(padding: EdgeInsets.all(4)),
