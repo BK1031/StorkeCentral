@@ -10,6 +10,7 @@ import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/developer/logger_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
+import 'package:storke_central/pages/settings/settings_about_page.dart';
 import 'package:storke_central/pages/settings/settings_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
 import 'package:storke_central/utils/config.dart';
@@ -57,6 +58,9 @@ Future<void> main() async {
 
   router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const SettingsPage();
+  }));
+  router.define("/settings/about", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const SettingsAboutPage();
   }));
   router.define("/developer/logger", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoggerPage();
