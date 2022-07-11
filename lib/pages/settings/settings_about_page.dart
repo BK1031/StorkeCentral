@@ -146,6 +146,58 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                 ),
               ),
             ),
+            Container(
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                      child: Text(
+                        "Contributors",
+                        // "Developer".toUpperCase(),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Bharat Kathi"),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      title: const Text("Neel Tripathi"),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                      child: Text(
+                        "Supporters",
+                        // "Developer".toUpperCase(),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Alex Lopes"),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      title: const Text("Joshua \"curious george\" Thomas"),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

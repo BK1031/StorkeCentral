@@ -110,7 +110,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
-                        router.navigateTo(context, "/profile/friends/add", transition: TransitionType.native);
+                        router.navigateTo(context, "/settings/friends/add", transition: TransitionType.native);
                       },
                     ),
                     ListTile(
@@ -123,7 +123,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
-                        router.navigateTo(context, "/profile/friends", transition: TransitionType.native);
+                        router.navigateTo(context, "/settings/friends", transition: TransitionType.native);
                       },
                     ),
                   ],
