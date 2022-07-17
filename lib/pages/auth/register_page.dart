@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -143,7 +144,6 @@ class _RegisterPageState extends State<RegisterPage> {
           registerUser.privacy.location = "DISABLED";
       });
     } else {
-      // LocationPermission permission = await Geolocator.checkPermission();
       LocationPermission permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         log("Location permission denied");

@@ -112,6 +112,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         login.longitude = lastPosition?.longitude ?? 0.0;
       }
     } else {
+      LocationPermission permission = await Geolocator.requestPermission();
       if (Random().nextBool()) {
         CoolAlert.show(
           context: context,
