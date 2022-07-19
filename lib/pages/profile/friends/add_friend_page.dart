@@ -92,7 +92,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("Successfully updated local friend list");
-      currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
+      setState(() {
+        currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
+      });
     } else {
       log(response.body, LogLevel.error);
       CoolAlert.show(
@@ -111,8 +113,10 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Retrieved suggest users");
-      suggestedFriends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => User.fromJson(e)).toList();
+      log("Retrieved suggested users");
+      setState(() {
+        suggestedFriends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => User.fromJson(e)).toList();
+      });
     } else {
       log(response.body, LogLevel.error);
       CoolAlert.show(
@@ -294,57 +298,77 @@ class _AddFriendPageState extends State<AddFriendPage> {
                       style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: suggestedFriends.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          padding: const EdgeInsets.only(left: 8, top: 4, right: 8),
-                          child: Card(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  child: ExtendedImage.network(
-                                    suggestedFriends[index].profilePictureURL,
-                                    height: 60,
-                                    width: 60,
-                                    fit: BoxFit.cover,
-                                    borderRadius: BorderRadius.all(Radius.circular(125)),
-                                    shape: BoxShape.rectangle,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Haarika Kathi",
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                      Text(
-                                        "@haarika",
-                                        style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.cancel_outlined, color: Theme.of(context).textTheme.caption!.color),
-                                  onPressed: () {
-
-                                  },
-                                )
-                              ],
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: suggestedFriends.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              child: ExtendedImage.network(
+                                suggestedFriends[index].profilePictureURL,
+                                height: 60,
+                                width: 60,
+                                fit: BoxFit.cover,
+                                borderRadius: BorderRadius.all(Radius.circular(125)),
+                                shape: BoxShape.rectangle,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${suggestedFriends[index].firstName} ${suggestedFriends[index].lastName}",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                  Text(
+                                    "@${suggestedFriends[index].userName}",
+                                    style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Visibility(
+                              visible: suggestedFriends[index].id != currentUser.id && Friend.getFriendshipFromList(suggestedFriends[index], currentUser.friends) == "NULL",
+                              child: CupertinoButton(
+                                padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                color: SB_NAVY,
+                                child: Row(
+                                  children: const [
+                                    Icon(Icons.person_add, color: Colors.white),
+                                    const Padding(padding: EdgeInsets.all(4)),
+                                    Text("Add"),
+                                  ],
+                                ),
+                                onPressed: () {
+                                  addFriend(suggestedFriends[index]);
+                                },
+                              ),
+                            ),
+                            Visibility(
+                              visible: suggestedFriends[index].id != currentUser.id && Friend.getFriendshipFromList(suggestedFriends[index], currentUser.friends) == "REQUESTED",
+                              child: CupertinoButton(
+                                padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                color: Theme.of(context).backgroundColor,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                    const Padding(padding: EdgeInsets.all(2)),
+                                    Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color),),
+                                  ],
+                                ),
+                                onPressed: () {},
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    },
                   )
                 ],
               ),
