@@ -1,9 +1,17 @@
+import 'dart:convert';
+
+import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/auth_service.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
+
+import '../../../utils/config.dart';
 
 class FriendsPage extends StatefulWidget {
   const FriendsPage({Key? key}) : super(key: key);
@@ -15,6 +23,7 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
 
   List<User> friends = [];
+  List<User> requests = [];
 
   int currPage = 0;
   PageController pageController = PageController();
@@ -22,11 +31,35 @@ class _FriendsPageState extends State<FriendsPage> {
   @override
   void initState() {
     super.initState();
-
+    updateUserFriendsList();
   }
 
-  Future<void> getFriend() async {
+  Future<void> updateUserFriendsList() async {
     await AuthService.getAuthToken();
+    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    if (response.statusCode == 200) {
+      log("Successfully updated local friend list");
+      setState(() {
+        currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
+      });
+    } else {
+      log(response.body, LogLevel.error);
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Failed to update friends list",
+          widget: Text(response.body.toString()),
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_RED,
+          confirmBtnText: "OK"
+      );
+    }
+  }
+
+  Future<User> getFriend() async {
+    User user = User();
+    await AuthService.getAuthToken();
+    return user;
   }
 
   @override

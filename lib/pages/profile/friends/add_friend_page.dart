@@ -116,6 +116,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       log("Retrieved suggested users");
       setState(() {
         suggestedFriends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => User.fromJson(e)).toList();
+        suggestedFriends.removeWhere((element) => element.id == currentUser.id);
       });
     } else {
       log(response.body, LogLevel.error);
@@ -296,6 +297,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     child: Text(
                       "Suggested Friends",
                       style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Visibility(
+                    visible: suggestedFriends.isEmpty,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Center(child: RefreshProgressIndicator())
                     ),
                   ),
                   ListView.builder(
