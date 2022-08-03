@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,11 +23,18 @@ class AuthCheckerPage extends StatefulWidget {
 class _AuthCheckerPageState extends State<AuthCheckerPage> {
 
   double percent = 0.0;
+  StreamSubscription<User?>? _fbAuthSubscription;
 
   @override
   void initState() {
     super.initState();
     checkConnectivity().then((value) => checkAuthState());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _fbAuthSubscription?.cancel();
   }
 
   Future<void> checkConnectivity() async {
@@ -60,7 +69,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> checkAuthState() async {
-    FirebaseAuth.instance.authStateChanges().listen((user) async {
+    _fbAuthSubscription = FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
         // Not logged in
         if (!offlineMode) {
@@ -95,7 +104,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         } catch (err) {
           log(err);
-          await loadOfflineMode();
+          // loadOfflineMode();
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         }
       }

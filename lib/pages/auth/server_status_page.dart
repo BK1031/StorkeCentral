@@ -42,30 +42,40 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
   }
 
   Future<void> getServiceStatus(String service) async {
-    setState(() {
-      status[service] = "LOADING";
-    });
+    if (mounted) {
+      setState(() {
+        status[service] = "LOADING";
+      });
+    }
     try {
       var serviceStatus = await http.get(Uri.parse("$API_HOST/$service/ping"));
       log("$service: ${serviceStatus.statusCode}");
-      setState(() {
-        status[service] = serviceStatus.statusCode == 200 ? "ONLINE" : "OFFLINE";
-      });
+      if (mounted) {
+        setState(() {
+          status[service] = serviceStatus.statusCode == 200 ? "ONLINE" : "OFFLINE";
+        });
+      }
       // Critical system check
       if (status["montecito"] == "ONLINE" && status["rincon"] == "ONLINE" && status["lacumbre"] == "ONLINE") {
-        setState(() {
-          criticalSystemsOnline = true;
-        });
+        if (mounted) {
+          setState(() {
+            criticalSystemsOnline = true;
+          });
+        }
       } else {
-        setState(() {
-          criticalSystemsOnline = false;
-        });
+        if (mounted) {
+          setState(() {
+            criticalSystemsOnline = false;
+          });
+        }
       }
     } catch (err) {
       log("$service: $err");
-      setState(() {
-        status[service] = "OFFLINE";
-      });
+      if (mounted) {
+        setState(() {
+          status[service] = "OFFLINE";
+        });
+      }
     }
   }
 

@@ -59,14 +59,16 @@ class _RegisterPageState extends State<RegisterPage> {
             idToken: googleAuth.idToken,
           );
           fb.UserCredential fbUser = await fb.FirebaseAuth.instance.signInWithCredential(credential);
-          setState(() {
-            registerUser.id = fbUser.user!.uid;
-            registerUser.firstName = fbUser.user!.displayName!.split(" ")[0];
-            registerUser.lastName = fbUser.user!.displayName!.split(" ")[1];
-            registerUser.email = fbUser.user!.email!;
-            registerUser.phoneNumber = fbUser.user!.phoneNumber ?? "";
-            registerUser.profilePictureURL = fbUser.user!.photoURL!;
-          });
+          if (mounted) {
+            setState(() {
+              registerUser.id = fbUser.user!.uid;
+              registerUser.firstName = fbUser.user!.displayName!.split(" ")[0];
+              registerUser.lastName = fbUser.user!.displayName!.split(" ")[1];
+              registerUser.email = fbUser.user!.email!;
+              registerUser.phoneNumber = fbUser.user!.phoneNumber ?? "";
+              registerUser.profilePictureURL = fbUser.user!.photoURL!;
+            });
+          }
           await checkIfUserExists().then((userExists) {
             if (userExists) {
               log("User already has StorkeCentral account");
@@ -125,13 +127,17 @@ class _RegisterPageState extends State<RegisterPage> {
     http.get(Uri.parse("$API_HOST/users/${registerUser.userName}"), headers: {"SC-API-KEY": SC_API_KEY}).then((value) {
       if (value.statusCode == 200) {
         // User exists with username
-        setState(() {
+        if (mounted) {
+          setState(() {
             validUsername = false;
-        });
+          });
+        }
       } else {
-        setState(() {
-          validUsername = true;
-        });
+        if (mounted) {
+          setState(() {
+            validUsername = true;
+          });
+        }
       }
     });
   }
@@ -140,35 +146,45 @@ class _RegisterPageState extends State<RegisterPage> {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       log("Location services not enabled!");
-      setState(() {
+      if (mounted) {
+        setState(() {
           registerUser.privacy.location = "DISABLED";
-      });
+        });
+      }
     } else {
       LocationPermission permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         log("Location permission denied");
-        setState(() {
-          registerUser.privacy.location = "DISABLED";
-        });
+        if (mounted) {
+          setState(() {
+            registerUser.privacy.location = "DISABLED";
+          });
+        }
       }
       if (permission == LocationPermission.deniedForever) {
         log("Location permission denied forever");
-        setState(() {
-          registerUser.privacy.location = "DISABLED_FOREVER";
-        });
+        if (mounted) {
+          setState(() {
+            registerUser.privacy.location = "DISABLED_FOREVER";
+          });
+        }
         showLocationDisabledAlert();
       }
       if (permission == LocationPermission.whileInUse) {
         log("Location permission enabled when in use");
-        setState(() {
-          registerUser.privacy.location = "ENABLED_WHEN_IN_USE";
-        });
+        if (mounted) {
+          setState(() {
+            registerUser.privacy.location = "ENABLED_WHEN_IN_USE";
+          });
+        }
       }
       if (permission == LocationPermission.always) {
         log("Location permission enabled always");
-        setState(() {
-          registerUser.privacy.location = "ENABLED_ALWAYS";
-        });
+        if (mounted) {
+          setState(() {
+            registerUser.privacy.location = "ENABLED_ALWAYS";
+          });
+        }
       }
     }
   }
@@ -187,9 +203,12 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> requestNotifications() async {
     OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
       log("Accepted permission: $accepted");
-      setState(() {
-          registerUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
-      });
+      if (mounted) {
+        setState(() {
+          registerUser.privacy.pushNotifications =
+              accepted ? "ENABLED" : "DISABLED";
+        });
+      }
       if (!accepted) showNotificationsDisabledAlert();
     });
   }
@@ -341,9 +360,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       textCapitalization: TextCapitalization.none,
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
-                        setState(() {
-                          registerUser.userName = input.toLowerCase().replaceAll(" ", "");
-                        });
+                        if (mounted) {
+                          setState(() {
+                            registerUser.userName =
+                                input.toLowerCase().replaceAll(" ", "");
+                          });
+                        }
                         if (registerUser.userName != "") usernameCheck();
                       },
                     ),
@@ -407,9 +429,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.name,
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
-                        setState(() {
-                          registerUser.firstName = input;
-                        });
+                        if (mounted) {
+                          setState(() {
+                            registerUser.firstName = input;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -431,9 +455,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.name,
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
-                        setState(() {
-                          registerUser.lastName = input;
-                        });
+                        if (mounted) {
+                          setState(() {
+                            registerUser.lastName = input;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -476,9 +502,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.datetime,
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
-                        setState(() {
-                          registerUser.phoneNumber = input;
-                        });
+                        if (mounted) {
+                          setState(() {
+                            registerUser.phoneNumber = input;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -571,9 +599,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                     borderRadius: BorderRadius.circular(8),
                     onChanged: (item) {
-                      setState(() {
-                        registerUser.gender = item!;
-                      });
+                      if (mounted) {
+                        setState(() {
+                          registerUser.gender = item!;
+                        });
+                      }
                     },
                   ),
                 ),
