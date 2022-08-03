@@ -42,6 +42,16 @@ class _FriendsPageState extends State<FriendsPage> {
       setState(() {
         currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
       });
+      friends.clear();
+      requests.clear();
+      for (var friend in currentUser.friends) {
+        if (friend.status == "ACCEPTED") {
+          friends.add(await getFriend(friend.toUserID != currentUser.id ? friend.toUserID : friend.fromUserID));
+        } else if (friend.status == "REQUESTED") {
+          requests.add(await getFriend(friend.toUserID != currentUser.id ? friend.toUserID : friend.fromUserID));
+        }
+      }
+      setState(() {});
     } else {
       log(response.body, LogLevel.error);
       CoolAlert.show(
@@ -56,10 +66,58 @@ class _FriendsPageState extends State<FriendsPage> {
     }
   }
 
-  Future<User> getFriend() async {
+  Future<User> getFriend(String id) async {
     User user = User();
     await AuthService.getAuthToken();
+    var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    if (response.statusCode == 200) {
+      user = User.fromJson(jsonDecode(response.body)["data"]);
+    } else {
+      log("Failed to retrieve friend with id: $id", LogLevel.error);
+      log(response.body, LogLevel.error);
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Failed to retrieve friend with id: $id",
+          widget: Text(response.body.toString()),
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_RED,
+          confirmBtnText: "OK"
+      );
+    }
     return user;
+  }
+
+  Future<void> addFriend(User user) async {
+    Friend friend = Friend();
+    friend = currentUser.friends.where((element) => element.id.contains(user.id)).first;
+    friend.status = "ACCEPTED";
+    await AuthService.getAuthToken();
+    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
+    if (response.statusCode == 200) {
+      log("Sent friend request");
+      await updateUserFriendsList();
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.success,
+          title: "Friend Request Accepted",
+          widget: Text("You are now friends with ${user.firstName}!"),
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_GREEN,
+          confirmBtnText: "OK"
+      );
+    } else {
+      log(response.body, LogLevel.error);
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Friend Request Error",
+          widget: Text(response.body.toString()),
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_RED,
+          confirmBtnText: "OK"
+      );
+    }
   }
 
   @override
@@ -87,6 +145,7 @@ class _FriendsPageState extends State<FriendsPage> {
                         setState(() {
                           currPage = 0;
                         });
+                        pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
                       child: Text("My Friends", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).textTheme.button!.color)),
                     ),
@@ -99,6 +158,7 @@ class _FriendsPageState extends State<FriendsPage> {
                         setState(() {
                           currPage = 1;
                         });
+                        pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
                       child: Text("Requests", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
                     ),
@@ -111,18 +171,28 @@ class _FriendsPageState extends State<FriendsPage> {
             child: Container(
               child: PageView(
                 controller: pageController,
+                onPageChanged: (int page) {
+                  setState(() {
+                    currPage = page;
+                  });
+                },
                 children: [
-                  ListView.builder(
+                  friends.isEmpty ? const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Center(child: RefreshProgressIndicator())
+                  ) : ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.all(8),
                     itemCount: friends.length,
                     itemBuilder: (context, index) {
-                      return Container(
-                        padding: const EdgeInsets.only(left: 8, top: 4, right: 8),
-                        child: Card(
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(8),
                                 child: ExtendedImage.network(
                                   friends[index].profilePictureURL,
                                   height: 60,
@@ -138,41 +208,40 @@ class _FriendsPageState extends State<FriendsPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Haarika Kathi",
+                                      "${friends[index].firstName} ${friends[index].lastName}",
                                       style: TextStyle(fontSize: 18),
                                     ),
                                     Text(
-                                      "@haarika",
+                                      "@${friends[index].userName}",
                                       style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
                                     )
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.cancel_outlined, color: Theme.of(context).textTheme.caption!.color),
-                                onPressed: () {
-
-                                },
-                              )
                             ],
                           ),
                         ),
                       );
                     },
                   ),
-                  ListView.builder(
-                    itemCount: friends.length,
+                  requests.isEmpty ? const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Center(child: RefreshProgressIndicator())
+                  ) : ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.all(8),
+                    itemCount: requests.length,
                     itemBuilder: (context, index) {
-                      return Container(
-                        padding: const EdgeInsets.only(left: 8, top: 4, right: 8),
-                        child: Card(
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(8),
                                 child: ExtendedImage.network(
-                                  friends[index].profilePictureURL,
+                                  requests[index].profilePictureURL,
                                   height: 60,
                                   width: 60,
                                   fit: BoxFit.cover,
@@ -186,28 +255,54 @@ class _FriendsPageState extends State<FriendsPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Haarika Kathi",
+                                      "${requests[index].firstName} ${requests[index].lastName}",
                                       style: TextStyle(fontSize: 18),
                                     ),
                                     Text(
-                                      "@haarika",
+                                      "@${requests[index].userName}",
                                       style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
                                     )
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.cancel_outlined, color: Theme.of(context).textTheme.caption!.color),
-                                onPressed: () {
-
-                                },
+                              Visibility(
+                                visible: currentUser.friends.where((element) => element.id.contains(requests[index].id)).first.fromUserID != currentUser.id,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: SB_NAVY,
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.person_add, color: Colors.white),
+                                      const Padding(padding: EdgeInsets.all(4)),
+                                      Text("Accept", style: TextStyle(color: Colors.white),),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    addFriend(requests[index]);
+                                  },
+                                ),
+                              ),
+                              Visibility(
+                                visible: currentUser.friends.where((element) => element.id.contains(requests[index].id)).first.fromUserID == currentUser.id,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: Theme.of(context).backgroundColor,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                      const Padding(padding: EdgeInsets.all(2)),
+                                      Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color),),
+                                    ],
+                                  ),
+                                  onPressed: () {},
+                                ),
                               )
                             ],
                           ),
                         ),
                       );
                     },
-                  ),
+                  )
                 ],
               )
             ),

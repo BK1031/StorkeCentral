@@ -14,6 +14,15 @@ class LoggerPage extends StatefulWidget {
 class _LoggerPageState extends State<LoggerPage> {
 
   bool showTimestamps = true;
+  ScrollController listScrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 200)).then((value) {
+      listScrollController.animateTo(listScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +68,7 @@ class _LoggerPageState extends State<LoggerPage> {
       ),
       backgroundColor: darkBackgroundColor,
       body: ListView.builder(
+        controller: listScrollController,
         itemCount: logs.length,
         itemBuilder: (context, index) => Container(
           padding: const EdgeInsets.all(2),
