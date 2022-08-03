@@ -1,4 +1,5 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:badges/badges.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
@@ -115,10 +116,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     ListTile(
                       title: Row(
-                        children: const [
-                          Icon(Icons.group),
-                          Padding(padding: EdgeInsets.all(4)),
-                          Text("My Friends"),
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.group),
+                              Padding(padding: EdgeInsets.all(4)),
+                              Text("My Friends"),
+                            ],
+                          ),
+                          Badge(
+                            showBadge: currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").isNotEmpty,
+                            badgeContent: Text(currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").length.toString(), style: const TextStyle(color: Colors.white)),
+                          )
                         ],
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),

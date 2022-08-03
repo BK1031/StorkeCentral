@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:badges/badges.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -160,7 +161,12 @@ class _FriendsPageState extends State<FriendsPage> {
                         });
                         pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
-                      child: Text("Requests", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                      child: Badge(
+                        position: BadgePosition.topEnd(top: -10, end: -20),
+                        showBadge: currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").isNotEmpty,
+                        badgeContent: Text(currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").length.toString(), style: const TextStyle(color: Colors.white)),
+                        child: Text("Requests", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                      ),
                     ),
                   )
                 ],
