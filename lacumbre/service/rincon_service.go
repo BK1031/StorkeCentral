@@ -11,22 +11,29 @@ import (
 )
 
 var rinconRetries = 0
+var rinconHost = "http://rincon"
 
 func RegisterRincon() {
 	var portInt, _ = strconv.Atoi(config.Port)
 	rinconBody, _ := json.Marshal(map[string]interface{}{
-		"name": "Lacumbre",
-		"version": config.Version,
-		"url": "http://lacumbre:" + config.Port,
-		"port": portInt,
+		"name":         "Lacumbre",
+		"version":      config.Version,
+		"url":          "http://lacumbre:" + config.Port,
+		"port":         portInt,
 		"status_email": config.StatusEmail,
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
-	_, err := http.Post("http://rincon:" + config.RinconPort + "/services", "application/json", responseBody)
+	_, err := http.Post(rinconHost+":"+config.RinconPort+"/services", "application/json", responseBody)
 	if err != nil {
 		if rinconRetries < 15 {
 			rinconRetries++
-			println("failed to register with rincon, retrying in 5s...")
+			if rinconRetries%2 == 0 {
+				rinconHost = "http://localhost"
+				println("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
+			} else {
+				rinconHost = "http://rincon"
+				println("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
+			}
 			time.Sleep(time.Second * 5)
 			RegisterRincon()
 		} else {
@@ -42,11 +49,12 @@ func RegisterRincon() {
 
 func RegisterRinconRoute(route string) {
 	rinconBody, _ := json.Marshal(map[string]string{
-		"route": route,
+		"route":        route,
 		"service_name": "Lacumbre",
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
-	_, err := http.Post("http://rincon:" + config.RinconPort + "/routes", "application/json", responseBody)
-	if err != nil {}
+	_, err := http.Post(rinconHost+":"+config.RinconPort+"/routes", "application/json", responseBody)
+	if err != nil {
+	}
 	println("Registered route " + route)
 }
