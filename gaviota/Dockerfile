@@ -14,7 +14,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o /lacumbre
+RUN go build -o /gaviota
 
 ##
 ## Deploy
@@ -23,6 +23,6 @@ FROM alpine:3.15
 
 WORKDIR /
 
-COPY --from=builder /lacumbre /lacumbre
+COPY --from=builder /gaviota /gaviota
 
-ENTRYPOINT ["/lacumbre"]
+ENTRYPOINT ["/gaviota"]
