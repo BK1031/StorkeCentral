@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-var Version = "1.1.0"
+var Version = "1.1.3"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
@@ -15,6 +15,8 @@ var PostgresPort = os.Getenv("POSTGRES_PORT")
 var DiscordToken = os.Getenv("DISCORD_TOKEN")
 var DiscordGuild = os.Getenv("DISCORD_GUILD")
 var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
+
+var ArticleUpdateDelay = os.Getenv("ARTICLE_UPDATE_DELAY")
 
 var StatusEmail = os.Getenv("STATUS_EMAIL")
 

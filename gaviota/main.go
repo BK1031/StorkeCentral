@@ -25,6 +25,8 @@ func main() {
 	service.InitializeFirebase()
 	service.ConnectDiscord()
 	service.RegisterRincon()
+	service.InitializeColly()
+	controller.RegisterArticleCronJob()
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }

@@ -10,8 +10,10 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/gaviota/ping", Ping)
-	router.GET("/news", Ping)
-	router.GET("/news/latest", Ping)
+	router.GET("/news", GetAllArticles)
+	router.GET("/news/latest", GetLatestArticle)
+	router.GET("/news/:articleID", GetArticleByID)
+	router.GET("/news/fetch", FetchLatestArticle)
 }
 
 func RequestLogger() gin.HandlerFunc {
