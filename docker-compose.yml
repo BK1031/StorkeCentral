@@ -40,7 +40,7 @@ services:
     build: ./rincon
     image: bk1031/sc_rincon
     ports:
-      - "4002"
+      - "4002:4002"
     environment:
       ENV: $RINCON_ENV
       PORT: $RINCON_PORT
@@ -64,7 +64,7 @@ services:
     build: ./lacumbre
     image: bk1031/sc_lacumbre
     ports:
-      - "4003"
+      - "4003:4003"
     environment:
       ENV: $RINCON_ENV
       PORT: $LACUMBRE_PORT
