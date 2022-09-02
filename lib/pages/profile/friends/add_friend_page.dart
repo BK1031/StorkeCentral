@@ -28,6 +28,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
   List<User> suggestedFriends = [];
   TextEditingController textEditingController = TextEditingController();
 
+  bool refreshing = false;
+
   _onChangedHandler(String input) {
     const duration = Duration(milliseconds: 800);
     if (searchOnStoppedTyping != null) {
@@ -88,12 +90,16 @@ class _AddFriendPageState extends State<AddFriendPage> {
   }
 
   Future<void> updateUserFriendsList() async {
+    setState(() {
+      refreshing = true;
+    });
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("Successfully updated local friend list");
       setState(() {
         currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
+        refreshing = false;
       });
     } else {
       log(response.body, LogLevel.error);
@@ -117,6 +123,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       setState(() {
         suggestedFriends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => User.fromJson(e)).toList();
         suggestedFriends.removeWhere((element) => element.id == currentUser.id);
+        suggestedFriends.removeWhere((element) => currentUser.friends.any((friend) => friend.id.contains(element.id)));
       });
     } else {
       log(response.body, LogLevel.error);
@@ -300,10 +307,17 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     ),
                   ),
                   Visibility(
-                    visible: suggestedFriends.isEmpty,
+                    visible: refreshing,
                     child: const Padding(
                       padding: EdgeInsets.all(8),
                       child: Center(child: RefreshProgressIndicator())
+                    ),
+                  ),
+                  Visibility(
+                    visible: suggestedFriends.isEmpty && !refreshing,
+                    child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Center(child: Text("No suggested friends available"))
                     ),
                   ),
                   ListView.builder(
