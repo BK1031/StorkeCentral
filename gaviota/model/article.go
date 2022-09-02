@@ -12,3 +12,7 @@ type Article struct {
 	ArticleURL string    `json:"article_url"`
 	CreatedAt  time.Time `gorm:"autoCreateTime" json:"created_at"`
 }
+
+func (Article) TableName() string {
+	return "article"
+}

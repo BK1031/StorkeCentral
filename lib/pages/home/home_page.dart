@@ -1,21 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:adaptive_theme/adaptive_theme.dart';
+
 import 'package:cool_alert/cool_alert.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:storke_central/models/dining_hall.dart';
-import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
-import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -39,16 +36,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
       try {
-        await Future.delayed(const Duration(milliseconds: 100));
+        var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
         setState(() {
-          selectedArticle = NewsArticle.fromJson({
-            'headline': "Daily Nexus front page article",
-            'byline': "Daily Nexus",
-            'date': DateTime.now(),
-            'excerpt': "The letter was published on Reddit on Oct. 26 following the Oct. 5 Design Review Committee (DRC) meeting.",
-            'coverUrl': "https://i1.wp.com/dailynexus.s3.us-west-1.amazonaws.com/dailynexus/wp-content/uploads/2022/04/03135030/UCSBReturnsTuitions_DNFilePhoto.jpg",
-            'articleUrl': "https://dailynexus.com",
-          });
+          headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
         });
       } catch(e) {
         CoolAlert.show(
@@ -134,12 +124,12 @@ class _HomePageState extends State<HomePage> {
                           borderRadius: const BorderRadius.all(Radius.circular(8)),
                           child: Stack(
                             children: [
-                              // ExtendedImage.network(
-                              //   selectedArticle.coverUrl,
-                              //   fit: BoxFit.cover,
-                              //   height: 175,
-                              //   width: MediaQuery.of(context).size.width,
-                              // ),
+                              ExtendedImage.network(
+                                headlineArticle.pictureUrl,
+                                fit: BoxFit.cover,
+                                height: 175,
+                                width: MediaQuery.of(context).size.width,
+                              ),
                               Container(
                                 color: Colors.black.withOpacity(0.4),
                                 padding: const EdgeInsets.all(8),
@@ -149,15 +139,15 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     Row(
                                       children: [
-                                        // ExtendedImage.network(
-                                        //   "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
-                                        //   height: 35,
-                                        // ),
+                                        ExtendedImage.network(
+                                          "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
+                                          height: 35,
+                                        ),
                                         Padding(padding: EdgeInsets.all(4)),
-                                        Text("NEWS | ${DateFormat("yMMMMd").format(selectedArticle.date)}", style: const TextStyle(color: Colors.white, fontSize: 17)),
+                                        Text(headlineArticle.date, style: const TextStyle(color: Colors.white, fontSize: 17)),
                                       ],
                                     ),
-                                    Text(selectedArticle.headline, style: const TextStyle(color: Colors.white, fontSize: 20)),
+                                    Text(headlineArticle.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
                                   ],
                                 ),
                               ),

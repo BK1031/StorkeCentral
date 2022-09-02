@@ -1,31 +1,37 @@
-import 'package:storke_central/models/dining_hall_meal.dart';
+
 
 class NewsArticle {
-  String headline = "";
-  String byline = "";
-  DateTime date = DateTime.now();
+  String id = "";
+  String title = "";
+  String byLine = "";
   String excerpt = "";
-  String coverUrl = "";
+  String pictureUrl = "";
+  String date = "";
   String articleUrl = "";
+  DateTime createdAt = DateTime.now().toUtc();
 
   NewsArticle();
 
   NewsArticle.fromJson(Map<String, dynamic> json) {
-    headline = json["headline"] ?? "";
-    byline = json["byline"] ?? "";
-    date = json["date"] ?? DateTime.now();
+    id = json["id"] ?? "";
+    title = json["title"] ?? "";
+    byLine = json["by_line"] ?? "";
     excerpt = json["excerpt"] ?? "";
-    coverUrl = json["coverUrl"] ?? "";
-    articleUrl = json["articleUrl"] ?? "";
+    pictureUrl = json["picture_url"] ?? "";
+    date = json["date"] ?? "";
+    articleUrl = json["article_url"] ?? "";
+    createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
 
   Map<String, dynamic> toJson() => {
-    'headline': headline,
-    'byline': byline,
-    'date': date,
-    'excerpt': excerpt,
-    'coverUrl': coverUrl,
-    'articleUrl': articleUrl,
+      "id": id,
+      "title": title,
+      "by_line": byLine,
+      "excerpt": excerpt,
+      "picture_url": pictureUrl,
+      "date": date,
+      "article_url": articleUrl,
+      "created_at": createdAt.toIso8601String(),
   };
 }
 

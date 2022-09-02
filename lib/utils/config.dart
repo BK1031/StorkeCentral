@@ -35,7 +35,7 @@ Position? currentPosition;
 List<DiningHall> diningHallList = [];
 DiningHall selectedDiningHall = DiningHall();
 
-NewsArticle selectedArticle = NewsArticle();
+NewsArticle headlineArticle = NewsArticle();
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names
