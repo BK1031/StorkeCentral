@@ -17,7 +17,7 @@ class NewsArticle {
     title = json["title"] ?? "";
     byLine = json["by_line"] ?? "";
     excerpt = json["excerpt"] ?? "";
-    pictureUrl = json["picture_url"] ?? "";
+    pictureUrl = json["picture_url"].toString().replaceAll("-430x330", "") ?? "";
     date = json["date"] ?? "";
     articleUrl = json["article_url"] ?? "";
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
