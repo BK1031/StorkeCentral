@@ -29,6 +29,8 @@ class _FriendsPageState extends State<FriendsPage> {
   int currPage = 0;
   PageController pageController = PageController();
 
+  bool refreshing = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,11 +39,15 @@ class _FriendsPageState extends State<FriendsPage> {
 
   Future<void> updateUserFriendsList() async {
     await AuthService.getAuthToken();
+    setState(() {
+      refreshing = true;
+    });
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("Successfully updated local friend list");
       setState(() {
         currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
+        refreshing = false;
       });
       friends.clear();
       requests.clear();
@@ -230,7 +236,7 @@ class _FriendsPageState extends State<FriendsPage> {
                       );
                     },
                   ),
-                  requests.isEmpty ? const Padding(
+                  refreshing ? const Padding(
                       padding: EdgeInsets.all(8),
                       child: Center(child: RefreshProgressIndicator())
                   ) : ListView.builder(
