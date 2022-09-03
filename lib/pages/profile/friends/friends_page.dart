@@ -189,9 +189,24 @@ class _FriendsPageState extends State<FriendsPage> {
                   });
                 },
                 children: [
-                  friends.isEmpty ? const Padding(
+                  refreshing ? const Padding(
                       padding: EdgeInsets.all(8),
                       child: Center(child: RefreshProgressIndicator())
+                  ) :  friends.isEmpty ? Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Icon(
+                            CupertinoIcons.person_crop_circle_badge_xmark,
+                            size: 100,
+                            color: Theme.of(context).textTheme.caption!.color,
+                          ),
+                          const Padding(padding: EdgeInsets.all(4)),
+                          const Text("No friends 😹", style: TextStyle(fontSize: 16),),
+                        ],
+                      ),
+                    ),
                   ) : ListView.builder(
                     shrinkWrap: true,
                     padding: const EdgeInsets.all(8),
@@ -239,6 +254,22 @@ class _FriendsPageState extends State<FriendsPage> {
                   refreshing ? const Padding(
                       padding: EdgeInsets.all(8),
                       child: Center(child: RefreshProgressIndicator())
+                  ) :  requests.isEmpty ? Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Icon(
+                            CupertinoIcons.person_crop_circle_badge_xmark,
+                            size: 100,
+                            color: Theme.of(context).textTheme.caption!.color,
+                          ),
+                          const Padding(padding: EdgeInsets.all(4)),
+                          // const Text("No friends 😹", style: TextStyle(fontSize: 16),),
+                          const Text("No friend requests"),
+                        ],
+                      ),
+                    ),
                   ) : ListView.builder(
                     shrinkWrap: true,
                     padding: const EdgeInsets.all(8),
