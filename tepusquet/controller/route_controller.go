@@ -10,6 +10,8 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/tepusquet/ping", Ping)
+	router.GET("/tepusquet/credentials/:userID", GetCredentialForUser)
+	router.POST("/tepusquet/credentials", SetCredentialForUser)
 }
 
 func RequestLogger() gin.HandlerFunc {

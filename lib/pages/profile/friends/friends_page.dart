@@ -23,9 +23,6 @@ class FriendsPage extends StatefulWidget {
 
 class _FriendsPageState extends State<FriendsPage> {
 
-  List<User> friends = [];
-  List<User> requests = [];
-
   int currPage = 0;
   PageController pageController = PageController();
 

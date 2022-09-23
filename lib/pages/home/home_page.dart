@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
       try {
+        await AuthService.getAuthToken();
         var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
         setState(() {
           headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);

@@ -29,6 +29,8 @@ bool offlineMode = false;
 bool anonMode = false;
 
 User currentUser = User();
+List<User> friends = [];
+List<User> requests = [];
 
 Position? currentPosition;
 

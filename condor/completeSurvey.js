@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer');
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: false,
+        // headless: false,
         args: ['--window-size=500,900'],
         defaultViewport: null
         });
