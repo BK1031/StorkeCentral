@@ -21,3 +21,4 @@ var StatusEmail = os.Getenv("STATUS_EMAIL")
 var FirebaseServiceAccountEncoded = os.Getenv("FIREBASE_SERVICE_ACCOUNT")
 
 var CredEncryptionKey = os.Getenv("CRED_ENCRYPTION_KEY")
+var CredEncryptionNonce = os.Getenv("CRED_ENCRYPTION_NONCE")

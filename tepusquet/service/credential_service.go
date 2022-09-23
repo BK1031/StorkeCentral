@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
+	"log"
 	"tepusquet/config"
 	"tepusquet/model"
 )
@@ -15,27 +16,38 @@ func GetCredentialForUser(userID string) model.UserCredential {
 	if result.Error != nil {
 	}
 	if cred.Username != "" && cred.Password != "" {
-		// First decrypt using project key
-		decryptedUsername, err := DecryptCredential([]byte(config.CredEncryptionKey), []byte(cred.Username))
+		// First decode string from db to bytes
+		encryptedUsername, err := hex.DecodeString(cred.Username)
 		if err != nil {
 			println(err)
 		}
-		decryptedPassword, err := DecryptCredential([]byte(config.CredEncryptionKey), []byte(cred.Password))
+		encryptedPassword, err := hex.DecodeString(cred.Password)
 		if err != nil {
 			println(err)
+		}
+		// First decrypt using project key
+		decryptedUsername, err := DecryptCredential([]byte(config.CredEncryptionKey), encryptedUsername)
+		if err != nil {
+			log.Fatal(err)
+		}
+		decryptedPassword, err := DecryptCredential([]byte(config.CredEncryptionKey), encryptedPassword)
+		if err != nil {
+			log.Fatal(err)
 		}
 		// Second decrypt using user generated key
 		decryptedUsername2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedUsername)
 		if err != nil {
-			println(err)
+			log.Fatal(err)
 		}
 		decryptedPassword2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedPassword)
 		if err != nil {
-			println(err)
+			log.Fatal(err)
 		}
 		cred.Username = string(decryptedUsername2)
 		cred.Password = string(decryptedPassword2)
 	}
+	println(cred.Username)
+	println(cred.Password)
 	return cred
 }
 
@@ -81,6 +93,7 @@ func EncryptCredential(key []byte, data []byte) ([]byte, error) {
 	if _, err = rand.Read(nonce); err != nil {
 		return nil, err
 	}
+	println(hex.EncodeToString(nonce))
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
 	return ciphertext, nil
 }
@@ -95,6 +108,7 @@ func DecryptCredential(key []byte, data []byte) ([]byte, error) {
 		return nil, err
 	}
 	nonce, ciphertext := data[:gcm.NonceSize()], data[gcm.NonceSize():]
+	println(hex.EncodeToString(nonce))
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		return nil, err
