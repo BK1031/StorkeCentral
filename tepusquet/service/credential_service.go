@@ -19,35 +19,33 @@ func GetCredentialForUser(userID string) model.UserCredential {
 		// First decode string from db to bytes
 		encryptedUsername, err := hex.DecodeString(cred.Username)
 		if err != nil {
-			println(err)
+			log.Println(err)
 		}
 		encryptedPassword, err := hex.DecodeString(cred.Password)
 		if err != nil {
-			println(err)
+			log.Println(err)
 		}
 		// First decrypt using project key
 		decryptedUsername, err := DecryptCredential([]byte(config.CredEncryptionKey), encryptedUsername)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		decryptedPassword, err := DecryptCredential([]byte(config.CredEncryptionKey), encryptedPassword)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		// Second decrypt using user generated key
 		decryptedUsername2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedUsername)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		decryptedPassword2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedPassword)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		cred.Username = string(decryptedUsername2)
 		cred.Password = string(decryptedPassword2)
 	}
-	println(cred.Username)
-	println(cred.Password)
 	return cred
 }
 
@@ -57,20 +55,20 @@ func SetCredentialForUser(cred model.UserCredential) error {
 	// First encrypt using user generated key
 	encryptedUsername, err := EncryptCredential([]byte(cred.EncryptionKey), []byte(cred.Username))
 	if err != nil {
-		println(err)
+		log.Println(err)
 	}
 	encryptedPassword, err := EncryptCredential([]byte(cred.EncryptionKey), []byte(cred.Password))
 	if err != nil {
-		println(err)
+		log.Println(err)
 	}
 	// Second encrypt using project key
 	encryptedUsername2, err := EncryptCredential([]byte(config.CredEncryptionKey), encryptedUsername)
 	if err != nil {
-		println(err)
+		log.Println(err)
 	}
 	encryptedPassword2, err := EncryptCredential([]byte(config.CredEncryptionKey), encryptedPassword)
 	if err != nil {
-		println(err)
+		log.Println(err)
 	}
 	cred.Username = hex.EncodeToString(encryptedUsername2)
 	cred.Password = hex.EncodeToString(encryptedPassword2)
@@ -93,7 +91,6 @@ func EncryptCredential(key []byte, data []byte) ([]byte, error) {
 	if _, err = rand.Read(nonce); err != nil {
 		return nil, err
 	}
-	println(hex.EncodeToString(nonce))
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
 	return ciphertext, nil
 }
@@ -108,7 +105,6 @@ func DecryptCredential(key []byte, data []byte) ([]byte, error) {
 		return nil, err
 	}
 	nonce, ciphertext := data[:gcm.NonceSize()], data[gcm.NonceSize():]
-	println(hex.EncodeToString(nonce))
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		return nil, err
