@@ -18,7 +18,8 @@ func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter stri
 		page.MustWaitIdle().MustNavigate("https://my.sa.ucsb.edu/gold/StudentSchedule.aspx")
 		page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
 		println("Found schedule grid")
-		page.MustElement("#ctl00_pageContent_quarterDropDown").Select([]string{`[value="20221"]`}, true, rod.SelectorTypeCSSSector)
+		// TODO: Support quarters other than Fall 2021
+		//page.MustElement("#ctl00_pageContent_quarterDropDown").Select([]string{`[value="20221"]`}, true, rod.SelectorTypeCSSSector)
 		page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
 		println("Selected quarter " + quarter)
 		courseElements := page.MustElements("div.col-sm-3.col-xs-4")
