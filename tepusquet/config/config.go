@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-var Version = "1.0.1"
+var Version = "1.1.9"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
@@ -21,4 +21,3 @@ var StatusEmail = os.Getenv("STATUS_EMAIL")
 var FirebaseServiceAccountEncoded = os.Getenv("FIREBASE_SERVICE_ACCOUNT")
 
 var CredEncryptionKey = os.Getenv("CRED_ENCRYPTION_KEY")
-var CredEncryptionNonce = os.Getenv("CRED_ENCRYPTION_NONCE")

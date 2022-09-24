@@ -6,18 +6,35 @@ import (
 	"tepusquet/service"
 )
 
-func GetCoursesForUser(c *gin.Context) {
-	result := service.GetCoursesForUser(c.Param("userID"))
+func GetAllCoursesForUser(c *gin.Context) {
+	result := service.GetAllCoursesForUser(c.Param("userID"))
 	c.JSON(http.StatusOK, result)
 }
 
-func FetchCoursesForUser(c *gin.Context) {
-	//courses := service.FetchCoursesForUser(c.Param("username"), c.Param("password"))
-
-	c.Status(http.StatusOK)
+func GetCoursesForUserForQuarter(c *gin.Context) {
+	result := service.GetCoursesForUserForQuarter(c.Param("userID"), c.Param("quarter"))
+	c.JSON(http.StatusOK, result)
 }
 
-func RemoveCourseForUser(c *gin.Context) {
-	service.RemoveCourseForUser(c.Param("userID"), c.Param("courseID"))
+func FetchCoursesForUserForQuarter(c *gin.Context) {
+	creds := service.GetCredentialForUser(c.Param("userID"))
+	if creds.Username == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Credentials not found for user, please set them first"})
+		return
+	}
+	courses := service.FetchCoursesForUserForQuarter(creds, c.Param("quarter"))
+	service.RemoveAllCoursesForUserForQuarter(c.Param("userID"), c.Param("quarter"))
+	if len(courses) == 1 && courses[0].UserID == "AUTH ERROR" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You have entered an invalid UCSB NetID/Password combination, please re-enter and try again."})
+		return
+	}
+	for _, course := range courses {
+		service.AddCourseForUser(course)
+	}
+	c.JSON(http.StatusOK, service.GetCoursesForUserForQuarter(c.Param("userID"), c.Param("quarter")))
+}
+
+func RemoveCourseForUserForQuarter(c *gin.Context) {
+	service.RemoveCourseForUserForQuarter(c.Param("userID"), c.Param("courseID"), c.Param("quarter"))
 	c.Status(http.StatusOK)
 }

@@ -10,8 +10,11 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/tepusquet/ping", Ping)
-	router.GET("/tepusquet/credentials/:userID", GetCredentialForUser)
-	router.POST("/tepusquet/credentials", SetCredentialForUser)
+	router.POST("/users/credentials", SetCredentialForUser)
+	router.GET("/users/courses/:userID", GetAllCoursesForUser)
+	router.GET("/users/courses/:userID/:quarter", GetCoursesForUserForQuarter)
+	router.GET("/users/courses/:userID/fetch/:quarter", FetchCoursesForUserForQuarter)
+	router.DELETE("/users/courses/:userID/:quarter/:courseID", RemoveCourseForUserForQuarter)
 }
 
 func RequestLogger() gin.HandlerFunc {

@@ -43,7 +43,8 @@ func RegisterRincon() {
 	} else {
 		println("Registered service with Rincon!")
 		RegisterRinconRoute("/tepusquet")
-		RegisterRinconRoute("/news")
+		RegisterRinconRoute("/users/credentials")
+		RegisterRinconRoute("/users/courses")
 	}
 }
 
