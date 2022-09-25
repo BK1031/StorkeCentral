@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-func InitializeRoutes(router *gin.Engine)  {
+func InitializeRoutes(router *gin.Engine) {
 	router.GET("/lacumbre/ping", Ping)
 	router.GET("/users", GetAllUsers)
 	router.GET("/users/:userID", GetUserByID)
-	router.POST("/users", CreateUser)
+	router.POST("/users/:userID", CreateUser)
 	router.GET("/users/:userID/roles", GetRolesForUser)
 	router.POST("/users/:userID/roles", SetRolesForUser)
 	router.GET("/users/:userID/friends", GetFriendsForUser)
@@ -62,12 +62,12 @@ func AuthChecker() gin.HandlerFunc {
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod
-		if c.FullPath() == "/users" {
+		if c.FullPath() == "/users/:userID" {
 			// Creating or modifying a user requires the requesting user
 			// to have a matching user ID or the ADMIN role
 			if c.Request.Method == "POST" {
 				if requestUserID != c.Param("userID") && !contains(requestUserRoles, "ADMIN") {
-					//c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
 				}
 			}
 		} else if c.FullPath() == "/users/:userID/roles" {

@@ -22,6 +22,8 @@ func SetCredentialForUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// Set the user id to ensure that the user can only set their own credentials
+	input.UserID = c.Param("userID")
 	if err := service.SetCredentialForUser(input); err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return

@@ -1,6 +1,8 @@
+import 'package:calendar_view/calendar_view.dart';
 import 'package:fluro/fluro.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:storke_central/models/dining_hall.dart';
+import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user.dart';
@@ -40,6 +42,9 @@ DiningHall selectedDiningHall = DiningHall();
 
 NewsArticle headlineArticle = NewsArticle();
 
+List<GoldCourse> goldCourses = [];
+List<CalendarEventData> courseCalendarEvents = [];
+
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names
 String PREF_UNITS = "M";
@@ -50,4 +55,5 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
+Quarter selectedQuarter = Quarter(id: "20224");
 Quarter currentQuarter = Quarter(id: "20224");

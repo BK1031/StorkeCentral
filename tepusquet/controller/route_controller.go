@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
 	"strings"
 	"tepusquet/service"
 )
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/tepusquet/ping", Ping)
-	router.POST("/users/credentials", SetCredentialForUser)
+	router.POST("/users/credentials/:userID", SetCredentialForUser)
 	router.GET("/users/courses/:userID", GetAllCoursesForUser)
 	router.GET("/users/courses/:userID/:quarter", GetCoursesForUserForQuarter)
 	router.GET("/users/courses/:userID/fetch/:quarter", FetchCoursesForUserForQuarter)
@@ -57,6 +58,15 @@ func AuthChecker() gin.HandlerFunc {
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod
+		if c.FullPath() == "/users/credentials/:userID" {
+			// Modifying a user's credentials requires the requesting user to have
+			// a matching user ID
+			if c.Request.Method == "POST" {
+				if requestUserID != c.Param("userID") {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
+				}
+			}
+		}
 		c.Next()
 	}
 }

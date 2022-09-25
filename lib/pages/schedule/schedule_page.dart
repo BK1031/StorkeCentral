@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:calendar_view/calendar_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:storke_central/models/gold_course.dart';
+import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
 
@@ -23,9 +27,22 @@ class _SchedulePageState extends State<SchedulePage> {
     populateEvents();
   }
 
-  Future<void> getCourseSchedule(String id) async {
-    await http.get("https://api.ucsb.edu/academics/curriculums/v1/classes/${id}/schedule", headers: {
-      "ucsb-api-key": UCSB_API_KEY
+  Future<void> getUserCourses(String quarter) async {
+    await AuthService.getAuthToken();
+    await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      goldCourses.add(GoldCourse.fromJson(jsonDecode(value.body)));
+    });
+  }
+
+  Future<void> fetchGoldSchedule(String quarter) async {
+    await http.get(Uri.parse("$API_HOST/users/"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
+      goldCourses.add(GoldCourse.fromJson(jsonDecode(value.body)));
+    });
+  }
+
+  Future<void> getCourseSchedule(String quarter, String id) async {
+    await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/$id"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
+      goldCourses.add(GoldCourse.fromJson(jsonDecode(value.body)));
     });
   }
 
@@ -38,6 +55,7 @@ class _SchedulePageState extends State<SchedulePage> {
       description: "This is a test event",
       color: Colors.red,
     );
+    getCourseSchedule("07997");
     setState(() {
       calendarController.add(event);
     });

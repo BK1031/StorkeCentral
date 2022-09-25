@@ -29,6 +29,10 @@ class GoldCourse {
     }
   }
 
+  @override
+  String toString() {
+    return "$courseID - $title";
+  }
 }
 
 /*
