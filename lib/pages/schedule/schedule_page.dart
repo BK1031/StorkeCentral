@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
 
 class SchedulePage extends StatefulWidget {
@@ -24,20 +25,48 @@ class _SchedulePageState extends State<SchedulePage> {
   @override
   void initState() {
     super.initState();
-    populateEvents();
+    getUserCourses(selectedQuarter.id);
   }
 
   Future<void> getUserCourses(String quarter) async {
-    await AuthService.getAuthToken();
-    await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-      goldCourses.add(GoldCourse.fromJson(jsonDecode(value.body)));
-    });
+    try {
+      await AuthService.getAuthToken();
+      await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        goldCourses.clear();
+        for (var c in jsonDecode(value.body)["data"]) {
+          GoldCourse course = GoldCourse.fromJson(c);
+          goldCourses.add(course);
+        }
+        if (goldCourses.isEmpty) {
+          // No courses found in db for this quarter
+          // Try to fetch from GOLD API
+          log("No courses found in db for this quarter. Trying to fetch from GOLD API", LogLevel.warn);
+          fetchGoldSchedule(selectedQuarter.id);
+        }
+      });
+    } catch(err) {
+      log(err.toString(), LogLevel.error);
+    }
   }
 
   Future<void> fetchGoldSchedule(String quarter) async {
-    await http.get(Uri.parse("$API_HOST/users/"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
-      goldCourses.add(GoldCourse.fromJson(jsonDecode(value.body)));
-    });
+    try {
+      await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        if (value.statusCode == 200) {
+          goldCourses.clear();
+          for (var c in jsonDecode(value.body)["data"]) {
+            GoldCourse course = GoldCourse.fromJson(c);
+            goldCourses.add(course);
+          }
+        } else if (value.statusCode == 404) {
+          // Invalid/missing credentials
+          log("Invalid credentials, launching login page", LogLevel.warn);
+          router.navigateTo(context, "/schedule/credentials", transition: TransitionType.nativeModal);
+        }
+      });
+    } catch(err) {
+      log(err.toString(), LogLevel.error);
+    }
   }
 
   Future<void> getCourseSchedule(String quarter, String id) async {
@@ -55,7 +84,7 @@ class _SchedulePageState extends State<SchedulePage> {
       description: "This is a test event",
       color: Colors.red,
     );
-    getCourseSchedule("07997");
+    // getCourseSchedule("07997");
     setState(() {
       calendarController.add(event);
     });

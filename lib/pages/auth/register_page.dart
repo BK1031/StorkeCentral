@@ -248,7 +248,7 @@ class _RegisterPageState extends State<RegisterPage> {
         registerUser.privacy.userID = registerUser.id;
         log(registerUser.toJson());
         await AuthService.getAuthToken();
-        var createUser = await http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
+        var createUser = await http.post(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
         if (createUser.statusCode == 200) {
           CoolAlert.show(

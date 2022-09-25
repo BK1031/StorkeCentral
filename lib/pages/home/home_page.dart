@@ -43,6 +43,7 @@ class _HomePageState extends State<HomePage> {
           headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
         });
       } catch(e) {
+        log(e.toString(), LogLevel.error);
         CoolAlert.show(
             context: context,
             type: CoolAlertType.error,
@@ -90,6 +91,7 @@ class _HomePageState extends State<HomePage> {
             }));
         });
       } catch(e) {
+        log(e.toString(), LogLevel.error);
         CoolAlert.show(
             context: context,
             type: CoolAlertType.error,
