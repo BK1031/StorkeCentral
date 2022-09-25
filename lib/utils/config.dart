@@ -2,12 +2,13 @@ import 'package:fluro/fluro.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
 
-Version appVersion = Version("2.2.2+1");
+Version appVersion = Version("2.2.3+1");
 
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";
@@ -47,3 +48,6 @@ Map<String, double> UNITS_CONVERSION = {
   "M": 1,
   "FT": 3.28084
 };
+
+// Quarter Information
+Quarter currentQuarter = Quarter(id: "20224");
