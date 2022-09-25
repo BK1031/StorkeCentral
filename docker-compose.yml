@@ -22,7 +22,7 @@ services:
     ports:
       - "4001:4001"
     environment:
-      ENV: $MONTECITO_ENV
+      ENV: $ENV
       PORT: $MONTECITO_PORT
       RINCON_PORT: $RINCON_PORT
       DISCORD_TOKEN: $MONTECITO_DISCORD_TOKEN
@@ -42,7 +42,7 @@ services:
     ports:
       - "4002:4002"
     environment:
-      ENV: $RINCON_ENV
+      ENV: $ENV
       PORT: $RINCON_PORT
       POSTGRES_HOST: $POSTGRES_HOST
       POSTGRES_USER: $POSTGRES_USER
@@ -66,7 +66,7 @@ services:
     ports:
       - "4003:4003"
     environment:
-      ENV: $LACUMBRE_ENV
+      ENV: $ENV
       PORT: $LACUMBRE_PORT
       RINCON_PORT: $RINCON_PORT
       POSTGRES_HOST: $POSTGRES_HOST
@@ -89,7 +89,7 @@ services:
     ports:
       - "4004:4004"
     environment:
-      ENV: $GAVIOTA_ENV
+      ENV: $ENV
       PORT: $GAVIOTA_PORT
       RINCON_PORT: $RINCON_PORT
       POSTGRES_HOST: $POSTGRES_HOST
@@ -102,6 +102,30 @@ services:
       STATUS_EMAIL: $GAVIOTA_STATUS_EMAIL
       ARTICLE_UPDATE_DELAY: $GAVIOTA_ARTICLE_UPDATE_DELAY
       FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+
+  tepusquet:
+    container_name: tepusquet
+    depends_on:
+      - db
+      - rincon
+    build: ./tepusquet
+    image: bk1031/sc_tepusquet
+    ports:
+      - "4005:4005"
+    environment:
+      ENV: $ENV
+      PORT: $TEPUSQUET_PORT
+      RINCON_PORT: $RINCON_PORT
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PORT: $POSTGRES_PORT
+      DISCORD_TOKEN: $TEPUSQUET_DISCORD_TOKEN
+      DISCORD_GUILD: $TEPUSQUET_DISCORD_GUILD
+      DISCORD_CHANNEL: $TEPUSQUET_DISCORD_CHANNEL
+      STATUS_EMAIL: $TEPUSQUET_STATUS_EMAIL
+      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+      CRED_ENCRYPTION_KEY: $TEPUSQUET_CRED_ENCRYPTION_KEY
 
 volumes:
   pgdata:

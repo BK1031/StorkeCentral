@@ -21,6 +21,8 @@ RUN go build -o /tepusquet
 ##
 FROM alpine:3.15
 
+RUN apk --no-cache add chromium
+
 WORKDIR /
 
 COPY --from=builder /tepusquet /tepusquet

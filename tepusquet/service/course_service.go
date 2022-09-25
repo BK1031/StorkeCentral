@@ -22,6 +22,7 @@ func AddCourseForUser(course model.UserCourse) error {
 	if result := DB.Create(&course); result.Error != nil {
 		return result.Error
 	}
+	DiscordLogNewCourse(course)
 	return nil
 }
 

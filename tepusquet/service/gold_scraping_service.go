@@ -2,13 +2,16 @@ package service
 
 import (
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/launcher"
 	"strconv"
 	"tepusquet/model"
 )
 
 func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter string) []model.UserCourse {
 	var courses []model.UserCourse
-	page := rod.New().NoDefaultDevice().MustConnect().MustPage("https://my.sa.ucsb.edu/gold/Login.aspx")
+	path, _ := launcher.LookPath()
+	url := launcher.New().Bin(path).MustLaunch()
+	page := rod.New().ControlURL(url).MustConnect().MustPage("https://my.sa.ucsb.edu/gold/Login.aspx")
 	page.MustElement("#pageContent_userNameText").MustInput(credential.Username)
 	page.MustElement("#pageContent_passwordText").MustInput(credential.Password)
 	page.MustElement("#pageContent_loginButton").MustClick()
@@ -20,7 +23,7 @@ func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter stri
 		println("Found schedule grid")
 		// TODO: Support quarters other than Fall 2021
 		//page.MustElement("#ctl00_pageContent_quarterDropDown").Select([]string{`[value="20221"]`}, true, rod.SelectorTypeCSSSector)
-		page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
+		//page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
 		println("Selected quarter " + quarter)
 		courseElements := page.MustElements("div.col-sm-3.col-xs-4")
 		println("Found " + strconv.Itoa(len(courseElements)) + " courses")
