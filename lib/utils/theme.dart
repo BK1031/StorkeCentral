@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-bool darkMode = false;
-
 Color SB_NAVY = const Color(0xFF003660);
 Color SB_GOLD = const Color(0xFFfebc11);
 

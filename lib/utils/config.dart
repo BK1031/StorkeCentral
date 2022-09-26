@@ -1,5 +1,6 @@
 import 'package:calendar_view/calendar_view.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/gold_course.dart';
@@ -9,6 +10,7 @@ import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
+final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 Version appVersion = Version("2.2.3+1");
 

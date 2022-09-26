@@ -6,6 +6,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
+import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -18,13 +19,21 @@ class SchedulePage extends StatefulWidget {
   State<SchedulePage> createState() => _SchedulePageState();
 }
 
-class _SchedulePageState extends State<SchedulePage> {
+class _SchedulePageState extends State<SchedulePage> with RouteAware {
 
   EventController calendarController = EventController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      routeObserver.subscribe(this, ModalRoute.of(context)!);
+    });
+    getUserCourses(selectedQuarter.id);
+  }
+
+  @override
+  void didPopNext() {
     getUserCourses(selectedQuarter.id);
   }
 
@@ -33,15 +42,16 @@ class _SchedulePageState extends State<SchedulePage> {
       await AuthService.getAuthToken();
       await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         goldCourses.clear();
-        for (var c in jsonDecode(value.body)["data"]) {
-          GoldCourse course = GoldCourse.fromJson(c);
-          goldCourses.add(course);
-        }
-        if (goldCourses.isEmpty) {
+        if (jsonDecode(value.body)["data"].length == 0) {
           // No courses found in db for this quarter
           // Try to fetch from GOLD API
           log("No courses found in db for this quarter. Trying to fetch from GOLD API", LogLevel.warn);
           fetchGoldSchedule(selectedQuarter.id);
+        } else {
+          for (var c in jsonDecode(value.body)["data"]) {
+            UserCourse course = UserCourse.fromJson(c);
+            getCourseSchedule(course.quarter, course.courseID);
+          }
         }
       });
     } catch(err) {
@@ -55,10 +65,10 @@ class _SchedulePageState extends State<SchedulePage> {
         if (value.statusCode == 200) {
           goldCourses.clear();
           for (var c in jsonDecode(value.body)["data"]) {
-            GoldCourse course = GoldCourse.fromJson(c);
-            goldCourses.add(course);
+            UserCourse course = UserCourse.fromJson(c);
+            getCourseSchedule(course.quarter, course.courseID);
           }
-        } else if (value.statusCode == 404) {
+        } else {
           // Invalid/missing credentials
           log("Invalid credentials, launching login page", LogLevel.warn);
           router.navigateTo(context, "/schedule/credentials", transition: TransitionType.nativeModal);
@@ -71,7 +81,9 @@ class _SchedulePageState extends State<SchedulePage> {
 
   Future<void> getCourseSchedule(String quarter, String id) async {
     await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/$id"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
-      goldCourses.add(GoldCourse.fromJson(jsonDecode(value.body)));
+      GoldCourse course = GoldCourse.fromJson(jsonDecode(value.body));
+      goldCourses.add(course);
+      log("Retrieved course info for ${course.toString()}");
     });
   }
 
@@ -135,6 +147,12 @@ class _SchedulePageState extends State<SchedulePage> {
       );
     } else {
       return Scaffold(
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.refresh),
+            onPressed: () {
+              fetchGoldSchedule(selectedQuarter.id);
+            },
+          ),
           body: WeekView(
             controller: calendarController,
             showWeekends: true,

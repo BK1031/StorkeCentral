@@ -91,7 +91,8 @@ Future<void> main() async {
       darkTheme: darkTheme,
       debugShowCheckedModeBanner: false,
       navigatorObservers: [
-        FirebaseAnalyticsObserver(analytics: analytics)
+        routeObserver,
+        FirebaseAnalyticsObserver(analytics: analytics),
       ],
     ),
   ));
