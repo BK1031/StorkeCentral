@@ -43,8 +43,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
       await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         goldCourses.clear();
         if (jsonDecode(value.body)["data"].length == 0) {
-          // No courses found in db for this quarter
-          // Try to fetch from GOLD API
           log("No courses found in db for this quarter. Trying to fetch from GOLD API", LogLevel.warn);
           fetchGoldSchedule(selectedQuarter.id);
         } else {
@@ -69,7 +67,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
             getCourseSchedule(course.quarter, course.courseID);
           }
         } else {
-          // Invalid/missing credentials
           log("Invalid credentials, launching login page", LogLevel.warn);
           router.navigateTo(context, "/schedule/credentials", transition: TransitionType.nativeModal);
         }
@@ -83,23 +80,76 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
     await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/$id"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
       GoldCourse course = GoldCourse.fromJson(jsonDecode(value.body));
       goldCourses.add(course);
-      log("Retrieved course info for ${course.toString()}");
+      log("Retrieved course info for ${course.toString()} ($id)");
+      populateCourseEvents(course, id);
     });
   }
 
-  Future<void> populateEvents() async {
-    final event = CalendarEventData(
-      date: DateTime.now(),
-      startTime: DateTime.parse("2022-09-25 16:56:53.650485 +00:00").toLocal(),
-      endTime: DateTime.parse("2022-09-25 17:56:53.650485 +00:00").toLocal(),
-      title: "Test Event",
-      description: "This is a test event",
-      color: Colors.red,
-    );
-    // getCourseSchedule("07997");
+  // Big meaty function that actually creates the class events
+  // for the whole quarter and adds them to the calendar
+  // TODO: Add finals to calendar
+  Future<void> populateCourseEvents(GoldCourse course, String sectionID) async {
+    List<CalendarEventData> events = [];
+    for (var section in course.sections) {
+      if (section.enrollCode == sectionID) {
+        for (var time in section.times) {
+          List<int> daysOfTheWeek = dayStringToInt(time.days);
+          print(daysOfTheWeek);
+          for (int day in daysOfTheWeek) {
+            DateTime cursor = selectedQuarter.firstDayOfClasses;
+            print("First day of quarter: $cursor");
+            while (getNextWeekDay(day, cursor).isBefore(selectedQuarter.lastDayOfClasses)) {
+              cursor = getNextWeekDay(day, cursor);
+              print("class on ${cursor.toString()}");
+              events.add(CalendarEventData(
+                title: course.courseID,
+                description: time.room,
+                date: cursor,
+                startTime: cursor.add(Duration(hours: int.parse(time.beginTime.split(":")[0]), minutes: int.parse(time.beginTime.split(":")[1]))),
+                endTime: cursor.add(Duration(hours: int.parse(time.endTime.split(":")[0]), minutes: int.parse(time.endTime.split(":")[1]))),
+              ));
+            }
+          }
+        }
+      }
+    }
     setState(() {
-      calendarController.add(event);
+      calendarController.addAll(events);
     });
+  }
+
+  // Helper function to get the next occurring day of the week
+  DateTime getNextWeekDay(int weekDay, DateTime from) {
+    DateTime now = DateTime.now();
+    if (from != null) {
+      now = from;
+    }
+    int remainDays = weekDay - now.weekday + 7;
+    return now.add(Duration(days: remainDays));
+  }
+
+  // Helper function to convert the days string that we get from GOLD to
+  // a list of ints to represent the days of the week
+  List<int> dayStringToInt(String dayString) {
+    List<int> dayInts = [];
+    for (int i = 0; i < dayString.length; i++) {
+      if (dayString[i] == "M") {
+        dayInts.add(1);
+      } else if (dayString[i] == "T") {
+        dayInts.add(2);
+      } else if (dayString[i] == "W") {
+        dayInts.add(3);
+      } else if (dayString[i] == "R") {
+        dayInts.add(4);
+      } else if (dayString[i] == "F") {
+        dayInts.add(5);
+      } else if (dayString[i] == "S") {
+        dayInts.add(6);
+      } else if (dayString[i] == "U") {
+        dayInts.add(7);
+      }
+    }
+    return dayInts;
   }
 
   @override

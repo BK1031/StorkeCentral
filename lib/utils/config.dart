@@ -7,6 +7,7 @@ import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
@@ -44,6 +45,7 @@ DiningHall selectedDiningHall = DiningHall();
 
 NewsArticle headlineArticle = NewsArticle();
 
+List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<CalendarEventData> courseCalendarEvents = [];
 
@@ -57,5 +59,23 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter selectedQuarter = Quarter(id: "20224");
-Quarter currentQuarter = Quarter(id: "20224");
+Quarter currentQuarter = Quarter.fromJson({
+  "id": "20224",
+  "name": "Fall 2022",
+  "firstDayOfClasses": "2022-09-22 00:00:00.000",
+  "lastDayOfClasses": "2022-12-02 23:59:00.000",
+  "weeks": [
+    "2022-09-18 00:00:00.000",
+    "2022-09-25 00:00:00.000",
+    "2022-10-02 00:00:00.000",
+    "2022-10-09 00:00:00.000",
+    "2022-10-16 00:00:00.000",
+    "2022-10-23 00:00:00.000",
+    "2022-10-30 00:00:00.000",
+    "2022-11-06 00:00:00.000",
+    "2022-11-13 00:00:00.000",
+    "2022-11-20 00:00:00.000",
+    "2022-11-27 00:00:00.000",
+  ]
+});
+Quarter selectedQuarter = currentQuarter;
