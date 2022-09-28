@@ -34,11 +34,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
     getUserCourses(selectedQuarter.id);
   }
 
-  @override
-  void didPopNext() {
-    getUserCourses(selectedQuarter.id);
-  }
-
   // Adds a placeholder 1 minute event to the calendar so we can scroll the
   // main course times into view
   void scrollToView() {
