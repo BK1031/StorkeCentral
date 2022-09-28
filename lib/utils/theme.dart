@@ -10,6 +10,8 @@ Color SB_RED = const Color(0xFFf33535);
 Color SB_AMBER = const Color(0xFFffca28);
 Color SB_GREEN = const Color(0xFF00ca70);
 
+List<Color> SB_COLORS = [SB_NAVY, SB_GOLD, SB_LT_BLUE, SB_RED, SB_AMBER, SB_GREEN];
+
 // LIGHT THEME
 const lightTextColor = Colors.black;
 const lightBackgroundColor = Color(0xFFf9f9f9);
@@ -69,6 +71,7 @@ final ThemeData darkTheme = ThemeData(
   accentColor: SB_NAVY,
   primaryColor: SB_NAVY,
   canvasColor: darkCanvasColor,
+  backgroundColor: darkBackgroundColor,
   scaffoldBackgroundColor: darkBackgroundColor,
   cardColor: darkCardColor,
   cardTheme: CardTheme(

@@ -60,6 +60,7 @@ dependencies:
   extended_image: ^6.2.1
   badges: ^2.0.3
   calendar_view: ^1.0.0
+  syncfusion_flutter_calendar: ^20.2.50
 
 dev_dependencies:
   flutter_test:

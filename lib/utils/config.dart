@@ -1,4 +1,3 @@
-import 'package:calendar_view/calendar_view.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -47,7 +46,6 @@ NewsArticle headlineArticle = NewsArticle();
 
 List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
-List<CalendarEventData> courseCalendarEvents = [];
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names

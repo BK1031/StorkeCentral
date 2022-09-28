@@ -22,6 +22,8 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> with RouteAware {
 
   EventController calendarController = EventController();
+  int color = 0;
+  final _weekCalendarKey = GlobalKey();
 
   @override
   void initState() {
@@ -37,6 +39,26 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
     getUserCourses(selectedQuarter.id);
   }
 
+  // Adds a placeholder 1 minute event to the calendar so we can scroll the
+  // main course times into view
+  void scrollToView() {
+    WeekViewState weekViewState = _weekCalendarKey.currentState as WeekViewState;
+    CalendarEventData startEvent = CalendarEventData(
+      date: getNextWeekDay(1),
+      title: "Start",
+      description: "Start",
+      startTime: getNextWeekDay(1).add(const Duration(hours: 12)),
+      endTime: getNextWeekDay(1).add(const Duration(hours: 12, minutes: 1)),
+      color: Colors.greenAccent,
+    );
+    calendarController.add(startEvent);
+    weekViewState.animateToEvent(
+      startEvent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   Future<void> getUserCourses(String quarter) async {
     try {
       await AuthService.getAuthToken();
@@ -46,6 +68,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
           log("No courses found in db for this quarter. Trying to fetch from GOLD API", LogLevel.warn);
           fetchGoldSchedule(selectedQuarter.id);
         } else {
+          scrollToView();
           for (var c in jsonDecode(value.body)["data"]) {
             UserCourse course = UserCourse.fromJson(c);
             getCourseSchedule(course.quarter, course.courseID);
@@ -62,6 +85,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
       await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
           goldCourses.clear();
+          scrollToView();
           for (var c in jsonDecode(value.body)["data"]) {
             UserCourse course = UserCourse.fromJson(c);
             getCourseSchedule(course.quarter, course.courseID);
@@ -89,43 +113,36 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
   // for the whole quarter and adds them to the calendar
   // TODO: Add finals to calendar
   Future<void> populateCourseEvents(GoldCourse course, String sectionID) async {
-    List<CalendarEventData> events = [];
     for (var section in course.sections) {
-      if (section.enrollCode == sectionID) {
+      if (section.enrollCode == sectionID || section.instructors.first.role == "Teaching and in charge") {
         for (var time in section.times) {
           List<int> daysOfTheWeek = dayStringToInt(time.days);
-          print(daysOfTheWeek);
           for (int day in daysOfTheWeek) {
-            DateTime cursor = selectedQuarter.firstDayOfClasses;
-            print("First day of quarter: $cursor");
-            while (getNextWeekDay(day, cursor).isBefore(selectedQuarter.lastDayOfClasses)) {
-              cursor = getNextWeekDay(day, cursor);
-              print("class on ${cursor.toString()}");
-              events.add(CalendarEventData(
-                title: course.courseID,
-                description: time.room,
-                date: cursor,
-                startTime: cursor.add(Duration(hours: int.parse(time.beginTime.split(":")[0]), minutes: int.parse(time.beginTime.split(":")[1]))),
-                endTime: cursor.add(Duration(hours: int.parse(time.endTime.split(":")[0]), minutes: int.parse(time.endTime.split(":")[1]))),
-              ));
-            }
+            DateTime cursor = getNextWeekDay(day);
+            calendarController.add(CalendarEventData(
+              title: course.courseID,
+              description: "${time.building} ${time.room}",
+              date: cursor,
+              color: SB_COLORS[color],
+              startTime: cursor.add(Duration(hours: int.parse(time.beginTime.split(":")[0]), minutes: int.parse(time.beginTime.split(":")[1]))),
+              endTime: cursor.add(Duration(hours: int.parse(time.endTime.split(":")[0]), minutes: int.parse(time.endTime.split(":")[1]))),
+            ));
           }
         }
       }
     }
-    setState(() {
-      calendarController.addAll(events);
-    });
+    if (color == SB_COLORS.length - 1) {
+      color = 0;
+    } else {
+      color++;
+    }
+    if (mounted) setState(() {});
   }
 
-  // Helper function to get the next occurring day of the week
-  DateTime getNextWeekDay(int weekDay, DateTime from) {
-    DateTime now = DateTime.now();
-    if (from != null) {
-      now = from;
-    }
-    int remainDays = weekDay - now.weekday + 7;
-    return now.add(Duration(days: remainDays));
+  // Helper function to get a certain day of the current week
+  DateTime getNextWeekDay(int weekDay) {
+    DateTime monday = DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1));
+    return monday.add(Duration(days: weekDay - 1));
   }
 
   // Helper function to convert the days string that we get from GOLD to
@@ -203,11 +220,86 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
               fetchGoldSchedule(selectedQuarter.id);
             },
           ),
+          // body: DayView(
+          //   controller: calendarController,
+          //   backgroundColor: Theme.of(context).backgroundColor,
+          //   minDay: DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1)),
+          //   maxDay: DateTime.now().withoutTime.add(Duration(days: 7 - DateTime.now().weekday)),
+          //   liveTimeIndicatorSettings: HourIndicatorSettings(
+          //     color: SB_NAVY,
+          //   ),
+          //   dayTitleBuilder: (date) => Center(
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(8.0),
+          //       child: Card(
+          //         color: SB_NAVY,
+          //         child: Container(
+          //           padding: const EdgeInsets.all(8),
+          //           width: MediaQuery.of(context).size.width,
+          //           child: Text(
+          //             "${DateFormat("EEE MMM d").format(date)} • Week ${selectedQuarter.getWeek(date)}",
+          //             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          //             textAlign: TextAlign.center,
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   )
+          // )
           body: WeekView(
+            key: _weekCalendarKey,
             controller: calendarController,
-            showWeekends: true,
+            backgroundColor: Theme.of(context).backgroundColor,
+            minDay: DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1)),
+            maxDay: DateTime.now().withoutTime.add(Duration(days: 7 - DateTime.now().weekday)),
+            showWeekends: false,
             liveTimeIndicatorSettings: HourIndicatorSettings(
-              color: SB_NAVY
+              color: SB_NAVY,
+            ),
+            eventTileBuilder: (DateTime date, List<CalendarEventData> events, Rect boundary, DateTime startDuration, DateTime endDuration) {
+              if (events.isNotEmpty && events[0].title != "Start") {
+                return Card(
+                  color: events[0].color.withOpacity(0.25),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.fitWidth,
+                        child: Text(
+                          events[0].title,
+                          style: TextStyle(color: events[0].color, fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      FittedBox(
+                        child: Text(
+                          events[0].description,
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return Container();
+              }
+            },
+            weekPageHeaderBuilder: (weekStart, weekEnd) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Card(
+                  color: SB_NAVY,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    width: MediaQuery.of(context).size.width,
+                    child: Text(
+                      "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
             ),
           )
       );

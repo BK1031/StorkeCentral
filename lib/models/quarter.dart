@@ -34,12 +34,16 @@ class Quarter {
     }
   }
 
-  getWeek(DateTime date) {
+  int getWeek(DateTime date) {
     int week = -1;
     for (int i = 0; i < weeks.length; i++) {
-      if (date.isAfter(weeks[i]) && date.isBefore(weeks[i + 1])) {
-        week = i;
-        break;
+      try {
+        if (date.isAfter(weeks[i]) && date.isBefore(weeks[i + 1])) {
+          week = i;
+          break;
+        }
+      } catch(err) {
+        return 10;
       }
     }
     return week;
