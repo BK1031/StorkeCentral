@@ -43,6 +43,11 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
   // main course times into view
   void scrollToView() {
     WeekViewState weekViewState = _weekCalendarKey.currentState as WeekViewState;
+    for (var element in calendarController.events) {
+      if (element.title == "Start") {
+        calendarController.remove(element);
+      }
+    }
     CalendarEventData startEvent = CalendarEventData(
       date: getNextWeekDay(1),
       title: "Start",
@@ -68,11 +73,11 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
           log("No courses found in db for this quarter. Trying to fetch from GOLD API", LogLevel.warn);
           fetchGoldSchedule(selectedQuarter.id);
         } else {
-          scrollToView();
           for (var c in jsonDecode(value.body)["data"]) {
             UserCourse course = UserCourse.fromJson(c);
             getCourseSchedule(course.quarter, course.courseID);
           }
+          scrollToView();
         }
       });
     } catch(err) {
@@ -85,11 +90,11 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
       await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
           goldCourses.clear();
-          scrollToView();
           for (var c in jsonDecode(value.body)["data"]) {
             UserCourse course = UserCourse.fromJson(c);
             getCourseSchedule(course.quarter, course.courseID);
           }
+          scrollToView();
         } else {
           log("Invalid credentials, launching login page", LogLevel.warn);
           router.navigateTo(context, "/schedule/credentials", transition: TransitionType.nativeModal);
@@ -113,6 +118,11 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
   // for the whole quarter and adds them to the calendar
   // TODO: Add finals to calendar
   Future<void> populateCourseEvents(GoldCourse course, String sectionID) async {
+    for (var element in calendarController.events) {
+      if (element.title == course.courseID) {
+        calendarController.remove(element);
+      }
+    }
     for (var section in course.sections) {
       if (section.enrollCode == sectionID || section.instructors.first.role == "Teaching and in charge") {
         for (var time in section.times) {
