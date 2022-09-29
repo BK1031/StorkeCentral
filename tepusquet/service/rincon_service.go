@@ -45,6 +45,7 @@ func RegisterRincon() {
 		RegisterRinconRoute("/tepusquet")
 		RegisterRinconRoute("/users/credentials")
 		RegisterRinconRoute("/users/courses")
+		RegisterRinconRoute("/users/schedule")
 	}
 }
 

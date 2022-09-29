@@ -19,13 +19,13 @@ func GetCredentialForUser(c *gin.Context) {
 func SetCredentialForUser(c *gin.Context) {
 	var input model.UserCredential
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	// Set the user id to ensure that the user can only set their own credentials
 	input.UserID = c.Param("userID")
 	if err := service.SetCredentialForUser(input); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials encrypted and stored"})

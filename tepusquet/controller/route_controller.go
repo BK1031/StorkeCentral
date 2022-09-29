@@ -16,6 +16,9 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/users/courses/:userID/:quarter", GetCoursesForUserForQuarter)
 	router.GET("/users/courses/:userID/fetch/:quarter", FetchCoursesForUserForQuarter)
 	router.DELETE("/users/courses/:userID/:quarter/:courseID", RemoveCourseForUserForQuarter)
+	router.GET("/users/schedule/:userID/:quarter", GetScheduleForUserForQuarter)
+	router.POST("/users/schedule/:userID/:quarter", AddScheduleItemForUserForQuarter)
+	router.DELETE("/users/schedule/:userID/:quarter/:courseID", RemoveScheduleItemForUserForQuarter)
 }
 
 func RequestLogger() gin.HandlerFunc {
@@ -54,7 +57,6 @@ func AuthChecker() gin.HandlerFunc {
 			println("No user token provided")
 			requestUserID = "null"
 		}
-		println("STUB: " + requestUserID)
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod
