@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -361,19 +362,21 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: "bk1031",
                       ),
                       textCapitalization: TextCapitalization.none,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                      ],
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
+                        if (mounted) {
+                          setState(() {
+                            registerUser.userName = input.toLowerCase().replaceAll(" ", "-");
+                          });
+                        }
                         const duration = Duration(milliseconds: 800);
                         if (searchOnStoppedTyping != null) {
                           setState(() => searchOnStoppedTyping?.cancel());
                         }
                         setState(() => searchOnStoppedTyping = Timer(duration, () {
-                          if (mounted) {
-                            setState(() {
-                              registerUser.userName =
-                                  input.toLowerCase().replaceAll(" ", "");
-                            });
-                          }
                           if (registerUser.userName != "") usernameCheck();
                         }));
                       },
