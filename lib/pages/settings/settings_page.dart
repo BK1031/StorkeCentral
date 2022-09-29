@@ -24,7 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void setNotificationPreference(String value) {
     currentUser.privacy.pushNotifications = value;
     AuthService.getAuthToken().then((_) {
-      http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+      http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });
   }
 

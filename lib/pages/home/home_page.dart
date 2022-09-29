@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,22 +36,18 @@ class _HomePageState extends State<HomePage> {
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
       try {
-        await AuthService.getAuthToken();
-        var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
-        setState(() {
-          headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
-        });
+        if (headlineArticle.id == "" || DateTime.now().difference(lastHeadlineArticleFetch).inHours > 1) {
+          await AuthService.getAuthToken();
+          var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+          setState(() {
+            headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
+          });
+        } else {
+          log("Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago");
+        }
       } catch(e) {
         log(e.toString(), LogLevel.error);
-        CoolAlert.show(
-            context: context,
-            type: CoolAlertType.error,
-            title: "Failed to retrieve news headlines!",
-            text: e.toString(),
-            backgroundColor: SB_NAVY,
-            confirmBtnColor: SB_RED,
-            confirmBtnText: "OK",
-        );
+        // TODO: show error snackbar
       }
     } else {
       log("Offline mode, searching cache for news...");
@@ -92,15 +87,7 @@ class _HomePageState extends State<HomePage> {
         });
       } catch(e) {
         log(e.toString(), LogLevel.error);
-        CoolAlert.show(
-            context: context,
-            type: CoolAlertType.error,
-            title: "Failed to retrieve dining information!",
-            text: e.toString(),
-            backgroundColor: SB_NAVY,
-            confirmBtnColor: SB_RED,
-            confirmBtnText: "OK",
-        );
+        // TODO: show error snackbar
       }
     } else {
       log("Offline mode, searching cache for dining...");

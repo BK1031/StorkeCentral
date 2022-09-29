@@ -44,6 +44,7 @@ List<DiningHall> diningHallList = [];
 DiningHall selectedDiningHall = DiningHall();
 
 NewsArticle headlineArticle = NewsArticle();
+DateTime lastHeadlineArticleFetch = DateTime.now();
 
 List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];

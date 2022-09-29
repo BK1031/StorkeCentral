@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -26,6 +27,8 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+
+  Timer? searchOnStoppedTyping;
 
   final PageController _pageController = PageController();
   User registerUser = User();
@@ -360,13 +363,19 @@ class _RegisterPageState extends State<RegisterPage> {
                       textCapitalization: TextCapitalization.none,
                       style: const TextStyle(fontSize: 25),
                       onChanged: (input) {
-                        if (mounted) {
-                          setState(() {
-                            registerUser.userName =
-                                input.toLowerCase().replaceAll(" ", "");
-                          });
+                        const duration = Duration(milliseconds: 800);
+                        if (searchOnStoppedTyping != null) {
+                          setState(() => searchOnStoppedTyping?.cancel());
                         }
-                        if (registerUser.userName != "") usernameCheck();
+                        setState(() => searchOnStoppedTyping = Timer(duration, () {
+                          if (mounted) {
+                            setState(() {
+                              registerUser.userName =
+                                  input.toLowerCase().replaceAll(" ", "");
+                            });
+                          }
+                          if (registerUser.userName != "") usernameCheck();
+                        }));
                       },
                     ),
                   ),

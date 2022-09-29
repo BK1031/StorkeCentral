@@ -29,7 +29,7 @@ func InitializeDB() {
 		}
 	} else {
 		println("Connected to postgres database")
-		db.AutoMigrate(&model.UserCourse{}, &model.UserCredential{})
+		db.AutoMigrate(&model.UserCourse{}, &model.UserCredential{}, &model.UserScheduleItem{})
 		println("AutoMigration complete")
 		DB = db
 	}
