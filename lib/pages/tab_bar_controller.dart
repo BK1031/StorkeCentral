@@ -150,7 +150,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     currentUser.status = status;
     FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
     AuthService.getAuthToken().then((_) {
-      http.post(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+      http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });
   }
 
@@ -184,6 +184,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       ),
       body: PageView(
         controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) {
           setState(() {
             _currPage = index;

@@ -31,7 +31,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
-    getUserCourses(selectedQuarter.id);
+    // getUserCourses(selectedQuarter.id);
   }
 
   // Adds a placeholder 1 minute event to the calendar so we can scroll the

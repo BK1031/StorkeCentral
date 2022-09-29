@@ -814,6 +814,15 @@ PODS:
   - Libuv-gRPC/Implementation (0.0.10):
     - Libuv-gRPC/Interface (= 0.0.10)
   - Libuv-gRPC/Interface (0.0.10)
+  - Mapbox-iOS-SDK (6.4.1):
+    - MapboxMobileEvents (~> 0.10.12)
+  - mapbox_gl (0.0.1):
+    - Flutter
+    - Mapbox-iOS-SDK (~> 6.4.0)
+    - MapboxAnnotationExtension (~> 0.0.1-beta.1)
+  - MapboxAnnotationExtension (0.0.1-beta.2):
+    - Mapbox-iOS-SDK (~> 6.0)
+  - MapboxMobileEvents (0.10.14)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
     - nanopb/encode (= 2.30908.0)
@@ -853,6 +862,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/ios`)
+  - mapbox_gl (from `.symlinks/plugins/mapbox_gl/ios`)
   - network_info_plus (from `.symlinks/plugins/network_info_plus/ios`)
   - onesignal_flutter (from `.symlinks/plugins/onesignal_flutter/ios`)
   - OneSignalXCFramework (< 4.0, >= 3.4.3)
@@ -883,6 +893,9 @@ SPEC REPOS:
     - GTMSessionFetcher
     - leveldb-library
     - Libuv-gRPC
+    - Mapbox-iOS-SDK
+    - MapboxAnnotationExtension
+    - MapboxMobileEvents
     - nanopb
     - OneSignalXCFramework
     - PromisesObjC
@@ -907,6 +920,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/geolocator_apple/ios"
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/ios"
+  mapbox_gl:
+    :path: ".symlinks/plugins/mapbox_gl/ios"
   network_info_plus:
     :path: ".symlinks/plugins/network_info_plus/ios"
   onesignal_flutter:
@@ -949,6 +964,10 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5595ec75acf5be50814f81e9189490412bad82ba
   leveldb-library: 50c7b45cbd7bf543c81a468fe557a16ae3db8729
   Libuv-gRPC: 55e51798e14ef436ad9bc45d12d43b77b49df378
+  Mapbox-iOS-SDK: f870f83cbdc7aa4a74afcee143aafb0dae390c82
+  mapbox_gl: 33c5ab6306cbfa72289bb3606d2cd2e8baee9ff0
+  MapboxAnnotationExtension: 4eee6c26349ef6d909f1a23a7eae2d0f7ca5fa7d
+  MapboxMobileEvents: 5a172cc9bbf8ac0e45ba86095cbee685ede248cc
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   network_info_plus: b78876159360f5580608c2cea620d6ceffabd0ad
   onesignal_flutter: 8f17fbc764b033117d2c878db635c3cd4911ff04
@@ -959,6 +978,6 @@ SPEC CHECKSUMS:
   shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
 
-PODFILE CHECKSUM: c5bbb8447635e3bcd8f5fa19e93f05759b951919
+PODFILE CHECKSUM: 33973b6226ee6982edc2cecf527dff96c8d0aa7e
 
 COCOAPODS: 1.11.3
