@@ -119,6 +119,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
+      // TODO: make this an actual mutual friends endpoint (once i learn graph shit from cs130a)
       log("Retrieved suggested users");
       setState(() {
         suggestedFriends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => User.fromJson(e)).toList();
@@ -173,7 +174,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
                         Row(
@@ -199,7 +200,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           height: searchedUser.id != "" ? 100 : 0,
-                          padding: const EdgeInsets.only(left: 8, top: 4, right: 8),
                           child: Card(
                             child: Visibility(
                               visible: searchedUser.id != "",
@@ -213,7 +213,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       height: 60,
                                       width: 60,
                                       fit: BoxFit.cover,
-                                      borderRadius: BorderRadius.all(Radius.circular(125)),
+                                      borderRadius: const BorderRadius.all(Radius.circular(125)),
                                       shape: BoxShape.rectangle,
                                     ),
                                   ),
@@ -224,7 +224,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       children: [
                                         Text(
                                           "${searchedUser.firstName} ${searchedUser.lastName}",
-                                          style: TextStyle(fontSize: 18),
+                                          style: const TextStyle(fontSize: 18),
                                         ),
                                         Text(
                                           "@${searchedUser.userName}",
@@ -335,7 +335,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                 height: 60,
                                 width: 60,
                                 fit: BoxFit.cover,
-                                borderRadius: BorderRadius.all(Radius.circular(125)),
+                                borderRadius: const BorderRadius.all(Radius.circular(125)),
                                 shape: BoxShape.rectangle,
                               ),
                             ),
@@ -346,7 +346,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                 children: [
                                   Text(
                                     "${suggestedFriends[index].firstName} ${suggestedFriends[index].lastName}",
-                                    style: TextStyle(fontSize: 18),
+                                    style: const TextStyle(fontSize: 18),
                                   ),
                                   Text(
                                     "@${suggestedFriends[index].userName}",

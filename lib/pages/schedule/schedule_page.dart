@@ -19,7 +19,7 @@ class SchedulePage extends StatefulWidget {
   State<SchedulePage> createState() => _SchedulePageState();
 }
 
-class _SchedulePageState extends State<SchedulePage> with RouteAware {
+class _SchedulePageState extends State<SchedulePage> {
 
   EventController calendarController = EventController();
   int color = 0;
@@ -28,9 +28,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      routeObserver.subscribe(this, ModalRoute.of(context)!);
-    });
     // getUserCourses(selectedQuarter.id);
   }
 

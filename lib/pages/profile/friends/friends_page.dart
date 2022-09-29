@@ -58,15 +58,7 @@ class _FriendsPageState extends State<FriendsPage> {
       setState(() {});
     } else {
       log(response.body, LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to update friends list",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      // TODO: show error snackbar
     }
   }
 
@@ -79,15 +71,7 @@ class _FriendsPageState extends State<FriendsPage> {
     } else {
       log("Failed to retrieve friend with id: $id", LogLevel.error);
       log(response.body, LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to retrieve friend with id: $id",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      // TODO: show error snackbar
     }
     return user;
   }
@@ -262,7 +246,6 @@ class _FriendsPageState extends State<FriendsPage> {
                             color: Theme.of(context).textTheme.caption!.color,
                           ),
                           const Padding(padding: EdgeInsets.all(4)),
-                          // const Text("No friends 😹", style: TextStyle(fontSize: 16),),
                           const Text("No friend requests"),
                         ],
                       ),

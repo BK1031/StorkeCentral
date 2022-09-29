@@ -62,6 +62,7 @@ dependencies:
   calendar_view: ^1.0.0
   syncfusion_flutter_calendar: ^20.2.50
   mapbox_gl: ^0.16.0
+  fuzzywuzzy: 0.1.6
 
 dev_dependencies:
   flutter_test:

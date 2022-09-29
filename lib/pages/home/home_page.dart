@@ -36,12 +36,13 @@ class _HomePageState extends State<HomePage> {
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
       try {
-        if (headlineArticle.id == "" || DateTime.now().difference(lastHeadlineArticleFetch).inHours > 1) {
+        if (headlineArticle.id == "" || DateTime.now().difference(lastHeadlineArticleFetch).inMinutes > 60) {
           await AuthService.getAuthToken();
           var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
           setState(() {
             headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
           });
+          lastHeadlineArticleFetch = DateTime.now();
         } else {
           log("Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago");
         }
