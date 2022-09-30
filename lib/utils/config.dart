@@ -2,6 +2,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:storke_central/models/dining_hall.dart';
+import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/quarter.dart';
@@ -36,8 +37,8 @@ bool offlineMode = false;
 bool anonMode = false;
 
 User currentUser = User();
-List<User> friends = [];
-List<User> requests = [];
+List<Friend> friends = [];
+List<Friend> requests = [];
 
 Position? currentPosition;
 

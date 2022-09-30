@@ -45,33 +45,34 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   }
 
   Future<void> getUserSchedule(String quarter) async {
-    if (userScheduleItems.isEmpty || DateTime.now().difference(lastScheduleFetch).inMinutes > 180) {
-      setState(() {
-        classesFound = false;
-      });
-      try {
-        await AuthService.getAuthToken();
-        await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-          if (jsonDecode(value.body)["data"].length == 0) {
-            log("No schedule items found in db for this quarter.", LogLevel.warn);
-            setState(() {
-              classesFound = false;
-            });
-          } else {
-            setState(() {
-              classesFound = true;
-              userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
-            });
-            lastScheduleFetch = DateTime.now();
-            buildCalendar();
-          }
-        });
-      } catch(err) {
-        // TODO: Show error snackbar
-        log(err.toString(), LogLevel.error);
+    if (offlineMode) {
+      if (userScheduleItems.isEmpty || DateTime.now().difference(lastScheduleFetch).inMinutes > 180) {
+        try {
+          await AuthService.getAuthToken();
+          await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            if (jsonDecode(value.body)["data"].length == 0) {
+              log("No schedule items found in db for this quarter.", LogLevel.warn);
+              setState(() {
+                classesFound = false;
+              });
+            } else {
+              setState(() {
+                classesFound = true;
+                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+              });
+              lastScheduleFetch = DateTime.now();
+              buildCalendar();
+            }
+          });
+        } catch(err) {
+          // TODO: Show error snackbar
+          log(err.toString(), LogLevel.error);
+        }
+      } else {
+        log("Using cached schedule, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 180 minutes)");
       }
     } else {
-      log("Using cached schedule, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 180 minutes)");
+      log("Offline mode, searching cache for schedule...");
     }
   }
 

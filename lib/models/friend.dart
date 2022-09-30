@@ -7,6 +7,7 @@ class Friend {
   String status = "";
   DateTime updatedAt = DateTime.now().toUtc();
   DateTime createdAt = DateTime.now().toUtc();
+  User user = User();
 
   Friend();
 
@@ -17,6 +18,7 @@ class Friend {
     status = json["status"] ?? "";
     updatedAt = DateTime.tryParse(json["updated_at"]) ?? DateTime.now().toUtc();
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
+    user = User.fromJson(json["user"]);
   }
 
   Map<String, dynamic> toJson() {

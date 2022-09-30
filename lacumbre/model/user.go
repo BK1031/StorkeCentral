@@ -16,7 +16,6 @@ type User struct {
 	Gender            string    `json:"gender"`
 	Status            string    `json:"status"`
 	Roles             []Role    `gorm:"-" json:"roles"`
-	Friends           []Friend  `gorm:"-" json:"friends"`
 	Privacy           Privacy   `gorm:"-" json:"privacy"`
 	UpdatedAt         time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedAt         time.Time `gorm:"autoCreateTime" json:"created_at"`

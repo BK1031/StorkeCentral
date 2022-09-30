@@ -7,10 +7,10 @@ import (
 func GetAllUsers() []model.User {
 	var users []model.User
 	result := DB.Find(&users)
-	if result.Error != nil {}
+	if result.Error != nil {
+	}
 	for i := range users {
 		users[i].Roles = GetRolesForUser(users[i].ID)
-		users[i].Friends = GetFriendsForUser(users[i].ID)
 		users[i].Privacy = GetPrivacyForUser(users[i].ID)
 	}
 	return users
@@ -19,9 +19,9 @@ func GetAllUsers() []model.User {
 func GetUserByID(userID string) model.User {
 	var user model.User
 	result := DB.Where("id = ? OR user_name = ?", userID, userID).Find(&user)
-	if result.Error != nil {}
+	if result.Error != nil {
+	}
 	user.Roles = GetRolesForUser(user.ID)
-	user.Friends = GetFriendsForUser(user.ID)
 	user.Privacy = GetPrivacyForUser(user.ID)
 	return user
 }

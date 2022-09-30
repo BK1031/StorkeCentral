@@ -16,6 +16,12 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,8 +132,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             ],
                           ),
                           Badge(
-                            showBadge: currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").isNotEmpty,
-                            badgeContent: Text(currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").length.toString(), style: const TextStyle(color: Colors.white)),
+                            showBadge: requests.isNotEmpty,
+                            badgeContent: Text(requests.length.toString(), style: const TextStyle(color: Colors.white)),
                           )
                         ],
                       ),

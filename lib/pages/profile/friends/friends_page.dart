@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:badges/badges.dart';
-import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -36,23 +35,15 @@ class _FriendsPageState extends State<FriendsPage> {
 
   Future<void> updateUserFriendsList() async {
     await AuthService.getAuthToken();
-    setState(() {
-      refreshing = true;
-    });
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("Successfully updated local friend list");
-      setState(() {
-        currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
-        refreshing = false;
-      });
-      friends.clear();
-      requests.clear();
-      for (var friend in currentUser.friends) {
-        if (friend.status == "ACCEPTED") {
-          friends.add(await getFriend(friend.toUserID != currentUser.id ? friend.toUserID : friend.fromUserID));
-        } else if (friend.status == "REQUESTED") {
-          requests.add(await getFriend(friend.toUserID != currentUser.id ? friend.toUserID : friend.fromUserID));
+      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
+        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+        if (friend.status == "REQUESTED") {
+          requests.add(friend);
+        } else if (friend.status == "ACCEPTED") {
+          friends.add(friend);
         }
       }
       setState(() {});
@@ -73,39 +64,40 @@ class _FriendsPageState extends State<FriendsPage> {
       log(response.body, LogLevel.error);
       // TODO: show error snackbar
     }
+    log("Retrieved user info for: ${user.toString()}");
     return user;
   }
 
   Future<void> addFriend(User user) async {
-    Friend friend = Friend();
-    friend = currentUser.friends.where((element) => element.id.contains(user.id)).first;
-    friend.status = "ACCEPTED";
-    await AuthService.getAuthToken();
-    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
-    if (response.statusCode == 200) {
-      log("Sent friend request");
-      await updateUserFriendsList();
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.success,
-          title: "Friend Request Accepted",
-          widget: Text("You are now friends with ${user.firstName}!"),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_GREEN,
-          confirmBtnText: "OK"
-      );
-    } else {
-      log(response.body, LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Friend Request Error",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
-    }
+    // Friend friend = Friend();
+    // friend = friends.where((element) => element.id.contains(user.id)).first;
+    // friend.status = "ACCEPTED";
+    // await AuthService.getAuthToken();
+    // var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
+    // if (response.statusCode == 200) {
+    //   log("Sent friend request");
+    //   await updateUserFriendsList();
+    //   CoolAlert.show(
+    //       context: context,
+    //       type: CoolAlertType.success,
+    //       title: "Friend Request Accepted",
+    //       widget: Text("You are now friends with ${user.firstName}!"),
+    //       backgroundColor: SB_NAVY,
+    //       confirmBtnColor: SB_GREEN,
+    //       confirmBtnText: "OK"
+    //   );
+    // } else {
+    //   log(response.body, LogLevel.error);
+    //   CoolAlert.show(
+    //       context: context,
+    //       type: CoolAlertType.error,
+    //       title: "Friend Request Error",
+    //       widget: Text(response.body.toString()),
+    //       backgroundColor: SB_NAVY,
+    //       confirmBtnColor: SB_RED,
+    //       confirmBtnText: "OK"
+    //   );
+    // }
   }
 
   @override
@@ -150,8 +142,8 @@ class _FriendsPageState extends State<FriendsPage> {
                       },
                       child: Badge(
                         position: BadgePosition.topEnd(top: -10, end: -20),
-                        showBadge: currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").isNotEmpty,
-                        badgeContent: Text(currentUser.friends.where((element) => element.fromUserID != currentUser.id && element.status == "REQUESTED").length.toString(), style: const TextStyle(color: Colors.white)),
+                        showBadge: requests.isNotEmpty,
+                        badgeContent: Text(requests.length.toString(), style: const TextStyle(color: Colors.white)),
                         child: Text("Requests", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
                       ),
                     ),
@@ -202,7 +194,7 @@ class _FriendsPageState extends State<FriendsPage> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 child: ExtendedImage.network(
-                                  friends[index].profilePictureURL,
+                                  friends[index].user.profilePictureURL,
                                   height: 60,
                                   width: 60,
                                   fit: BoxFit.cover,
@@ -216,11 +208,11 @@ class _FriendsPageState extends State<FriendsPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${friends[index].firstName} ${friends[index].lastName}",
+                                      "${friends[index].user.firstName} ${friends[index].user.lastName}",
                                       style: TextStyle(fontSize: 18),
                                     ),
                                     Text(
-                                      "@${friends[index].userName}",
+                                      "@${friends[index].user.userName}",
                                       style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
                                     )
                                   ],

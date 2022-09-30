@@ -1,7 +1,5 @@
-import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/privacy.dart';
 import 'package:storke_central/models/role.dart';
-import 'package:storke_central/utils/config.dart';
 
 class User {
   String id = "";
@@ -17,7 +15,6 @@ class User {
   String gender = "Male";
   String status = "";
   List<Role> roles = [];
-  List<Friend> friends = [];
   Privacy privacy = Privacy();
   DateTime updatedAt = DateTime.now().toUtc();
   DateTime createdAt = DateTime.now().toUtc();
@@ -40,9 +37,6 @@ class User {
     for (int i = 0; i < json["roles"].length; i++) {
       roles.add(Role.fromJson(json["roles"][i]));
     }
-    for (int i = 0; i < json["friends"].length; i++) {
-      friends.add(Friend.fromJson(json["friends"][i]));
-    }
     privacy = Privacy.fromJson(json["privacy"]);
     updatedAt = DateTime.tryParse(json["updated_at"]) ?? DateTime.now().toUtc();
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
@@ -63,11 +57,15 @@ class User {
       "gender": gender,
       "status": status,
       "roles": roles,
-      "friends": friends,
       "privacy": privacy,
       "updated_at": updatedAt.toIso8601String(),
       "created_at": createdAt.toIso8601String()
     };
+  }
+
+  @override
+  String toString() {
+    return "[$id] $firstName $lastName (@$userName)";
   }
 }
 
