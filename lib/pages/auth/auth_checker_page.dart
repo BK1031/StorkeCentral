@@ -48,10 +48,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     } catch (err) {
       offlineMode = true;
     }
-    if (mounted) setState(() {percent = 0.35;});
+    if (mounted) setState(() {percent = 0.45;});
   }
 
   Future<void> checkAuthState() async {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() {percent = 1;});
+    });
     _fbAuthSubscription = FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
         // Not logged in
@@ -71,10 +74,8 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             // User is not anonymous
             if (offlineMode) {
               // Server is offline, use cached data
-              if (mounted) setState(() => percent = 1);
               await loadPreferences();
               await loadOfflineMode();
-              await Future.delayed(const Duration(milliseconds: 500));
               router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
               return;
             } else {
@@ -91,9 +92,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             // User is anonymous
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
           }
-          if (mounted) setState(() => percent = 1);
           await loadPreferences();
-          await Future.delayed(const Duration(milliseconds: 500));
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         } catch (err) {
           log(err);
