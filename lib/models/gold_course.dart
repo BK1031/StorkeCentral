@@ -1,6 +1,9 @@
 import 'package:storke_central/models/gold_section.dart';
 
 class GoldCourse {
+  // Must be set manually
+  String enrollCode = "";
+
   String quarter = "";
   String courseID = "";
   String title = "";

@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
           });
           lastHeadlineArticleFetch = DateTime.now();
         } else {
-          log("Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago");
+          log("Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 60 minutes)");
         }
       } catch(e) {
         log(e.toString(), LogLevel.error);

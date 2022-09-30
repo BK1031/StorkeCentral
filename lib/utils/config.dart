@@ -7,6 +7,7 @@ import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
+import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
 
 final router = FluroRouter();
@@ -48,6 +49,8 @@ DateTime lastHeadlineArticleFetch = DateTime.now();
 
 List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
+List<UserScheduleItem> userScheduleItems = [];
+DateTime lastScheduleFetch = DateTime.now();
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names

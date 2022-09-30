@@ -22,6 +22,6 @@ func AddScheduleItemForUserForQuarter(scheduleItem model.UserScheduleItem) error
 	return nil
 }
 
-func RemoveScheduleItemForUserForQuarter(userID string, courseID string, quarter string) {
-	DB.Where("user_id = ? AND course_id = ? AND quarter = ?", userID, courseID, quarter).Delete(&model.UserScheduleItem{})
+func RemoveScheduleForUserForQuarter(userID string, quarter string) {
+	DB.Where("user_id = ? AND quarter = ?", userID, quarter).Delete(&model.UserScheduleItem{})
 }

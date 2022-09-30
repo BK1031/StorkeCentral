@@ -13,6 +13,7 @@ import 'package:storke_central/pages/onboarding_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
 import 'package:storke_central/pages/profile/friends/friends_page.dart';
 import 'package:storke_central/pages/schedule/credentials_page.dart';
+import 'package:storke_central/pages/schedule/load_schedule_page.dart';
 import 'package:storke_central/pages/settings/settings_about_page.dart';
 import 'package:storke_central/pages/settings/settings_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
@@ -59,6 +60,9 @@ Future<void> main() async {
     return const TabBarController();
   }));
 
+  router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const LoadSchedulePage();
+  }));
   router.define("/schedule/credentials", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const CredentialsPage();
   }));

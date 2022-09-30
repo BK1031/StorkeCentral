@@ -18,7 +18,7 @@ func InitializeRoutes(router *gin.Engine) {
 	router.DELETE("/users/courses/:userID/:quarter/:courseID", RemoveCourseForUserForQuarter)
 	router.GET("/users/schedule/:userID/:quarter", GetScheduleForUserForQuarter)
 	router.POST("/users/schedule/:userID/:quarter", AddScheduleItemForUserForQuarter)
-	router.DELETE("/users/schedule/:userID/:quarter/:courseID", RemoveScheduleItemForUserForQuarter)
+	router.DELETE("/users/schedule/:userID/:quarter", RemoveScheduleForUserForQuarter)
 }
 
 func RequestLogger() gin.HandlerFunc {

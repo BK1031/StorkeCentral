@@ -18,7 +18,6 @@ func AddScheduleItemForUserForQuarter(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	service.RemoveCourseForUserForQuarter(scheduleItem.UserID, scheduleItem.CourseID, scheduleItem.Quarter)
 	if err := service.AddScheduleItemForUserForQuarter(scheduleItem); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -26,7 +25,7 @@ func AddScheduleItemForUserForQuarter(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func RemoveScheduleItemForUserForQuarter(c *gin.Context) {
-	service.RemoveScheduleItemForUserForQuarter(c.Param("userID"), c.Param("courseID"), c.Param("quarter"))
+func RemoveScheduleForUserForQuarter(c *gin.Context) {
+	service.RemoveScheduleForUserForQuarter(c.Param("userID"), c.Param("quarter"))
 	c.Status(http.StatusOK)
 }

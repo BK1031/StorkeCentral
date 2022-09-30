@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/user_course.dart';
+import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -28,7 +30,27 @@ class _SchedulePageState extends State<SchedulePage> {
   @override
   void initState() {
     super.initState();
+    getUserSchedule(selectedQuarter.id);
     // getUserCourses(selectedQuarter.id);
+  }
+
+  Future<void> getUserSchedule(String quarter) async {
+    if (userScheduleItems.isEmpty || DateTime.now().difference(lastScheduleFetch).inMinutes > 180) {
+      try {
+        await AuthService.getAuthToken();
+        await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          if (jsonDecode(value.body)["data"].length == 0) {
+            log("No schedule items found in db for this quarter.", LogLevel.warn);
+          } else {
+            setState(() {
+              userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+            });
+          }
+        });
+      } catch(err) {
+        log(err.toString(), LogLevel.error);
+      }
+    }
   }
 
   // Adds a placeholder 1 minute event to the calendar so we can scroll the
@@ -217,7 +239,7 @@ class _SchedulePageState extends State<SchedulePage> {
     } else {
       return Scaffold(
           floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.refresh),
+            child: const Icon(Icons.refresh),
             onPressed: () {
               fetchGoldSchedule(selectedQuarter.id);
             },
@@ -248,61 +270,106 @@ class _SchedulePageState extends State<SchedulePage> {
           //     ),
           //   )
           // )
-          body: WeekView(
-            key: _weekCalendarKey,
-            controller: calendarController,
-            backgroundColor: Theme.of(context).backgroundColor,
-            minDay: DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1)),
-            maxDay: DateTime.now().withoutTime.add(Duration(days: 7 - DateTime.now().weekday)),
-            showWeekends: false,
-            liveTimeIndicatorSettings: HourIndicatorSettings(
-              color: SB_NAVY,
-            ),
-            eventTileBuilder: (DateTime date, List<CalendarEventData> events, Rect boundary, DateTime startDuration, DateTime endDuration) {
-              if (events.isNotEmpty && events[0].title != "Start") {
-                return Card(
-                  color: events[0].color.withOpacity(0.25),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.fitWidth,
-                        child: Text(
-                          events[0].title,
-                          style: TextStyle(color: events[0].color, fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      FittedBox(
-                        child: Text(
-                          events[0].description,
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                return Container();
-              }
-            },
-            weekPageHeaderBuilder: (weekStart, weekEnd) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Card(
+          body: Stack(
+            children: [
+              WeekView(
+                key: _weekCalendarKey,
+                controller: calendarController,
+                backgroundColor: Theme.of(context).backgroundColor,
+                minDay: DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1)),
+                maxDay: DateTime.now().withoutTime.add(Duration(days: 7 - DateTime.now().weekday)),
+                showWeekends: false,
+                liveTimeIndicatorSettings: HourIndicatorSettings(
                   color: SB_NAVY,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    width: MediaQuery.of(context).size.width,
-                    child: Text(
-                      "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                      textAlign: TextAlign.center,
+                ),
+                eventTileBuilder: (DateTime date, List<CalendarEventData> events, Rect boundary, DateTime startDuration, DateTime endDuration) {
+                  if (events.isNotEmpty && events[0].title != "Start") {
+                    return Card(
+                      color: events[0].color.withOpacity(0.25),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.fitWidth,
+                            child: Text(
+                              events[0].title,
+                              style: TextStyle(color: events[0].color, fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          FittedBox(
+                            child: Text(
+                              events[0].description,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
+                weekPageHeaderBuilder: (weekStart, weekEnd) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Card(
+                      color: SB_NAVY,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        width: MediaQuery.of(context).size.width,
+                        child: Text(
+                          "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}",
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+              Visibility(
+                visible: userScheduleItems.isEmpty,
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: Card(
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        width: 250,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.event_busy, size: 65, color: Theme.of(context).textTheme.caption!.color,),
+                            const Padding(padding: EdgeInsets.all(4),),
+                            const Text(
+                              "No Classes Found",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const Padding(padding: EdgeInsets.all(4),),
+                            const Text(
+                              "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
+                            ),
+                            const Padding(padding: EdgeInsets.all(8),),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                color: SB_NAVY,
+                                onPressed: () {
+                                  router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
+                                },
+                                child: const Text("Sync Classes", style: TextStyle(color: Colors.white),),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            ],
           )
       );
     }
