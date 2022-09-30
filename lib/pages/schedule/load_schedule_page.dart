@@ -148,22 +148,23 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     for (GoldCourse course in goldCourses) {
       log("Generating schedule for ${course.toString()}");
       for (GoldSection section in course.sections) {
-        if (section.enrollCode == course.enrollCode || section.instructors.first.role == "Teaching and in charge") {
+        if (section.enrollCode == course.enrollCode || (section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge")) {
           log("Including section ${section.enrollCode}");
           for (GoldCourseTime time in section.times) {
+            log("Adding ${time.days}");
             setState(() {
-              userScheduleItems.add(UserScheduleItem.fromJson({
-                "user_id": currentUser.id,
-                "course_id": course.enrollCode,
-                "title": course.courseID,
-                "description": course.title,
-                "building": time.building,
-                "room": time.room,
-                "start_time": time.beginTime,
-                "end_time": time.endTime,
-                "days": time.days,
-                "quarter": quarter,
-              }));
+              // userScheduleItems.add(UserScheduleItem.fromJson({
+              //   "user_id": currentUser.id,
+              //   "course_id": course.enrollCode,
+              //   "title": course.courseID,
+              //   "description": course.title,
+              //   "building": time.building,
+              //   "room": time.room,
+              //   "start_time": time.beginTime,
+              //   "end_time": time.endTime,
+              //   "days": time.days,
+              //   "quarter": quarter,
+              // }));
             });
             log("Added ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
           }
@@ -171,9 +172,9 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           log("Skipping section ${section.enrollCode}");
         }
       }
-      log("Generated ${userScheduleItems.length} schedule items");
-      saveUserSchedule();
     }
+    log("Generated ${userScheduleItems.length} schedule items");
+    saveUserSchedule();
   }
 
   Future<void> saveUserSchedule() async {
