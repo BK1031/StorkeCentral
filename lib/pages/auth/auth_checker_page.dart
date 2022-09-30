@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
@@ -28,29 +27,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   @override
   void initState() {
     super.initState();
-    checkConnectivity().then((value) => checkAuthState());
+    checkServerStatus().then((value) => checkAuthState());
   }
 
   @override
   void dispose() {
     super.dispose();
     _fbAuthSubscription?.cancel();
-  }
-
-  Future<void> checkConnectivity() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.mobile) {
-      log("Connected to Cellular");
-      offlineMode = false;
-    } else if (connectivityResult == ConnectivityResult.wifi) {
-      log("Connected to WiFi");
-      offlineMode = false;
-    } else {
-      log("No Connection!");
-      offlineMode = true;
-    }
-    if (mounted) setState(() {percent = 0.3;});
-    if (!offlineMode) await checkServerStatus();
   }
 
   Future<void> checkServerStatus() async {
@@ -65,7 +48,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     } catch (err) {
       offlineMode = true;
     }
-    if (mounted) setState(() {percent = 0.5;});
+    if (mounted) setState(() {percent = 0.35;});
   }
 
   Future<void> checkAuthState() async {
@@ -85,22 +68,32 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
         log("anonMode: $anonMode");
         try {
           if (!anonMode) {
-            await AuthService.getUser(user.uid);
-            if (currentUser.id == "") {
-              router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+            // User is not anonymous
+            if (offlineMode) {
+              // Server is offline, use cached data
+              if (mounted) setState(() => percent = 1);
+              await loadPreferences();
+              await loadOfflineMode();
+              await Future.delayed(const Duration(milliseconds: 500));
+              router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
               return;
+            } else {
+              // Server is online, get user data
+              await AuthService.getUser(user.uid);
+              if (currentUser.id == "") {
+                // Failed to get user data from server, go to register page
+                router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+                return;
+              }
+              FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
             }
-            FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
           } else {
+            // User is anonymous
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
           }
-          if (mounted) setState(() {percent = 0.8;});
-          if (offlineMode) {
-            await loadOfflineMode();
-          } else {
-            await loadPreferences();
-          }
-          await Future.delayed(const Duration(milliseconds: 400));
+          if (mounted) setState(() => percent = 1);
+          await loadPreferences();
+          await Future.delayed(const Duration(milliseconds: 500));
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         } catch (err) {
           log(err);
@@ -115,13 +108,12 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey("PREF_UNITS")) prefs.setString("PREF_UNITS", PREF_UNITS);
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
-    if (mounted) setState(() {percent = 1;});
   }
 
   Future<void> loadOfflineMode() async {
     log("Failed to reach server, entering offline mode!");
+    // TODO: Load user info from local storage
     offlineMode = true;
-    loadPreferences();
   }
 
   @override

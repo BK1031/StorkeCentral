@@ -46,6 +46,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   Future<void> getUserSchedule(String quarter) async {
     if (userScheduleItems.isEmpty || DateTime.now().difference(lastScheduleFetch).inMinutes > 180) {
+      setState(() {
+        classesFound = false;
+      });
       try {
         await AuthService.getAuthToken();
         await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {

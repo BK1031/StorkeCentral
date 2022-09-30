@@ -34,8 +34,6 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   // 5 = done
   int state = 0;
 
-  int savedItems = 0;
-
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -186,12 +184,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       });
       await AuthService.getAuthToken();
       await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
-      for (UserScheduleItem item in userScheduleItems) {
-        await AuthService.getAuthToken();
-        await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(item));
-        setState(() => savedItems++);
-        log("Saved schedule item $savedItems/${userScheduleItems.length}");
-      }
+      await AuthService.getAuthToken();
+      await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(userScheduleItems));
       log("Saved schedule to database");
       setState(() {
         state = 5;
@@ -429,7 +423,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   ),
                   Expanded(
                       child: Text(
-                        "Saving schedule${state == 4 ? " ($savedItems/${userScheduleItems.length})" : ""}",
+                        "Saving schedule",
                         style: TextStyle(
                             fontSize: 16,
                             color: state < 4 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
