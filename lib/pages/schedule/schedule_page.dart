@@ -241,7 +241,7 @@ class _SchedulePageState extends State<SchedulePage> {
           floatingActionButton: FloatingActionButton(
             child: const Icon(Icons.refresh),
             onPressed: () {
-              fetchGoldSchedule(selectedQuarter.id);
+              router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
             },
           ),
           // body: DayView(

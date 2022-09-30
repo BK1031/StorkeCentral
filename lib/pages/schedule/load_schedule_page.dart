@@ -34,6 +34,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   // 5 = done
   int state = 0;
 
+  int savedItems = 0;
+
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -121,6 +123,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       setState(() {
         state = 2;
       });
+      goldCourses.clear();
       for (UserCourse course in userCourses) {
         await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/${course.courseID}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
           GoldCourse goldCourse = GoldCourse.fromJson(jsonDecode(value.body));
@@ -154,7 +157,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
             setState(() {
               UserScheduleItem userScheduleItem = UserScheduleItem();
               userScheduleItem.userID = currentUser.id;
-              userScheduleItem.courseID = course.enrollCode;
+              userScheduleItem.courseID = section.enrollCode;
               userScheduleItem.title = course.courseID;
               userScheduleItem.description = "${course.title}\n${course.description}";
               userScheduleItem.building = time.building;
@@ -186,6 +189,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       for (UserScheduleItem item in userScheduleItems) {
         await AuthService.getAuthToken();
         await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(item));
+        setState(() => savedItems++);
+        log("Saved schedule item $savedItems/${userScheduleItems.length}");
       }
       log("Saved schedule to database");
       setState(() {
@@ -422,7 +427,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   ),
                   Expanded(
                       child: Text(
-                        "Saving schedule",
+                        "Saving schedule${state == 4 ? " ($savedItems/${userScheduleItems.length})" : ""}",
                         style: TextStyle(
                             fontSize: 16,
                             color: state < 4 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
