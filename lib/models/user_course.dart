@@ -4,6 +4,8 @@ class UserCourse {
   String quarter = "";
   DateTime createdAt = DateTime.now().toUtc();
 
+  UserCourse();
+
   UserCourse.fromJson(Map<String, dynamic> json) {
     userID = json["user_id"] ?? "";
     courseID = json["course_id"] ?? "";

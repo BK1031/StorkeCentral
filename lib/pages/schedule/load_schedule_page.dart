@@ -151,20 +151,19 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         if (section.enrollCode == course.enrollCode || (section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge")) {
           log("Including section ${section.enrollCode}");
           for (GoldCourseTime time in section.times) {
-            log("Adding ${time.days}");
             setState(() {
-              // userScheduleItems.add(UserScheduleItem.fromJson({
-              //   "user_id": currentUser.id,
-              //   "course_id": course.enrollCode,
-              //   "title": course.courseID,
-              //   "description": course.title,
-              //   "building": time.building,
-              //   "room": time.room,
-              //   "start_time": time.beginTime,
-              //   "end_time": time.endTime,
-              //   "days": time.days,
-              //   "quarter": quarter,
-              // }));
+              UserScheduleItem userScheduleItem = UserScheduleItem();
+              userScheduleItem.userID = currentUser.id;
+              userScheduleItem.courseID = course.enrollCode;
+              userScheduleItem.title = course.courseID;
+              userScheduleItem.description = "${course.title}\n${course.description}";
+              userScheduleItem.building = time.building;
+              userScheduleItem.room = time.room;
+              userScheduleItem.startTime = time.beginTime;
+              userScheduleItem.endTime = time.endTime;
+              userScheduleItem.days = time.days;
+              userScheduleItem.quarter = quarter;
+              userScheduleItems.add(userScheduleItem);
             });
             log("Added ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
           }

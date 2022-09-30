@@ -11,6 +11,8 @@ class UserScheduleItem {
   String quarter = "";
   DateTime createdAt = DateTime.now().toUtc();
 
+  UserScheduleItem();
+
   UserScheduleItem.fromJson(Map<String, dynamic> json) {
     userID = json["user_id"] ?? "";
     courseID = json["course_id"] ?? "";
