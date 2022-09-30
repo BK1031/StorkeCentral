@@ -195,8 +195,10 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       log("Saved schedule to database");
       setState(() {
         state = 5;
+        // Set lastScheduleFetch to force a refresh
+        lastScheduleFetch = DateTime.now().subtract(const Duration(minutes: 200));
       });
-      Future.delayed(const Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 1), () {
         router.pop(context);
       });
     } catch(err) {

@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
-import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -21,17 +20,28 @@ class SchedulePage extends StatefulWidget {
   State<SchedulePage> createState() => _SchedulePageState();
 }
 
-class _SchedulePageState extends State<SchedulePage> {
+class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticKeepAliveClientMixin {
 
   EventController calendarController = EventController();
   int color = 0;
+  bool classesFound = true;
   final _weekCalendarKey = GlobalKey();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
     getUserSchedule(selectedQuarter.id);
-    // getUserCourses(selectedQuarter.id);
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      routeObserver.subscribe(this, ModalRoute.of(context)!);
+    });
+  }
+
+  @override
+  void didPopNext() {
+    getUserSchedule(selectedQuarter.id);
   }
 
   Future<void> getUserSchedule(String quarter) async {
@@ -41,15 +51,24 @@ class _SchedulePageState extends State<SchedulePage> {
         await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           if (jsonDecode(value.body)["data"].length == 0) {
             log("No schedule items found in db for this quarter.", LogLevel.warn);
+            setState(() {
+              classesFound = false;
+            });
           } else {
             setState(() {
+              classesFound = true;
               userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
             });
+            lastScheduleFetch = DateTime.now();
+            buildCalendar();
           }
         });
       } catch(err) {
+        // TODO: Show error snackbar
         log(err.toString(), LogLevel.error);
       }
+    } else {
+      log("Using cached schedule, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 180 minutes)");
     }
   }
 
@@ -78,59 +97,33 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  Future<void> getUserCourses(String quarter) async {
-    try {
-      await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-        goldCourses.clear();
-        if (jsonDecode(value.body)["data"].length == 0) {
-          log("No courses found in db for this quarter. Trying to fetch from GOLD API", LogLevel.warn);
-          fetchGoldSchedule(selectedQuarter.id);
-        } else {
-          for (var c in jsonDecode(value.body)["data"]) {
-            UserCourse course = UserCourse.fromJson(c);
-            getCourseSchedule(course.quarter, course.courseID);
-          }
-          scrollToView();
-        }
-      });
-    } catch(err) {
-      log(err.toString(), LogLevel.error);
-    }
-  }
-
-  Future<void> fetchGoldSchedule(String quarter) async {
-    try {
-      await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-        if (value.statusCode == 200) {
-          goldCourses.clear();
-          for (var c in jsonDecode(value.body)["data"]) {
-            UserCourse course = UserCourse.fromJson(c);
-            getCourseSchedule(course.quarter, course.courseID);
-          }
-          scrollToView();
-        } else {
-          log("Invalid credentials, launching login page", LogLevel.warn);
-          router.navigateTo(context, "/schedule/credentials", transition: TransitionType.nativeModal);
-        }
-      });
-    } catch(err) {
-      log(err.toString(), LogLevel.error);
-    }
-  }
-
-  Future<void> getCourseSchedule(String quarter, String id) async {
-    await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/$id"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
-      GoldCourse course = GoldCourse.fromJson(jsonDecode(value.body));
-      goldCourses.add(course);
-      log("Retrieved course info for ${course.toString()} ($id)");
-      populateCourseEvents(course, id);
-    });
-  }
-
   // Big meaty function that actually creates the class events
-  // for the whole quarter and adds them to the calendar
   // TODO: Add finals to calendar
+  void buildCalendar() {
+    for (var event in calendarController.events) {
+      calendarController.remove(event);
+    }
+    for (var item in userScheduleItems) {
+      for (var day in dayStringToInt(item.days)) {
+        DateTime cursor = getNextWeekDay(day);
+        calendarController.add(CalendarEventData(
+          title: item.title,
+          description: "${item.building} ${item.room}",
+          date: cursor,
+          color: SB_COLORS[color],
+          startTime: cursor.add(Duration(hours: int.parse(item.startTime.split(":")[0]), minutes: int.parse(item.startTime.split(":")[1]))),
+          endTime: cursor.add(Duration(hours: int.parse(item.endTime.split(":")[0]), minutes: int.parse(item.endTime.split(":")[1]))),
+        ));
+      }
+      if (color == SB_COLORS.length - 1) {
+        color = 0;
+      } else {
+        color++;
+      }
+    }
+    scrollToView();
+  }
+
   Future<void> populateCourseEvents(GoldCourse course, String sectionID) async {
     for (var element in calendarController.events) {
       if (element.title == course.courseID) {
@@ -244,32 +237,6 @@ class _SchedulePageState extends State<SchedulePage> {
               router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
             },
           ),
-          // body: DayView(
-          //   controller: calendarController,
-          //   backgroundColor: Theme.of(context).backgroundColor,
-          //   minDay: DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1)),
-          //   maxDay: DateTime.now().withoutTime.add(Duration(days: 7 - DateTime.now().weekday)),
-          //   liveTimeIndicatorSettings: HourIndicatorSettings(
-          //     color: SB_NAVY,
-          //   ),
-          //   dayTitleBuilder: (date) => Center(
-          //     child: Padding(
-          //       padding: const EdgeInsets.all(8.0),
-          //       child: Card(
-          //         color: SB_NAVY,
-          //         child: Container(
-          //           padding: const EdgeInsets.all(8),
-          //           width: MediaQuery.of(context).size.width,
-          //           child: Text(
-          //             "${DateFormat("EEE MMM d").format(date)} • Week ${selectedQuarter.getWeek(date)}",
-          //             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-          //             textAlign: TextAlign.center,
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   )
-          // )
           body: Stack(
             children: [
               WeekView(
@@ -329,7 +296,7 @@ class _SchedulePageState extends State<SchedulePage> {
                 ),
               ),
               Visibility(
-                visible: userScheduleItems.isEmpty,
+                visible: !classesFound,
                 child: Container(
                   color: Colors.black.withOpacity(0.5),
                   child: Center(

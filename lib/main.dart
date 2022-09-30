@@ -63,9 +63,6 @@ Future<void> main() async {
   router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoadSchedulePage();
   }));
-  router.define("/schedule/credentials", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
-    return const CredentialsPage();
-  }));
 
   router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const SettingsPage();
