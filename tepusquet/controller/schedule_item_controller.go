@@ -12,13 +12,14 @@ func GetScheduleForUserForQuarter(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func AddScheduleItemForUserForQuarter(c *gin.Context) {
-	var scheduleItem model.UserScheduleItem
-	if err := c.ShouldBindJSON(&scheduleItem); err != nil {
+func SetScheduleForUserForQuarter(c *gin.Context) {
+	var input []model.UserScheduleItem
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	if err := service.AddScheduleItemForUserForQuarter(scheduleItem); err != nil {
+	service.RemoveScheduleForUserForQuarter(c.Param("userID"), c.Param("quarter"))
+	if err := service.SetScheduleForUserForQuarter(input); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

@@ -17,7 +17,7 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/users/courses/:userID/fetch/:quarter", FetchCoursesForUserForQuarter)
 	router.DELETE("/users/courses/:userID/:quarter/:courseID", RemoveCourseForUserForQuarter)
 	router.GET("/users/schedule/:userID/:quarter", GetScheduleForUserForQuarter)
-	router.POST("/users/schedule/:userID/:quarter", AddScheduleItemForUserForQuarter)
+	router.POST("/users/schedule/:userID/:quarter", SetScheduleForUserForQuarter)
 	router.DELETE("/users/schedule/:userID/:quarter", RemoveScheduleForUserForQuarter)
 }
 
