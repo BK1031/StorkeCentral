@@ -56,25 +56,23 @@ class _AddFriendPageState extends State<AddFriendPage> {
     }
   }
 
-  Future<void> addFriend(User user) async {
-    Friend friend = Friend();
-    friend.id = "${currentUser.id}-${user.id}";
-    friend.fromUserID = currentUser.id;
-    friend.toUserID = user.id;
-    friend.status = "REQUESTED";
+  Future<void> acceptFriend(User user) async {
+    Friend friend = requests.where((element) => element.fromUserID == user.id).first;
+    friend.status = "ACCEPTED";
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
       log("Sent friend request");
-      await updateUserFriendsList();
-      if (searchedUser.id != "") {
-        // Rebuild searched user widget
-        getSearchedUser(user.id);
-        log("Rebuilt searched user widget");
-      } else {
-        // Rebuild in suggested list
-        log("Rebuilt in suggested list");
-      }
+      updateUserFriendsList();
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.success,
+          title: "Friend Request Accepted",
+          widget: Text("You are now friends with ${friend.user.firstName}!"),
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_GREEN,
+          confirmBtnText: "OK"
+      );
     } else {
       log(response.body, LogLevel.error);
       CoolAlert.show(
@@ -89,54 +87,74 @@ class _AddFriendPageState extends State<AddFriendPage> {
     }
   }
 
+  Future<void> requestFriend(User user) async {
+    Friend friend = Friend();
+    friend.id = "${currentUser.id}-${user.id}";
+    friend.fromUserID = currentUser.id;
+    friend.toUserID = user.id;
+    friend.status = "REQUESTED";
+    await AuthService.getAuthToken();
+    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
+    if (response.statusCode == 200) {
+      log("Sent friend request");
+      updateUserFriendsList();
+      if (searchedUser.id != "") {
+        // Rebuild searched user widget
+        getSearchedUser(user.id);
+        log("Rebuilt searched user widget");
+      } else {
+        // Rebuild in suggested list
+        log("Rebuilt in suggested list");
+      }
+    } else {
+      log(response.body, LogLevel.error);
+      // TODO: show error snackbar
+    }
+  }
+
   Future<void> updateUserFriendsList() async {
-    setState(() {
-      refreshing = true;
-    });
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("Successfully updated local friend list");
-      setState(() {
-        currentUser.friends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => Friend.fromJson(e)).toList();
-        refreshing = false;
-      });
+      friends.clear();
+      requests.clear();
+      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
+        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+        if (friend.status == "REQUESTED") {
+          requests.add(friend);
+        } else if (friend.status == "ACCEPTED") {
+          friends.add(friend);
+        }
+      }
+      setState(() {});
     } else {
       log(response.body, LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to update friends list",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      // TODO: show error snackbar
     }
   }
 
   Future<void> getSuggestedFriends() async {
+    setState(() => refreshing = true);
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       // TODO: make this an actual mutual friends endpoint (once i learn graph shit from cs130a)
       log("Retrieved suggested users");
+      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
+        User user = User.fromJson(jsonDecode(response.body)["data"][i]);
+        if (user.id != currentUser.id && !friends.any((element) => element.user.id == user.id)) {
+          setState(() {
+            suggestedFriends.add(user);
+          });
+        }
+      }
       setState(() {
-        suggestedFriends = (jsonDecode(response.body)["data"] as List<dynamic>).map((e) => User.fromJson(e)).toList();
-        suggestedFriends.removeWhere((element) => element.id == currentUser.id);
-        suggestedFriends.removeWhere((element) => currentUser.friends.any((friend) => friend.id.contains(element.id)));
+        refreshing = false;
       });
     } else {
       log(response.body, LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Failed to retrieve suggested friends list",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      // TODO: show error snackbar
     }
   }
 
@@ -234,24 +252,24 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     ),
                                   ),
                                   Visibility(
-                                    visible: searchedUser.id != currentUser.id && Friend.getFriendshipFromList(searchedUser, currentUser.friends) == "NULL",
+                                    visible: searchedUser.id != currentUser.id && requests.where((element) => element.id.contains(searchedUser.id)).isEmpty && friends.where((element) => element.id.contains(searchedUser.id)).isEmpty,
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                       color: SB_NAVY,
                                       child: Row(
                                         children: const [
                                           Icon(Icons.person_add, color: Colors.white),
-                                          const Padding(padding: EdgeInsets.all(4)),
+                                          Padding(padding: EdgeInsets.all(4)),
                                           Text("Add"),
                                         ],
                                       ),
                                       onPressed: () {
-                                        addFriend(searchedUser);
+                                        acceptFriend(searchedUser);
                                       },
                                     ),
                                   ),
                                   Visibility(
-                                    visible: searchedUser.id != currentUser.id && Friend.getFriendshipFromList(searchedUser, currentUser.friends) == "ACCEPTED",
+                                    visible: searchedUser.id != currentUser.id && friends.any((element) => element.user.id.contains(searchedUser.id)),
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                       color: Theme.of(context).backgroundColor,
@@ -266,7 +284,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     ),
                                   ),
                                   Visibility(
-                                    visible: searchedUser.id != currentUser.id && Friend.getFriendshipFromList(searchedUser, currentUser.friends) == "REQUESTED",
+                                    visible: searchedUser.id != currentUser.id && requests.where((element) => element.toUserID.contains(searchedUser.id)).isNotEmpty,
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                       color: Theme.of(context).backgroundColor,
@@ -279,6 +297,23 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       ),
                                       onPressed: () {},
                                     ),
+                                  ),
+                                  Visibility(
+                                    visible: searchedUser.id != currentUser.id && requests.where((element) => element.fromUserID.contains(searchedUser.id)).isNotEmpty,
+                                    child: CupertinoButton(
+                                      padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                      color: SB_NAVY,
+                                      child: Row(
+                                        children: const [
+                                          Icon(Icons.person_add, color: Colors.white),
+                                          Padding(padding: EdgeInsets.all(4)),
+                                          Text("Accept", style: TextStyle(color: Colors.white),),
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        acceptFriend(searchedUser);
+                                      },
+                                    )
                                   )
                                 ],
                               ),
@@ -356,24 +391,24 @@ class _AddFriendPageState extends State<AddFriendPage> {
                               ),
                             ),
                             Visibility(
-                              visible: suggestedFriends[index].id != currentUser.id && Friend.getFriendshipFromList(suggestedFriends[index], currentUser.friends) == "NULL",
+                              visible: suggestedFriends[index].id != currentUser.id && requests.where((element) => element.id.contains(suggestedFriends[index].id)).isEmpty && friends.where((element) => element.id.contains(suggestedFriends[index].id)).isEmpty,
                               child: CupertinoButton(
                                 padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                 color: SB_NAVY,
                                 child: Row(
                                   children: const [
                                     Icon(Icons.person_add, color: Colors.white),
-                                    const Padding(padding: EdgeInsets.all(4)),
+                                    Padding(padding: EdgeInsets.all(4)),
                                     Text("Add"),
                                   ],
                                 ),
                                 onPressed: () {
-                                  addFriend(suggestedFriends[index]);
+                                  acceptFriend(suggestedFriends[index]);
                                 },
                               ),
                             ),
                             Visibility(
-                              visible: suggestedFriends[index].id != currentUser.id && Friend.getFriendshipFromList(suggestedFriends[index], currentUser.friends) == "REQUESTED",
+                              visible: suggestedFriends[index].id != currentUser.id && requests.where((element) => element.toUserID.contains(suggestedFriends[index].id)).isNotEmpty,
                               child: CupertinoButton(
                                 padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                 color: Theme.of(context).backgroundColor,
@@ -386,6 +421,23 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                 ),
                                 onPressed: () {},
                               ),
+                            ),
+                            Visibility(
+                                visible: suggestedFriends[index].id != currentUser.id && requests.where((element) => element.fromUserID.contains(suggestedFriends[index].id)).isNotEmpty,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: SB_NAVY,
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.person_add, color: Colors.white),
+                                      Padding(padding: EdgeInsets.all(4)),
+                                      Text("Accept", style: TextStyle(color: Colors.white),),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    acceptFriend(suggestedFriends[index]);
+                                  },
+                                )
                             )
                           ],
                         ),

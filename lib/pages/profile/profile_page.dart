@@ -15,11 +15,14 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with RouteAware {
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      routeObserver.subscribe(this, ModalRoute.of(context)!);
+    });
   }
 
   @override
@@ -132,8 +135,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             ],
                           ),
                           Badge(
-                            showBadge: requests.isNotEmpty,
-                            badgeContent: Text(requests.length.toString(), style: const TextStyle(color: Colors.white)),
+                            showBadge: requests.where((element) => element.fromUserID != currentUser.id).isNotEmpty,
+                            badgeContent: Text(requests.where((element) => element.fromUserID != currentUser.id).length.toString(), style: const TextStyle(color: Colors.white)),
                           )
                         ],
                       ),

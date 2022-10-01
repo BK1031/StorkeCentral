@@ -45,7 +45,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   }
 
   Future<void> getUserSchedule(String quarter) async {
-    if (offlineMode) {
+    if (!offlineMode) {
       if (userScheduleItems.isEmpty || DateTime.now().difference(lastScheduleFetch).inMinutes > 180) {
         try {
           await AuthService.getAuthToken();
