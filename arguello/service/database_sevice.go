@@ -1,11 +1,11 @@
 package service
 
 import (
+	"arguello/config"
+	"arguello/model"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"lacumbre/config"
-	"lacumbre/model"
 	"os"
 	"time"
 )
@@ -29,7 +29,7 @@ func InitializeDB() {
 		}
 	} else {
 		println("Connected to postgres database")
-		db.AutoMigrate(&model.User{}, &model.Role{}, &model.Friend{}, &model.Privacy{}, &model.Login{})
+		db.AutoMigrate(&model.Building{})
 		println("AutoMigration complete")
 		DB = db
 	}
