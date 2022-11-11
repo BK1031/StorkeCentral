@@ -10,6 +10,8 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/arguello/ping", Ping)
+	router.GET("/maps/buildings", GetAllBuildings)
+	router.GET("/maps/buildings/:buildingID", GetBuildingByID)
 }
 
 func RequestLogger() gin.HandlerFunc {
@@ -23,7 +25,7 @@ func AuthChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var requestUserID string
-		var requestUserRoles []string
+		//var requestUserRoles []string
 
 		ctx := context.Background()
 		client, err := service.FirebaseAdmin.Auth(ctx)
@@ -48,7 +50,7 @@ func AuthChecker() gin.HandlerFunc {
 			println("No user token provided")
 			requestUserID = "null"
 		}
-
+		println("STUB: " + requestUserID)
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod

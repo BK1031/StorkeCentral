@@ -4,6 +4,7 @@ import "time"
 
 type Building struct {
 	ID          string    `gorm:"primaryKey" json:"id"`
+	Number      string    `json:"number"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Latitude    float64   `json:"latitude"`
