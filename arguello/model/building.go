@@ -7,6 +7,8 @@ type Building struct {
 	Number      string    `json:"number"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
+	Type        string    `json:"type"`
+	PictureURL  string    `json:"picture_url"`
 	Latitude    float64   `json:"latitude"`
 	Longitude   float64   `json:"longitude"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`

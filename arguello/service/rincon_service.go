@@ -16,9 +16,9 @@ var rinconHost = "http://rincon"
 func RegisterRincon() {
 	var portInt, _ = strconv.Atoi(config.Port)
 	rinconBody, _ := json.Marshal(map[string]interface{}{
-		"name":         "Lacumbre",
+		"name":         "Arguello",
 		"version":      config.Version,
-		"url":          "http://lacumbre:" + config.Port,
+		"url":          "http://arguello:" + config.Port,
 		"port":         portInt,
 		"status_email": config.StatusEmail,
 	})
@@ -50,7 +50,7 @@ func RegisterRincon() {
 func RegisterRinconRoute(route string) {
 	rinconBody, _ := json.Marshal(map[string]string{
 		"route":        route,
-		"service_name": "Lacumbre",
+		"service_name": "Arguello",
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
 	_, err := http.Post(rinconHost+":"+config.RinconPort+"/routes", "application/json", responseBody)
