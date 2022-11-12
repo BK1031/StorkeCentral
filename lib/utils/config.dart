@@ -1,6 +1,7 @@
 import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/gold_course.dart';
@@ -52,6 +53,9 @@ List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
 DateTime lastScheduleFetch = DateTime.now();
+
+List<Building> buildings = [];
+DateTime lastBuildingFetch = DateTime.now();
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names

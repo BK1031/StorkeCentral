@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:storke_central/models/building.dart';
 import 'package:storke_central/utils/config.dart';
 
 class MapsPage extends StatefulWidget {
@@ -18,9 +19,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
   FocusNode _searchFocus = FocusNode();
   TextEditingController _searchController = TextEditingController();
 
-  // TODO: Replace these with building objects from maps service
-  List<String> buildings = ["Storke Tower", "Broida Hall", "Buchanan Hall", "Elings Hall", "El Dorado Apartments", "Westgate Apartments", "Manzanita Village"];
-  List<String> searchResults = [];
+  List<Building> searchResults = [];
 
   @override
   bool get wantKeepAlive => true;
@@ -57,7 +56,8 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
           query: input,
           choices: buildings,
           limit: 5,
-          cutoff: 50
+          cutoff: 50,
+          getter: (Building b) => "${b.id.replaceAll("-", " ")} ${b.name} ${b.number}",
         ).map((e) => e.choice).toList();
       });
     } else {
@@ -103,7 +103,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                             decoration: const InputDecoration(
                               icon: Icon(Icons.search_rounded),
                               border: InputBorder.none,
-                              hintText: "Search for building",
+                              hintText: "Search for building name",
                             ),
                             textCapitalization: TextCapitalization.words,
                             keyboardType: TextInputType.name,
@@ -127,7 +127,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                                         ClipRRect(
                                           borderRadius: const BorderRadius.all(Radius.circular(8)),
                                           child: ExtendedImage.network(
-                                            "https://www.news.ucsb.edu/file/15062/download?token=3PaDYINg",
+                                            searchResults[index].pictureURL,
                                             fit: BoxFit.cover,
                                             height: 50,
                                             width: 50,
@@ -136,7 +136,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                                         const Padding(padding: EdgeInsets.all(4)),
                                         Expanded(
                                           child: Text(
-                                            searchResults[index],
+                                            searchResults[index].name,
                                             style: const TextStyle(fontSize: 14),
                                           ),
                                         ),
@@ -168,10 +168,10 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                 SizedBox(
                   height: 162,
                   child: ListView.builder(
-                    itemCount: 3,
-                    itemBuilder: (BuildContext context, int i) {
+                    itemCount: buildings.length,
+                    itemBuilder: (BuildContext context, int index) {
                       return Padding(
-                        padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0, bottom: 12),
+                        padding: EdgeInsets.only(right: 4, left: (index == 0) ? 8 : 0, bottom: 12),
                         child: SizedBox(
                           width: 150,
                           child: Card(
@@ -184,7 +184,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                                 child: Stack(
                                   children: [
                                     ExtendedImage.network(
-                                      "https://www.news.ucsb.edu/file/15062/download?token=3PaDYINg",
+                                      buildings[index].pictureURL,
                                       fit: BoxFit.cover,
                                       height: 150,
                                       width: 150,
@@ -213,14 +213,11 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                                           Row(
                                             children: [
                                               Expanded(
-                                                child: Hero(
-                                                    tag: "Storke Tower",
-                                                    child: Text("Storke Tower", style: const TextStyle(color: Colors.white),)
-                                                ),
+                                                child: Text(buildings[index].name, style: const TextStyle(color: Colors.white),),
                                               ),
                                             ],
                                           ),
-                                          Text("123 m", style: const TextStyle(color: Colors.white, fontSize: 12),)
+                                          Text("123 m", style: TextStyle(color: Colors.grey, fontSize: 12),)
                                         ],
                                       ),
                                     ),

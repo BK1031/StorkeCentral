@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/login.dart';
 import 'package:storke_central/pages/home/home_page.dart';
 import 'package:storke_central/pages/maps/maps_page.dart';
@@ -44,6 +45,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     WidgetsBinding.instance.addObserver(this);
     _determinePosition();
     firebaseAnalytics();
+    fetchBuildings();
     if (!anonMode && !offlineMode) sendLoginEvent();
   }
 
@@ -152,6 +154,29 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     AuthService.getAuthToken().then((_) {
       http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });
+  }
+
+  void fetchBuildings() async {
+    if (!offlineMode) {
+      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 1440) {
+        try {
+          await AuthService.getAuthToken();
+          await http.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            setState(() {
+              buildings = jsonDecode(value.body)["data"].map<Building>((json) => Building.fromJson(json)).toList();
+            });
+            lastBuildingFetch = DateTime.now();
+          });
+        } catch(err) {
+          // TODO: Show error snackbar
+          log(err.toString(), LogLevel.error);
+        }
+      } else {
+        log("Using cached building list, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 1440 minutes)");
+      }
+    } else {
+      log("Offline mode, searching cache for buildings...");
+    }
   }
 
   @override

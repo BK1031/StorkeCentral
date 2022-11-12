@@ -106,7 +106,9 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   Future<void> loadPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey("PREF_UNITS")) prefs.setString("PREF_UNITS", PREF_UNITS);
+    if (!prefs.containsKey("BUILDINGS_LAST_FETCH")) prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
+    lastBuildingFetch = DateTime.parse(prefs.getString("BUILDINGS_LAST_FETCH")!);
   }
 
   Future<void> loadOfflineMode() async {
