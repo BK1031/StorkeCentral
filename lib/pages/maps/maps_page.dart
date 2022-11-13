@@ -1,10 +1,14 @@
 import 'package:extended_image/extended_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/utils/config.dart';
+import 'package:storke_central/utils/logger.dart';
+import 'package:storke_central/utils/theme.dart';
 
 class MapsPage extends StatefulWidget {
   const MapsPage({Key? key}) : super(key: key);
@@ -13,21 +17,24 @@ class MapsPage extends StatefulWidget {
   State<MapsPage> createState() => _MapsPageState();
 }
 
-class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin {
+class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAliveClientMixin {
 
+  MapboxMapController? mapController;
   bool _searching = false;
+  bool _buildingSelected = false;
   FocusNode _searchFocus = FocusNode();
   TextEditingController _searchController = TextEditingController();
 
   List<Building> searchResults = [];
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 
   @override
   void initState() {
     super.initState();
     _searchFocus.addListener(_onSearchFocusChange);
+    orderBuildingsByDistance();
   }
 
   @override
@@ -39,6 +46,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
 
   _onSearchFocusChange() {
     if (_searchFocus.hasFocus) {
+      cancelBuildingSelection();
       setState(() {
         _searching = true;
       });
@@ -67,6 +75,79 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
     }
   }
 
+  void orderBuildingsByDistance() {
+    for (int i = 0; i < buildings.length; i++) {
+      buildings[i].distanceFromUser = distanceFromUser(buildings[i].latitude, buildings[i].longitude);
+    }
+    setState(() {
+      buildings.sort((a, b) => a.distanceFromUser.compareTo(b.distanceFromUser));
+    });
+  }
+
+  double distanceFromUser(double lat, double long) {
+    double distance = 0.0;
+    try {
+      distance = Geolocator.distanceBetween(currentPosition!.latitude, currentPosition!.longitude, lat, long);
+      return distance;
+    } catch(err) {
+      // TODO: Show error snackbar
+      log(err.toString(), LogLevel.error);
+    }
+    return distance;
+  }
+
+  String getBuildingTypeIcon(String type) {
+    switch (type) {
+      case "Research Laboratory":
+        return "images/markers/lab-marker.png";
+      case "Trailer":
+        return "images/markers/trailer-marker.png";
+      case "Dining Hall":
+        return "images/markers/dining-marker.png";
+      case "Recreation":
+        return "images/markers/recreation-marker.png";
+      default:
+        return "images/markers/building-marker.png";
+    }
+  }
+
+  void _onMapCreated(MapboxMapController controller) {
+    mapController = controller;
+  }
+  
+  void selectBuilding(Building building) {
+    mapController?.removeSymbols(mapController!.symbols);
+    log("Selected building ${building.name}", LogLevel.info);
+    setState(() {
+      selectedBuilding = building;
+      _buildingSelected = true;
+      _searching = false;
+    });
+    mapController?.addSymbol(SymbolOptions(
+      geometry: LatLng(building.latitude, building.longitude),
+      iconSize: 1.5,
+      iconImage: getBuildingTypeIcon(building.type),
+    ));
+    mapController?.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        target: LatLng(building.latitude - 0.0015, building.longitude),
+        zoom: 16,
+      ),
+    ));
+  }
+
+  void cancelBuildingSelection() {
+    mapController?.removeSymbols(mapController!.symbols);
+    setState(() {
+      selectedBuilding = Building();
+      _buildingSelected = false;
+    });
+    mapController?.animateCamera(CameraUpdate.newCameraPosition(const CameraPosition(
+        target: LatLng(34.412278, -119.847787),
+        zoom: 14.0,
+    )));
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -75,6 +156,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
         children: [
           MapboxMap(
             accessToken: MAPBOX_ACCESS_TOKEN,
+            onMapCreated: _onMapCreated,
             initialCameraPosition: const CameraPosition(
               target: LatLng(34.412278, -119.847787),
               zoom: 14.0,
@@ -120,7 +202,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                                   child: InkWell(
                                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                                     onTap: () {
-
+                                      selectBuilding(searchResults[index]);
                                     },
                                     child: Row(
                                       children: [
@@ -141,7 +223,7 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
                                           ),
                                         ),
                                         Text(
-                                          "32 m",
+                                          "${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}",
                                           style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.caption!.color),
                                         ),
                                         Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.caption!.color),
@@ -160,80 +242,180 @@ class _MapsPageState extends State<MapsPage> with AutomaticKeepAliveClientMixin 
               )
             ],
           ),
-          Visibility(
-            visible: !_searching,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SizedBox(
-                  height: 162,
-                  child: ListView.builder(
-                    itemCount: buildings.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Padding(
-                        padding: EdgeInsets.only(right: 4, left: (index == 0) ? 8 : 0, bottom: 12),
-                        child: SizedBox(
-                          width: 150,
-                          child: Card(
-                            child: GestureDetector(
-                              onTap: () {
-
-                              },
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                child: Stack(
-                                  children: [
-                                    ExtendedImage.network(
-                                      buildings[index].pictureURL,
-                                      fit: BoxFit.cover,
-                                      height: 150,
-                                      width: 150,
-                                    ),
-                                    Container(
-                                      height: 350.0,
-                                      decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                              begin: FractionalOffset.topCenter,
-                                              end: FractionalOffset.bottomCenter,
-                                              colors: [
-                                                // Colors.grey.withOpacity(1.0),
-                                                Colors.grey.withOpacity(0.0),
-                                                Colors.black,
-                                              ],
-                                              stops: const [0, 1]
-                                          )
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.end,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(buildings[index].name, style: const TextStyle(color: Colors.white),),
-                                              ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                height: _searching || _buildingSelected ? 0 : 162,
+                child: ListView.builder(
+                  itemCount: buildings.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Padding(
+                      padding: EdgeInsets.only(right: 4, left: (index == 0) ? 8 : 0, bottom: 12),
+                      child: SizedBox(
+                        width: 150,
+                        child: Card(
+                          child: GestureDetector(
+                            onTap: () {
+                              selectBuilding(buildings[index]);
+                            },
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.all(Radius.circular(8)),
+                              child: Stack(
+                                children: [
+                                  ExtendedImage.network(
+                                    buildings[index].pictureURL,
+                                    fit: BoxFit.cover,
+                                    height: 150,
+                                    width: 150,
+                                  ),
+                                  Container(
+                                    height: 350.0,
+                                    decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                            begin: FractionalOffset.topCenter,
+                                            end: FractionalOffset.bottomCenter,
+                                            colors: [
+                                              // Colors.grey.withOpacity(1.0),
+                                              Colors.grey.withOpacity(0.0),
+                                              Colors.black,
                                             ],
-                                          ),
-                                          Text("123 m", style: TextStyle(color: Colors.grey, fontSize: 12),)
-                                        ],
-                                      ),
+                                            stops: const [0, 1]
+                                        )
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(buildings[index].name, style: const TextStyle(color: Colors.white),),
+                                            ),
+                                          ],
+                                        ),
+                                        Text("${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: TextStyle(color: Colors.grey, fontSize: 12),)
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      );
-                    },
-                    scrollDirection: Axis.horizontal,
+                      ),
+                    );
+                  },
+                  scrollDirection: Axis.horizontal,
+                ),
+              )
+            ],
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                height: !_searching && _buildingSelected ? 350 : 0,
+                padding: const EdgeInsets.all(8),
+                child: Card(
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        child: Stack(
+                          children: [
+                            ExtendedImage.network(
+                              selectedBuilding.pictureURL,
+                              fit: BoxFit.cover,
+                              height: 125,
+                              width: double.infinity,
+                            ),
+                            Container(
+                              height: 125,
+                              decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                      begin: FractionalOffset.topCenter,
+                                      end: FractionalOffset.bottomCenter,
+                                      colors: [
+                                        // Colors.grey.withOpacity(1.0),
+                                        Colors.grey.withOpacity(0.0),
+                                        Colors.black,
+                                      ],
+                                      stops: const [0, 1]
+                                  )
+                              ),
+                            ),
+                            Container(
+                              height: 125,
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.close, color: Colors.white,),
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () {
+                                          cancelBuildingSelection();
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          selectedBuilding.name,
+                                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                        )
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: Text(
+                              selectedBuilding.description,
+                              // style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: CupertinoButton(
+                            child: Text("Directions"),
+                            color: SB_NAVY,
+                            onPressed: () {
+
+                            },
+                          ),
+                        ),
+                      )
+                    ],
                   ),
                 )
-              ],
-            ),
+              )
+            ],
           ),
         ],
       ),

@@ -15,12 +15,12 @@ import 'package:storke_central/models/version.dart';
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
-Version appVersion = Version("2.2.4+1");
+Version appVersion = Version("2.2.5+1");
 
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
-String API_HOST = "https://7b6a-169-231-10-91.ngrok.io";
+String API_HOST = "https://5f04-169-231-109-203.ngrok.io";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names
@@ -56,6 +56,7 @@ DateTime lastScheduleFetch = DateTime.now();
 
 List<Building> buildings = [];
 DateTime lastBuildingFetch = DateTime.now();
+Building selectedBuilding = Building();
 
 /// Units can be [m] or [ft]
 // ignore: non_constant_identifier_names

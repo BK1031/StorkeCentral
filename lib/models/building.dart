@@ -7,6 +7,7 @@ class Building {
   String pictureURL = "";
   double latitude = 0.0;
   double longitude = 0.0;
+  double distanceFromUser = 0.0;
   DateTime updatedAt = DateTime.now().toUtc();
   DateTime createdAt = DateTime.now().toUtc();
 
