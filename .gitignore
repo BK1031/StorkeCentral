@@ -44,7 +44,6 @@ ios/firebase_app_id_file.json
 /build/
 
 # Web related
-lib/generated_plugin_registrant.dart
 
 # Symbolication related
 app.*.symbols

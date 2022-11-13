@@ -129,11 +129,12 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
     mapController?.addSymbol(SymbolOptions(
       geometry: LatLng(building.latitude, building.longitude),
       iconSize: 1.5,
+      iconOffset: const Offset(0, -10),
       iconImage: getBuildingTypeIcon(building.type),
     ));
     mapController?.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
-        target: LatLng(building.latitude - 0.0015, building.longitude),
+        target: LatLng(building.latitude - 0.0010, building.longitude),
         zoom: 16,
       ),
     ));

@@ -22,6 +22,17 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.464569478608-3ll4urkmohn5qeg3j90h7fnuvlnthkgn</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -32,6 +43,7 @@
 	<string>Granting us location access allows us to show you nearby dining halls and buildings, as well as provide navigation directions.</string>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>location</string>
 		<string>remote-notification</string>
 	</array>
@@ -52,21 +64,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-    <!-- Google Sign-in Section -->
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <!-- TODO Replace this value: -->
-                <!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
-                <!--464569478608-3ll4urkmohn5qeg3j90h7fnuvlnthkgn.apps.googleusercontent.com -->
-                <string>com.googleusercontent.apps.464569478608-3ll4urkmohn5qeg3j90h7fnuvlnthkgn</string>
-            </array>
-        </dict>
-    </array>
-    <!-- End of the Google Sign-in Section -->
 </dict>
 </plist>

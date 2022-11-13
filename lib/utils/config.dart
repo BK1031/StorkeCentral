@@ -15,7 +15,7 @@ import 'package:storke_central/models/version.dart';
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
-Version appVersion = Version("2.2.5+1");
+Version appVersion = Version("2.2.6+1");
 
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";

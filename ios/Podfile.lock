@@ -700,6 +700,9 @@ PODS:
     - FirebaseCore (~> 8.0)
     - GTMSessionFetcher/Core (~> 1.5)
   - Flutter (1.0.0)
+  - flutter_mapbox_navigation (0.0.20):
+    - Flutter
+    - MapboxNavigation (~> 1.4)
   - geolocator_apple (1.2.0):
     - Flutter
   - google_sign_in_ios (0.0.1):
@@ -820,9 +823,29 @@ PODS:
     - Flutter
     - Mapbox-iOS-SDK (~> 6.4.0)
     - MapboxAnnotationExtension (~> 0.0.1-beta.1)
+  - MapboxAccounts (2.3.1)
   - MapboxAnnotationExtension (0.0.1-beta.2):
     - Mapbox-iOS-SDK (~> 6.0)
+  - MapboxCommon (9.2.0)
+  - MapboxCoreNavigation (1.4.2):
+    - MapboxAccounts (~> 2.3.0)
+    - MapboxDirections (~> 1.2.0)
+    - MapboxMobileEvents (~> 0.10.2)
+    - MapboxNavigationNative (~> 32.0)
+    - Turf (~> 1.0)
+  - MapboxDirections (1.2.0):
+    - Polyline (~> 5.0)
+    - Turf (~> 1.0)
   - MapboxMobileEvents (0.10.14)
+  - MapboxNavigation (1.4.2):
+    - Mapbox-iOS-SDK (~> 6.0)
+    - MapboxCoreNavigation (= 1.4.2)
+    - MapboxMobileEvents (~> 0.10.2)
+    - MapboxSpeech (~> 1.0)
+    - Solar (~> 2.1)
+  - MapboxNavigationNative (32.0.0):
+    - MapboxCommon (= 9.2.0)
+  - MapboxSpeech (1.0.0)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
     - nanopb/encode (= 2.30908.0)
@@ -845,10 +868,13 @@ PODS:
     - OneSignalXCFramework/OneSignalCore
   - path_provider_ios (0.0.1):
     - Flutter
+  - Polyline (5.0.2)
   - PromisesObjC (2.1.0)
   - ReachabilitySwift (5.0.0)
   - shared_preferences_ios (0.0.1):
     - Flutter
+  - Solar (2.1.0)
+  - Turf (1.2.0)
   - url_launcher_ios (0.0.1):
     - Flutter
 
@@ -860,6 +886,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
+  - flutter_mapbox_navigation (from `.symlinks/plugins/flutter_mapbox_navigation/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/ios`)
   - mapbox_gl (from `.symlinks/plugins/mapbox_gl/ios`)
@@ -894,12 +921,22 @@ SPEC REPOS:
     - leveldb-library
     - Libuv-gRPC
     - Mapbox-iOS-SDK
+    - MapboxAccounts
     - MapboxAnnotationExtension
+    - MapboxCommon
+    - MapboxCoreNavigation
+    - MapboxDirections
     - MapboxMobileEvents
+    - MapboxNavigation
+    - MapboxNavigationNative
+    - MapboxSpeech
     - nanopb
     - OneSignalXCFramework
+    - Polyline
     - PromisesObjC
     - ReachabilitySwift
+    - Solar
+    - Turf
 
 EXTERNAL SOURCES:
   cloud_firestore:
@@ -916,6 +953,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_storage/ios"
   Flutter:
     :path: Flutter
+  flutter_mapbox_navigation:
+    :path: ".symlinks/plugins/flutter_mapbox_navigation/ios"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/ios"
   google_sign_in_ios:
@@ -952,6 +991,7 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 40bd9054049b2eae9a2c38ef1c3dd213df3605cd
   FirebaseStorage: 8019af461599b2c3bc61c6a5dbdfa3d2de66a4d9
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_mapbox_navigation: b2d023f58478f5f80242db9b70cc75ee37f42e20
   geolocator_apple: cc556e6844d508c95df1e87e3ea6fa4e58c50401
   google_sign_in_ios: 90eec6616c4c2105b9f9fe5c774773d13565b504
   GoogleAppMeasurement: 4c19f031220c72464d460c9daa1fb5d1acce958e
@@ -966,16 +1006,26 @@ SPEC CHECKSUMS:
   Libuv-gRPC: 55e51798e14ef436ad9bc45d12d43b77b49df378
   Mapbox-iOS-SDK: f870f83cbdc7aa4a74afcee143aafb0dae390c82
   mapbox_gl: 33c5ab6306cbfa72289bb3606d2cd2e8baee9ff0
+  MapboxAccounts: e40ef575df5d8b7ef33d0504ff2d393f4fde0455
   MapboxAnnotationExtension: 4eee6c26349ef6d909f1a23a7eae2d0f7ca5fa7d
+  MapboxCommon: 2c4ef00c10cba35302835423f4d63c6f3dea4bc4
+  MapboxCoreNavigation: fd24751d42a53c2ca4ddebd55f49a11b925f08be
+  MapboxDirections: 383df0cd65784897c2269750a42d9654c832f0ce
   MapboxMobileEvents: 5a172cc9bbf8ac0e45ba86095cbee685ede248cc
+  MapboxNavigation: b596028515707e1b4b94d22f298a7c7000712e6d
+  MapboxNavigationNative: e811b9beed18c01e4693e29f843d36b4a760fa61
+  MapboxSpeech: 4b3aea42e35d056fae1d7ad847a9fc0f412d911e
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   network_info_plus: b78876159360f5580608c2cea620d6ceffabd0ad
   onesignal_flutter: 8f17fbc764b033117d2c878db635c3cd4911ff04
   OneSignalXCFramework: 8bdcaa3b7f6082565bf29c5481435376a33e94f2
   path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+  Polyline: fce41d72e1146c41c6d081f7656827226f643dff
   PromisesObjC: 99b6f43f9e1044bd87a95a60beff28c2c44ddb72
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
+  Solar: 2dc6e7cc39186cb0c8228fa08df76fb50c7d8f24
+  Turf: aaa060138b11a8e979a19e6d81091d156a31bc58
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
 
 PODFILE CHECKSUM: 33973b6226ee6982edc2cecf527dff96c8d0aa7e
