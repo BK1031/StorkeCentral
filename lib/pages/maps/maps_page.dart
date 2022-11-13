@@ -122,6 +122,9 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
       selectedBuilding = building;
       _buildingSelected = true;
       _searching = false;
+      _searchController.clear();
+      _searchFocus.unfocus();
+      searchResults.clear();
     });
     mapController?.addSymbol(SymbolOptions(
       geometry: LatLng(building.latitude, building.longitude),
