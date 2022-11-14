@@ -2,6 +2,7 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -150,6 +151,34 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
         target: LatLng(34.412278, -119.847787),
         zoom: 14.0,
     )));
+  }
+
+  void navigateToBuilding(Building building, MapBoxNavigationMode mode) {
+    MapBoxNavigation _directions = MapBoxNavigation(onRouteEvent: (event) {}, );
+    _directions.startNavigation(
+      wayPoints: [
+        WayPoint(
+          name: "Current Location",
+          latitude: currentPosition!.latitude,
+          longitude: currentPosition!.longitude,
+        ),
+        WayPoint(
+          name: building.name,
+          latitude: building.latitude,
+          longitude: building.longitude,
+        ),
+      ],
+      options: MapBoxOptions(
+          enableRefresh: false,
+          alternatives: true,
+          voiceInstructionsEnabled: true,
+          bannerInstructionsEnabled: true,
+          allowsUTurnAtWayPoints: true,
+          mode: mode,
+          simulateRoute: false,
+          animateBuildRoute: true,
+      )
+    );
   }
 
   @override
@@ -403,16 +432,33 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: CupertinoButton(
-                            child: Text("Directions"),
-                            color: SB_NAVY,
-                            onPressed: () {
-
-                            },
-                          ),
+                        padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
+                        child: Row(
+                          children: [
+                            Text("Navigate me here (${(selectedBuilding.distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const Padding(padding: EdgeInsets.all(4)),
+                            Expanded(
+                              child: CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                color: SB_NAVY,
+                                onPressed: () {
+                                  navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                },
+                                child: const Icon(Icons.directions_bike_rounded),
+                              ),
+                            ),
+                            const Padding(padding: EdgeInsets.all(4)),
+                            Expanded(
+                              child: CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                color: SB_NAVY,
+                                onPressed: () {
+                                  navigateToBuilding(selectedBuilding, MapBoxNavigationMode.walking);
+                                },
+                                child: const Icon(Icons.directions_walk_rounded),
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     ],

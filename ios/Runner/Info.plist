@@ -37,6 +37,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>MGLMapboxAccessToken</key>
+	<string>sk.eyJ1IjoiYmhhcmF0MTAzMSIsImEiOiJja3Vsd3h3a2kweDlqMndtYnVzaWU1bmNuIn0.1fKjpz82vMNd8Qv-d03FNQ</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Granting us location access allows us to show you nearby dining halls and buildings, as well as provide navigation directions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
