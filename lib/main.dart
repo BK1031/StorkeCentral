@@ -10,8 +10,10 @@ import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/developer/logger_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
+import 'package:storke_central/pages/profile/edit_profile_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
 import 'package:storke_central/pages/profile/friends/friends_page.dart';
+import 'package:storke_central/pages/profile/profile_page.dart';
 import 'package:storke_central/pages/schedule/load_schedule_page.dart';
 import 'package:storke_central/pages/settings/settings_about_page.dart';
 import 'package:storke_central/pages/settings/settings_page.dart';
@@ -61,6 +63,13 @@ Future<void> main() async {
 
   router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoadSchedulePage();
+  }));
+
+  router.define("/profile", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const ProfilePage();
+  }));
+  router.define("/profile/edit", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const EditProfilePage();
   }));
 
   router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
