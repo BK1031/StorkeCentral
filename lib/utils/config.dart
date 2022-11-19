@@ -71,6 +71,7 @@ Map<String, double> UNITS_CONVERSION = {
 Quarter currentQuarter = fall22;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [winter23, fall22, summer22];
+
 // Quarters
 
 Quarter winter23 = Quarter.fromJson({

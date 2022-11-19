@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
+import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -339,7 +340,39 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                     ),
                   ),
                 ),
-              )
+              ),
+              Visibility(
+                visible: !classesFound,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    children: [
+                      Card(
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          width: MediaQuery.of(context).size.width,
+                          child: DropdownButton<String>(
+                            value: selectedQuarter.id,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            underline: Container(),
+                            items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                              return DropdownMenuItem<String>(
+                                value: quarter.id,
+                                child: Text(quarter.name),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           )
       );
