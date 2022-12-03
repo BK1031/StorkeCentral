@@ -43,6 +43,7 @@ class Quarter {
   // Helper function to return the week of the quarter given a date
   // Returns -1 if the date is not in the quarter and 11 if it is in finals week
   // Errors return 10 no real reason but it works lol
+  // (edit: wait nvm its for the .isBefore() check in case its week 10)
   int getWeek(DateTime date) {
     int week = -1;
     for (int i = 0; i < weeks.length; i++) {

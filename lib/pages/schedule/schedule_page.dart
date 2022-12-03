@@ -260,30 +260,62 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         width: MediaQuery.of(context).size.width,
-                        child: Row(
+                        child: selectedQuarter.getWeek(weekStart.add(const Duration(days: 1))) > 0 ? Row(
                           children: [
-                            Text(
+                            Expanded(
+                              child: Text(
                                 selectedQuarter.getWeek(weekStart.add(const Duration(days: 1))) <= 10 ? "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}" : "Finals Week",
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                            DropdownButton<String>(
-                              value: selectedQuarter.id,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              underline: Container(),
-                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                return DropdownMenuItem<String>(
-                                  value: quarter.id,
-                                  child: Text(quarter.name),
-                                );
-                              }).toList(),
+                            const Icon(Icons.circle, color: Colors.white, size: 8,),
+                            Expanded(
+                              child: DropdownButton<String>(
+                                value: selectedQuarter.id,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                underline: Container(),
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                dropdownColor: SB_NAVY,
+                                isDense: true,
+                                alignment: Alignment.centerRight,
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                                items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                  return DropdownMenuItem<String>(
+                                    value: quarter.id,
+                                    child: Text(quarter.name)
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ],
+                        ) : Center(
+                          child: DropdownButton<String>(
+                            value: selectedQuarter.id,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            underline: Container(),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            dropdownColor: SB_NAVY,
+                            isDense: true,
+                            alignment: Alignment.center,
+                            icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                            items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                              return DropdownMenuItem<String>(
+                                value: quarter.id,
+                                child: Text(quarter.name),
+                              );
+                            }).toList(),
+                          ),
                         ),
                       ),
                     ),
@@ -338,24 +370,32 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                   child: Column(
                     children: [
                       Card(
+                        color: SB_NAVY,
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           width: MediaQuery.of(context).size.width,
-                          child: DropdownButton<String>(
-                            value: selectedQuarter.id,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                              });
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            underline: Container(),
-                            items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                              return DropdownMenuItem<String>(
-                                value: quarter.id,
-                                child: Text(quarter.name),
-                              );
-                            }).toList(),
+                          child: Center(
+                            child: DropdownButton<String>(
+                              value: selectedQuarter.id,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              underline: Container(),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              dropdownColor: SB_NAVY,
+                              isDense: true,
+                              alignment: Alignment.center,
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                return DropdownMenuItem<String>(
+                                  value: quarter.id,
+                                  child: Text(quarter.name),
+                                );
+                              }).toList(),
+                            ),
                           ),
                         ),
                       ),
