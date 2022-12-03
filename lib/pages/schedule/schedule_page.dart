@@ -11,7 +11,10 @@ import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
+import 'package:storke_central/utils/syncfusion_meeting.dart';
+import 'package:storke_central/utils/syncfusion_meeting_data_source.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({Key? key}) : super(key: key);
@@ -22,13 +25,12 @@ class SchedulePage extends StatefulWidget {
 
 class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticKeepAliveClientMixin {
 
-  EventController calendarController = EventController();
   int color = 0;
   bool classesFound = true;
-  final _weekCalendarKey = GlobalKey();
+  final CalendarController _controller = CalendarController();
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 
   @override
   void initState() {
@@ -76,45 +78,24 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   // Adds a placeholder 1 minute event to the calendar so we can scroll the
   // main course times into view
   void scrollToView() {
-    WeekViewState weekViewState = _weekCalendarKey.currentState as WeekViewState;
-    for (var element in calendarController.events) {
-      if (element.title == "Start") {
-        calendarController.remove(element);
-      }
-    }
-    CalendarEventData startEvent = CalendarEventData(
-      date: getNextWeekDay(1),
-      title: "Start",
-      description: "Start",
-      startTime: getNextWeekDay(1).add(const Duration(hours: 12)),
-      endTime: getNextWeekDay(1).add(const Duration(hours: 12, minutes: 1)),
-      color: Colors.greenAccent,
-    );
-    calendarController.add(startEvent);
-    weekViewState.animateToEvent(
-      startEvent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
   }
 
   // Big meaty function that actually creates the class events
   // TODO: Add finals to calendar
   void buildCalendar() {
-    for (var event in calendarController.events) {
-      calendarController.remove(event);
-    }
+    clearCalendar();
     for (var item in userScheduleItems) {
       for (var day in dayStringToInt(item.days)) {
         DateTime cursor = getNextWeekDay(day);
-        calendarController.add(CalendarEventData(
-          title: item.title,
-          description: "${item.building} ${item.room}",
-          date: cursor,
-          color: SB_COLORS[color],
-          startTime: cursor.add(Duration(hours: int.parse(item.startTime.split(":")[0]), minutes: int.parse(item.startTime.split(":")[1]))),
-          endTime: cursor.add(Duration(hours: int.parse(item.endTime.split(":")[0]), minutes: int.parse(item.endTime.split(":")[1]))),
-        ));
+        setState(() {
+          calendarMeetings.add(Meeting(
+              "${item.title}\n${item.building} ${item.room}",
+              cursor.add(Duration(hours: int.parse(item.startTime.split(":")[0]), minutes: int.parse(item.startTime.split(":")[1]))),
+              cursor.add(Duration(hours: int.parse(item.endTime.split(":")[0]), minutes: int.parse(item.endTime.split(":")[1]))),
+              SB_COLORS[color],
+              false
+          ));
+        });
       }
       if (color == SB_COLORS.length - 1) {
         color = 0;
@@ -126,9 +107,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   }
 
   void clearCalendar() {
-    for (var event in calendarController.events) {
-      calendarController.remove(event);
-    }
+    setState(() {
+      calendarMeetings.clear();
+    });
   }
 
   // Helper function to get a certain day of the current week
@@ -214,113 +195,94 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           ),
           body: Stack(
             children: [
-              WeekView(
-                key: _weekCalendarKey,
-                controller: calendarController,
-                backgroundColor: Theme.of(context).backgroundColor,
-                minDay: DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1)),
-                maxDay: DateTime.now().withoutTime.add(Duration(days: 7 - DateTime.now().weekday)),
-                showWeekends: false,
-                liveTimeIndicatorSettings: HourIndicatorSettings(
-                  color: SB_NAVY,
-                ),
-                eventTileBuilder: (DateTime date, List<CalendarEventData> events, Rect boundary, DateTime startDuration, DateTime endDuration) {
-                  if (events.isNotEmpty && events[0].title != "Start") {
-                    return Card(
-                      color: events[0].color.withOpacity(0.25),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.fitWidth,
-                            child: Text(
-                              events[0].title,
-                              style: TextStyle(color: events[0].color, fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          FittedBox(
-                            child: Text(
-                              events[0].description,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return Container();
-                  }
-                },
-                weekPageHeaderBuilder: (weekStart, weekEnd) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      color: SB_NAVY,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        width: MediaQuery.of(context).size.width,
-                        child: selectedQuarter.getWeek(weekStart.add(const Duration(days: 1))) > 0 ? Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                selectedQuarter.getWeek(weekStart.add(const Duration(days: 1))) <= 10 ? "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}" : "Finals Week",
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                textAlign: TextAlign.center,
+              Column(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Card(
+                        color: SB_NAVY,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          width: MediaQuery.of(context).size.width,
+                          child: selectedQuarter.getWeek(getNextWeekDay(1)) > 0 ? Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  selectedQuarter.getWeek(getNextWeekDay(1)) <= 10 ? "Week ${selectedQuarter.getWeek(getNextWeekDay(1))}" : "Finals Week",
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
-                            const Icon(Icons.circle, color: Colors.white, size: 8,),
-                            Expanded(
-                              child: DropdownButton<String>(
-                                value: selectedQuarter.id,
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                underline: Container(),
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                dropdownColor: SB_NAVY,
-                                isDense: true,
-                                alignment: Alignment.centerRight,
-                                icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                                items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                  return DropdownMenuItem<String>(
-                                    value: quarter.id,
-                                    child: Text(quarter.name)
-                                  );
-                                }).toList(),
+                              const Icon(Icons.circle, color: Colors.white, size: 8,),
+                              Expanded(
+                                child: DropdownButton<String>(
+                                  value: selectedQuarter.id,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  underline: Container(),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                  dropdownColor: SB_NAVY,
+                                  isDense: true,
+                                  alignment: Alignment.centerRight,
+                                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                                  items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                    return DropdownMenuItem<String>(
+                                        value: quarter.id,
+                                        child: Text(quarter.name)
+                                    );
+                                  }).toList(),
+                                ),
                               ),
+                            ],
+                          ) : Center(
+                            child: DropdownButton<String>(
+                              value: selectedQuarter.id,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              underline: Container(),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              dropdownColor: SB_NAVY,
+                              isDense: true,
+                              alignment: Alignment.center,
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                return DropdownMenuItem<String>(
+                                  value: quarter.id,
+                                  child: Text(quarter.name),
+                                );
+                              }).toList(),
                             ),
-                          ],
-                        ) : Center(
-                          child: DropdownButton<String>(
-                            value: selectedQuarter.id,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                              });
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            underline: Container(),
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                            dropdownColor: SB_NAVY,
-                            isDense: true,
-                            alignment: Alignment.center,
-                            icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                            items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                              return DropdownMenuItem<String>(
-                                value: quarter.id,
-                                child: Text(quarter.name),
-                              );
-                            }).toList(),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  SfCalendar(
+                    controller: _controller,
+                    // firstDayOfWeek: 1,
+                    view: CalendarView.week,
+                    timeSlotViewSettings: const TimeSlotViewSettings(
+                      timeIntervalHeight: 40,
+                      nonWorkingDays: [DateTime.sunday],
+                      // timeInterval: Duration(minutes: 30),
+                      timeFormat: "h a",
+                      startHour: 7,
+                      endHour: 24,
+                    ),
+                    dataSource: MeetingDataSource(calendarMeetings),
+                    cellEndPadding: 0,
+                    headerHeight: 0,
+                  ),
+                ],
               ),
               Visibility(
                 visible: !classesFound,

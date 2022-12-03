@@ -11,6 +11,7 @@ import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
+import 'package:storke_central/utils/syncfusion_meeting.dart';
 
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
@@ -52,6 +53,7 @@ DateTime lastHeadlineArticleFetch = DateTime.now();
 List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
+List<Meeting> calendarMeetings = [];
 DateTime lastScheduleFetch = DateTime.now();
 
 List<Building> buildings = [];
