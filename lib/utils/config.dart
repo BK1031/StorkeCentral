@@ -20,7 +20,7 @@ Version appVersion = Version("2.2.6+1");
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
-String API_HOST = "https://5f04-169-231-109-203.ngrok.io";
+String API_HOST = "https://ce01-169-231-9-80.ngrok.io";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names
@@ -70,7 +70,7 @@ Map<String, double> UNITS_CONVERSION = {
 // Quarter Information
 Quarter currentQuarter = fall22;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [winter23, fall22, summer22];
+List<Quarter> availableQuarters = [fall22, winter23];
 
 // Quarters
 
@@ -78,7 +78,9 @@ Quarter winter23 = Quarter.fromJson({
   "id": "20231",
   "name": "Winter 2023",
   "firstDayOfClasses": "2023-01-09 00:00:00.000",
-  "lastDayOfClasses": "2023-03-17 23:59:00.000"
+  "lastDayOfClasses": "2023-03-17 23:59:00.000",
+  "firstDayOfFinals": "2022-03-18 00:00:00.000",
+  "lastDayOfFinals": "2022-03-24 00:00:00.000",
 });
 
 // Current Quarter with full week information
@@ -87,6 +89,8 @@ Quarter fall22 = Quarter.fromJson({
   "name": "Fall 2022",
   "firstDayOfClasses": "2022-09-22 00:00:00.000",
   "lastDayOfClasses": "2022-12-02 23:59:00.000",
+  "firstDayOfFinals": "2022-12-03 00:00:00.000",
+  "lastDayOfFinals": "2022-12-09 00:00:00.000",
   "weeks": [
     "2022-09-18 00:00:00.000",
     "2022-09-25 00:00:00.000",

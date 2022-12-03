@@ -6,7 +6,6 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
@@ -47,30 +46,27 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   Future<void> getUserSchedule(String quarter) async {
     if (!offlineMode) {
-      if (userScheduleItems.isEmpty || DateTime.now().difference(lastScheduleFetch).inMinutes > 180) {
-        try {
-          await AuthService.getAuthToken();
-          await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-            if (jsonDecode(value.body)["data"].length == 0) {
-              log("No schedule items found in db for this quarter.", LogLevel.warn);
-              setState(() {
-                classesFound = false;
-              });
-            } else {
-              setState(() {
-                classesFound = true;
-                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
-              });
-              lastScheduleFetch = DateTime.now();
-              buildCalendar();
-            }
-          });
-        } catch(err) {
-          // TODO: Show error snackbar
-          log(err.toString(), LogLevel.error);
-        }
-      } else {
-        log("Using cached schedule, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 180 minutes)");
+      try {
+        await AuthService.getAuthToken();
+        await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          if (jsonDecode(value.body)["data"].length == 0) {
+            log("No schedule items found in db for this quarter.", LogLevel.warn);
+            setState(() {
+              classesFound = false;
+            });
+            clearCalendar();
+          } else {
+            setState(() {
+              classesFound = true;
+              userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+            });
+            lastScheduleFetch = DateTime.now();
+            buildCalendar();
+          }
+        });
+      } catch(err) {
+        // TODO: Show error snackbar
+        log(err.toString(), LogLevel.error);
       }
     } else {
       log("Offline mode, searching cache for schedule...");
@@ -129,36 +125,10 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     scrollToView();
   }
 
-  Future<void> populateCourseEvents(GoldCourse course, String sectionID) async {
-    for (var element in calendarController.events) {
-      if (element.title == course.courseID) {
-        calendarController.remove(element);
-      }
+  void clearCalendar() {
+    for (var event in calendarController.events) {
+      calendarController.remove(event);
     }
-    for (var section in course.sections) {
-      if (section.enrollCode == sectionID || section.instructors.first.role == "Teaching and in charge") {
-        for (var time in section.times) {
-          List<int> daysOfTheWeek = dayStringToInt(time.days);
-          for (int day in daysOfTheWeek) {
-            DateTime cursor = getNextWeekDay(day);
-            calendarController.add(CalendarEventData(
-              title: course.courseID,
-              description: "${time.building} ${time.room}",
-              date: cursor,
-              color: SB_COLORS[color],
-              startTime: cursor.add(Duration(hours: int.parse(time.beginTime.split(":")[0]), minutes: int.parse(time.beginTime.split(":")[1]))),
-              endTime: cursor.add(Duration(hours: int.parse(time.endTime.split(":")[0]), minutes: int.parse(time.endTime.split(":")[1]))),
-            ));
-          }
-        }
-      }
-    }
-    if (color == SB_COLORS.length - 1) {
-      color = 0;
-    } else {
-      color++;
-    }
-    if (mounted) setState(() {});
   }
 
   // Helper function to get a certain day of the current week
@@ -290,10 +260,30 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         width: MediaQuery.of(context).size.width,
-                        child: Text(
-                          "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}",
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                          textAlign: TextAlign.center,
+                        child: Row(
+                          children: [
+                            Text(
+                                selectedQuarter.getWeek(weekStart.add(const Duration(days: 1))) <= 10 ? "Week ${selectedQuarter.getWeek(weekStart.add(const Duration(days: 1)))}" : "Finals Week",
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              textAlign: TextAlign.center,
+                            ),
+                            DropdownButton<String>(
+                              value: selectedQuarter.id,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              underline: Container(),
+                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                return DropdownMenuItem<String>(
+                                  value: quarter.id,
+                                  child: Text(quarter.name),
+                                );
+                              }).toList(),
+                            ),
+                          ],
                         ),
                       ),
                     ),
