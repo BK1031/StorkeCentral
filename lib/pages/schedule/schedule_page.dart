@@ -215,10 +215,13 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                 ),
                               ),
                               const Icon(Icons.circle, color: Colors.white, size: 8,),
+                              const Padding(padding: EdgeInsets.all(8),),
                               Expanded(
                                 child: DropdownButton<String>(
                                   value: selectedQuarter.id,
                                   onChanged: (String? newValue) {
+                                    print("New quarter selected: $newValue");
+                                    print(selectedQuarter.getWeek(getNextWeekDay(1)));
                                     setState(() {
                                       selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
                                     });

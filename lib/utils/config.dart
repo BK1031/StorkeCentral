@@ -70,7 +70,7 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = fall22;
+Quarter currentQuarter = winter23;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [fall22, winter23];
 
@@ -81,8 +81,21 @@ Quarter winter23 = Quarter.fromJson({
   "name": "Winter 2023",
   "firstDayOfClasses": "2023-01-09 00:00:00.000",
   "lastDayOfClasses": "2023-03-17 23:59:00.000",
-  "firstDayOfFinals": "2022-03-18 00:00:00.000",
-  "lastDayOfFinals": "2022-03-24 00:00:00.000",
+  "firstDayOfFinals": "2023-03-18 00:00:00.000",
+  "lastDayOfFinals": "2023-03-24 00:00:00.000",
+  "weeks": [
+    "2023-01-05 00:00:00.000",
+    "2023-01-08 00:00:00.000",
+    "2023-01-15 00:00:00.000",
+    "2023-01-22 00:00:00.000",
+    "2023-01-29 00:00:00.000",
+    "2023-02-05 00:00:00.000",
+    "2023-02-12 00:00:00.000",
+    "2023-02-19 00:00:00.000",
+    "2023-02-26 00:00:00.000",
+    "2023-03-05 00:00:00.000",
+    "2023-03-12 00:00:00.000",
+  ]
 });
 
 // Current Quarter with full week information

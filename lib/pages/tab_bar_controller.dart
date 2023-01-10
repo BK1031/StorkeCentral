@@ -172,7 +172,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           log(err.toString(), LogLevel.error);
         }
       } else {
-        log("Using cached building list, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 1440 minutes)");
+        log("Using cached building list, last fetch was ${DateTime.now().difference(lastBuildingFetch).inMinutes} minutes ago (minimum 1440 minutes)");
       }
     } else {
       log("Offline mode, searching cache for buildings...");
