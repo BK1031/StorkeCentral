@@ -21,7 +21,6 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
 
   Map<String, String> status = {};
   Timer? timer;
-  bool criticalSystemsOnline = false;
 
   @override
   void initState() {
@@ -39,12 +38,19 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
     getServiceStatus("montecito");
     getServiceStatus("rincon");
     getServiceStatus("lacumbre");
+    getServiceStatus("gaviota");
+    getServiceStatus("tepusquet");
+    getServiceStatus("arguello");
   }
 
   Future<void> getServiceStatus(String service) async {
     if (mounted) {
-      setState(() {
-        status[service] = "LOADING";
+      status.forEach((key, value) {
+        if (value == "OFFLINE") {
+          setState(() {
+            status[service] = "LOADING";
+          });
+        }
       });
     }
     try {
@@ -55,20 +61,6 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
           status[service] = serviceStatus.statusCode == 200 ? "ONLINE" : "OFFLINE";
         });
       }
-      // Critical system check
-      if (status["montecito"] == "ONLINE" && status["rincon"] == "ONLINE" && status["lacumbre"] == "ONLINE") {
-        if (mounted) {
-          setState(() {
-            criticalSystemsOnline = true;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            criticalSystemsOnline = false;
-          });
-        }
-      }
     } catch (err) {
       log("$service: $err");
       if (mounted) {
@@ -77,6 +69,14 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
         });
       }
     }
+  }
+
+  bool allSystemsOnline() {
+    return status.values.every((element) => element == "ONLINE");
+  }
+
+  bool criticalSystemsOnline() {
+    return status["montecito"] == "ONLINE" && status["rincon"] == "ONLINE" && status["lacumbre"] == "ONLINE";
   }
 
   @override
@@ -111,7 +111,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("Critical Systems ${criticalSystemsOnline ? "Online" : "Offline"}!", style: TextStyle(color: criticalSystemsOnline ? SB_GREEN : SB_RED, fontSize: 22),),
+                  allSystemsOnline() ? Text("All Systems Online!", style: TextStyle(color: SB_GREEN, fontSize: 22),) : criticalSystemsOnline() ? Text("Critical Systems Online!", style: TextStyle(color: SB_GREEN, fontSize: 22),) : Text("Critical Systems Offline!", style: TextStyle(color: SB_RED, fontSize: 22),),
                   const Padding(padding: EdgeInsets.all(4),),
                   Column(
                     children: status.entries.map((s) => Row(
@@ -132,7 +132,7 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
                       const Text("This page will automatically refresh every 5 seconds"),
                       const Padding(padding: EdgeInsets.all(8),),
                       Visibility(
-                        visible: criticalSystemsOnline,
+                        visible: criticalSystemsOnline(),
                         child: SizedBox(
                           width: MediaQuery.of(context).size.width,
                           child: CupertinoButton.filled(
