@@ -5,6 +5,8 @@ import (
 	"gaviota/model"
 )
 
+import colly "github.com/gocolly/colly/v2"
+
 func GetAllArticles() []model.Article {
 	var articles []model.Article
 	result := DB.Find(&articles)
