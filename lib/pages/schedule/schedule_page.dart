@@ -285,6 +285,28 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                       dataSource: MeetingDataSource(calendarMeetings),
                       cellEndPadding: 0,
                       headerHeight: 0,
+                      appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: details.appointments.first.background.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            width: details.bounds.width,
+                            height: details.bounds.height,
+                            child: Column(
+                              children: [
+                                FittedBox(
+                                  fit: BoxFit.fitWidth,
+                                  child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
+                                ),
+                                FittedBox(
+                                    fit: BoxFit.fitWidth,
+                                    child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
+                                ),
+                              ],
+                            ),
+                          );
+                      }
                     ),
                   ),
                 ],
