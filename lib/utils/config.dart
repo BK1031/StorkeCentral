@@ -21,7 +21,7 @@ Version appVersion = Version("2.2.6+1");
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
-String API_HOST = "https://4994-169-231-9-220.ngrok.io";
+String API_HOST = "https://7c24-169-231-9-220.ngrok.io";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names

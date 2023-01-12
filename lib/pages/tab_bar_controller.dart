@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/login.dart';
 import 'package:storke_central/pages/home/home_page.dart';
@@ -141,10 +140,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (loginResponse.statusCode == 200) log("Sent login event: ${loginResponse.body}");
     else log("Login event silently failed");
 
-    OneSignal.shared.setExternalUserId(currentUser.id);
-    OneSignal.shared.setEmail(email: currentUser.email);
-    final oneSignal = await OneSignal.shared.getDeviceState();
-    currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
+    // OneSignal.shared.setExternalUserId(currentUser.id);
+    // OneSignal.shared.setEmail(email: currentUser.email);
+    // final oneSignal = await OneSignal.shared.getDeviceState();
+    // currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
     setUserStatus("ONLINE");
   }
 

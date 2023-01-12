@@ -2,7 +2,6 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_mapbox_navigation/library.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -151,34 +150,6 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
         target: LatLng(34.412278, -119.847787),
         zoom: 14.0,
     )));
-  }
-
-  void navigateToBuilding(Building building, MapBoxNavigationMode mode) {
-    MapBoxNavigation _directions = MapBoxNavigation(onRouteEvent: (event) {}, );
-    _directions.startNavigation(
-      wayPoints: [
-        WayPoint(
-          name: "Current Location",
-          latitude: currentPosition!.latitude,
-          longitude: currentPosition!.longitude,
-        ),
-        WayPoint(
-          name: building.name,
-          latitude: building.latitude,
-          longitude: building.longitude,
-        ),
-      ],
-      options: MapBoxOptions(
-          enableRefresh: false,
-          alternatives: true,
-          voiceInstructionsEnabled: true,
-          bannerInstructionsEnabled: true,
-          allowsUTurnAtWayPoints: true,
-          mode: mode,
-          simulateRoute: false,
-          animateBuildRoute: true,
-      )
-    );
   }
 
   @override
@@ -442,7 +413,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 padding: EdgeInsets.zero,
                                 color: SB_NAVY,
                                 onPressed: () {
-                                  navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
                                 },
                                 child: const Icon(Icons.directions_bike_rounded),
                               ),
@@ -453,7 +424,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 padding: EdgeInsets.zero,
                                 color: SB_NAVY,
                                 onPressed: () {
-                                  navigateToBuilding(selectedBuilding, MapBoxNavigationMode.walking);
+                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.walking);
                                 },
                                 child: const Icon(Icons.directions_walk_rounded),
                               ),
