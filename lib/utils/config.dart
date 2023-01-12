@@ -11,6 +11,7 @@ import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
+import 'package:storke_central/utils/syncfusion_meeting.dart';
 
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
@@ -20,7 +21,7 @@ Version appVersion = Version("2.2.6+1");
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
-String API_HOST = "https://5f04-169-231-109-203.ngrok.io";
+String API_HOST = "https://7c24-169-231-9-220.ngrok.io";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names
@@ -52,6 +53,7 @@ DateTime lastHeadlineArticleFetch = DateTime.now();
 List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
+List<Meeting> calendarMeetings = [];
 DateTime lastScheduleFetch = DateTime.now();
 
 List<Building> buildings = [];
@@ -68,11 +70,42 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = Quarter.fromJson({
+Quarter currentQuarter = winter23;
+Quarter selectedQuarter = currentQuarter;
+List<Quarter> availableQuarters = [fall22, winter23];
+
+// Quarters
+
+Quarter winter23 = Quarter.fromJson({
+  "id": "20231",
+  "name": "Winter 2023",
+  "firstDayOfClasses": "2023-01-09 00:00:00.000",
+  "lastDayOfClasses": "2023-03-17 23:59:00.000",
+  "firstDayOfFinals": "2023-03-18 00:00:00.000",
+  "lastDayOfFinals": "2023-03-24 00:00:00.000",
+  "weeks": [
+    "2023-01-05 00:00:00.000",
+    "2023-01-08 00:00:00.000",
+    "2023-01-15 00:00:00.000",
+    "2023-01-22 00:00:00.000",
+    "2023-01-29 00:00:00.000",
+    "2023-02-05 00:00:00.000",
+    "2023-02-12 00:00:00.000",
+    "2023-02-19 00:00:00.000",
+    "2023-02-26 00:00:00.000",
+    "2023-03-05 00:00:00.000",
+    "2023-03-12 00:00:00.000",
+  ]
+});
+
+// Current Quarter with full week information
+Quarter fall22 = Quarter.fromJson({
   "id": "20224",
   "name": "Fall 2022",
   "firstDayOfClasses": "2022-09-22 00:00:00.000",
   "lastDayOfClasses": "2022-12-02 23:59:00.000",
+  "firstDayOfFinals": "2022-12-03 00:00:00.000",
+  "lastDayOfFinals": "2022-12-09 00:00:00.000",
   "weeks": [
     "2022-09-18 00:00:00.000",
     "2022-09-25 00:00:00.000",
@@ -87,4 +120,28 @@ Quarter currentQuarter = Quarter.fromJson({
     "2022-11-27 00:00:00.000",
   ]
 });
-Quarter selectedQuarter = currentQuarter;
+
+Quarter summer22 = Quarter.fromJson({
+  "id": "20223",
+  "name": "Summer 2022",
+  "firstDayOfClasses": "2022-06-21 00:00:00.000",
+  "lastDayOfClasses": "2022-09-09 23:59:00.000"
+});
+Quarter spring22 = Quarter.fromJson({
+  "id": "20222",
+  "name": "Spring 2022",
+  "firstDayOfClasses": "2022-03-28 00:00:00.000",
+  "lastDayOfClasses": "2022-06-03 23:59:00.000"
+});
+Quarter winter22 = Quarter.fromJson({
+  "id": "20221",
+  "name": "Winter 2022",
+  "firstDayOfClasses": "2022-01-03 00:00:00.000",
+  "lastDayOfClasses": "2022-03-11 23:59:00.000"
+});
+Quarter fall21 = Quarter.fromJson({
+  "id": "20214",
+  "name": "Fall 2021",
+  "firstDayOfClasses": "2021-09-23 00:00:00.000",
+  "lastDayOfClasses": "2021-12-03 23:59:00.000"
+});

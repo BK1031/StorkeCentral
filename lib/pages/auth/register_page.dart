@@ -13,7 +13,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -205,16 +204,16 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> requestNotifications() async {
-    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
-      log("Accepted permission: $accepted");
-      if (mounted) {
-        setState(() {
-          registerUser.privacy.pushNotifications =
-              accepted ? "ENABLED" : "DISABLED";
-        });
-      }
-      if (!accepted) showNotificationsDisabledAlert();
-    });
+    // OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+    //   log("Accepted permission: $accepted");
+    //   if (mounted) {
+    //     setState(() {
+    //       registerUser.privacy.pushNotifications =
+    //           accepted ? "ENABLED" : "DISABLED";
+    //     });
+    //   }
+    //   if (!accepted) showNotificationsDisabledAlert();
+    // });
   }
 
   void showNotificationsDisabledAlert() {

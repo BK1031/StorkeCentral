@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
@@ -15,6 +14,7 @@ import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
 import 'package:storke_central/pages/profile/friends/friends_page.dart';
 import 'package:storke_central/pages/profile/profile_page.dart';
 import 'package:storke_central/pages/schedule/load_schedule_page.dart';
+import 'package:storke_central/pages/schedule/schedule_course_page.dart';
 import 'package:storke_central/pages/settings/settings_about_page.dart';
 import 'package:storke_central/pages/settings/settings_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
@@ -41,7 +41,7 @@ Future<void> main() async {
 
   // Remove this method to stop OneSignal Debugging
   // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
-  OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
+  // OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
   router.define("/", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
@@ -64,6 +64,9 @@ Future<void> main() async {
   router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoadSchedulePage();
   }));
+  router.define("/schedule/view/:courseID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return ScheduleCoursePage(courseID: params!["courseID"][0]);
+  }));
 
   router.define("/profile", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const ProfilePage();
@@ -84,6 +87,7 @@ Future<void> main() async {
   router.define("/settings/friends/add", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const AddFriendPage();
   }));
+
   router.define("/developer/logger", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoggerPage();
   }));

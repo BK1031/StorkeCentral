@@ -33,14 +33,14 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-  firebase_core: ^1.17.1
-  firebase_analytics: ^9.1.9
-  firebase_auth: ^3.3.19
-  cloud_firestore: ^3.1.17
-  firebase_storage: ^10.2.17
+  cupertino_icons: ^1.0.5
+  firebase_core: 2.4.1
+  firebase_analytics: 10.1.0
+  firebase_auth: 4.2.5
+  cloud_firestore: 4.3.1
+  firebase_storage: 11.0.10
   flutter_dotenv: ^5.0.2
-  fluro: ^2.0.3
+  fluro: 2.0.4
   intl: ^0.17.0
   curved_navigation_bar: ^1.0.3
   adaptive_theme: ^3.0.0
@@ -55,14 +55,12 @@ dependencies:
   cool_alert: ^1.1.0
   http: ^0.13.4
   geolocator: ^8.2.1
-  onesignal_flutter: ^3.3.1
   mask_text_input_formatter: ^2.3.0
   extended_image: ^6.2.1
   badges: ^2.0.3
   calendar_view: ^1.0.0
   syncfusion_flutter_calendar: ^20.2.50
-  mapbox_gl: ^0.16.0
-  flutter_mapbox_navigation: ^0.0.26
+  mapbox_gl: 0.16.0
   fuzzywuzzy: 0.1.6
 
 dev_dependencies:

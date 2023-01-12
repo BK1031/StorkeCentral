@@ -3,6 +3,8 @@ class Quarter {
   String name = "";
   DateTime firstDayOfClasses = DateTime.now();
   DateTime lastDayOfClasses = DateTime.now();
+  DateTime firstDayOfFinals = DateTime.now();
+  DateTime lastDayOfFinals = DateTime.now();
   List<DateTime> weeks = [];
 
   Quarter({required this.id}) {
@@ -14,8 +16,12 @@ class Quarter {
     name = json["name"] ?? "";
     firstDayOfClasses = DateTime.tryParse(json["firstDayOfClasses"]) ?? DateTime.now();
     lastDayOfClasses = DateTime.tryParse(json["lastDayOfClasses"]) ?? DateTime.now();
-    for (int i = 0; i < json["weeks"].length; i++) {
-      weeks.add(DateTime.parse(json["weeks"][i]));
+    firstDayOfFinals = DateTime.tryParse(json["firstDayOfFinals"]) ?? DateTime.now();
+    lastDayOfFinals = DateTime.tryParse(json["lastDayOfFinals"]) ?? DateTime.now();
+    if (json["weeks"] != null) {
+      for (int i = 0; i < json["weeks"].length; i++) {
+        weeks.add(DateTime.parse(json["weeks"][i]));
+      }
     }
   }
 
@@ -34,16 +40,21 @@ class Quarter {
     }
   }
 
+  // Helper function to return the week of the quarter given a date
+  // Returns -1 if the date is not in the quarter and 11 if it is in finals week
   int getWeek(DateTime date) {
     int week = -1;
-    for (int i = 0; i < weeks.length; i++) {
-      try {
-        if (date.isAfter(weeks[i]) && date.isBefore(weeks[i + 1])) {
+    if (date.isAfter(lastDayOfFinals)) {
+      week = -1;
+    }
+    else if (date.isAfter(firstDayOfFinals)) {
+      week = 11;
+    }
+    else {
+      for (int i = 0; i < weeks.length; i++) {
+        if (date.isAfter(weeks[i])) {
           week = i;
-          break;
         }
-      } catch(err) {
-        return 10;
       }
     }
     return week;

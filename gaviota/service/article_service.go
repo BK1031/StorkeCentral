@@ -3,8 +3,9 @@ package service
 import (
 	"crypto/rand"
 	"gaviota/model"
-	"github.com/gocolly/colly/v2"
 )
+
+import colly "github.com/gocolly/colly/v2"
 
 func GetAllArticles() []model.Article {
 	var articles []model.Article
@@ -63,6 +64,10 @@ func FetchLatestArticle() model.Article {
 	})
 	article.ID = GenerateArticleID(10)
 	c.Visit("https://dailynexus.com/")
+	if article.Title == GetLatestArticle().Title {
+		println("No new headlines, latest is still: \"" + article.Title + "\"")
+		return article
+	}
 	_ = CreateArticle(article)
 	return GetLatestArticle()
 }
