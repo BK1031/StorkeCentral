@@ -68,6 +68,10 @@ Future<void> main() async {
     return ScheduleCoursePage(courseID: params!["courseID"][0]);
   }));
 
+  router.define("/maps/buildings/:buildingID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return Placeholder();
+  }));
+
   router.define("/profile", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const ProfilePage();
   }));
