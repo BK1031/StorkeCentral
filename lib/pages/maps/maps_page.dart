@@ -2,7 +2,6 @@ import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -178,7 +177,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
-                    height: searchResults.isEmpty ? 45 : searchResults.length * 58 + 45,
+                    height: searchResults.isEmpty ? 45 : searchResults.length * 58 + 50,
                     padding: const EdgeInsets.only(left: 8, right: 8),
                     child: Column(
                       children: [
@@ -331,6 +330,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                 padding: const EdgeInsets.all(8),
                 child: Card(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       InkWell(
                         onTap: () {
@@ -426,9 +426,9 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 color: SB_NAVY,
                                 onPressed: () {
                                   // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
-                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}", transition: TransitionType.native);
+                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?navigate", transition: TransitionType.native);
                                 },
-                                child: const Icon(Icons.directions_bike_rounded),
+                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white,),
                               ),
                             ),
                             const Padding(padding: EdgeInsets.all(4)),
@@ -437,10 +437,10 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 padding: EdgeInsets.zero,
                                 color: SB_NAVY,
                                 onPressed: () {
-                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.walking);
-                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}", transition: TransitionType.native);
+                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?navigate", transition: TransitionType.native);
                                 },
-                                child: const Icon(Icons.directions_walk_rounded),
+                                child: const Icon(Icons.directions_bike_rounded, color: Colors.white,),
                               ),
                             ),
                           ],

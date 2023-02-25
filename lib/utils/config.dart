@@ -21,7 +21,7 @@ Version appVersion = Version("2.2.6+1");
 // ignore: non_constant_identifier_names
 // String API_HOST = "https://api.storkecentr.al";
 String API_HOST = "http://localhost:4001";
-// String API_HOST = "https://7c24-169-231-9-220.ngrok.io";
+// String API_HOST = "https://77c0-169-231-9-220.ngrok.io";
 // ignore: non_constant_identifier_names
 String SC_API_KEY = "sc-api-key";
 // ignore: non_constant_identifier_names
@@ -72,10 +72,33 @@ Map<String, double> UNITS_CONVERSION = {
 // Quarter Information
 Quarter currentQuarter = winter23;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [fall22, winter23];
+List<Quarter> availableQuarters = [fall22, winter23, spring23];
 
 // Quarters
 
+Quarter spring23 = Quarter.fromJson({
+  "id": "20232",
+  "name": "Spring 2023",
+  "firstDayOfClasses": "2023-04-03 00:00:00.000",
+  "lastDayOfClasses": "2023-06-09 23:59:00.000",
+  "firstDayOfFinals": "2023-06-10 00:00:00.000",
+  "lastDayOfFinals": "2023-06-16 00:00:00.000",
+  "weeks": [
+    "2023-04-01 00:00:00.000",
+    "2023-04-02 00:00:00.000",
+    "2023-04-09 00:00:00.000",
+    "2023-04-16 00:00:00.000",
+    "2023-04-23 00:00:00.000",
+    "2023-04-30 00:00:00.000",
+    "2023-05-07 00:00:00.000",
+    "2023-05-14 00:00:00.000",
+    "2023-05-21 00:00:00.000",
+    "2023-05-28 00:00:00.000",
+    "2023-06-04 00:00:00.000",
+  ]
+});
+
+// Current Quarter with full week information
 Quarter winter23 = Quarter.fromJson({
   "id": "20231",
   "name": "Winter 2023",
@@ -98,7 +121,6 @@ Quarter winter23 = Quarter.fromJson({
   ]
 });
 
-// Current Quarter with full week information
 Quarter fall22 = Quarter.fromJson({
   "id": "20224",
   "name": "Fall 2022",
