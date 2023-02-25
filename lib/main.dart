@@ -8,6 +8,7 @@ import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/developer/logger_page.dart';
+import 'package:storke_central/pages/maps/building_details_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
 import 'package:storke_central/pages/profile/edit_profile_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
@@ -69,7 +70,7 @@ Future<void> main() async {
   }));
 
   router.define("/maps/buildings/:buildingID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
-    return Placeholder();
+    return BuildingDetailsPage(buildingID: params!["buildingID"][0]);
   }));
 
   router.define("/profile", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {

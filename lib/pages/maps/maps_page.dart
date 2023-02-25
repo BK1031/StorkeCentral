@@ -1,7 +1,7 @@
 import 'package:extended_image/extended_image.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -177,7 +177,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
-                    height: searchResults.isEmpty ? 45 : searchResults.length * 58 + 45,
+                    height: searchResults.isEmpty ? 45 : searchResults.length * 58 + 50,
                     padding: const EdgeInsets.only(left: 8, right: 8),
                     child: Column(
                       children: [
@@ -330,65 +330,77 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                 padding: const EdgeInsets.all(8),
                 child: Card(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        child: Stack(
-                          children: [
-                            ExtendedImage.network(
-                              selectedBuilding.pictureURL,
-                              fit: BoxFit.cover,
-                              height: 125,
-                              width: double.infinity,
-                            ),
-                            Container(
-                              height: 125,
-                              decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                      begin: FractionalOffset.topCenter,
-                                      end: FractionalOffset.bottomCenter,
-                                      colors: [
-                                        // Colors.grey.withOpacity(1.0),
-                                        Colors.grey.withOpacity(0.0),
-                                        Colors.black,
-                                      ],
-                                      stops: const [0, 1]
-                                  )
+                      InkWell(
+                        onTap: () {
+                          router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}", transition: TransitionType.native);
+                        },
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.all(Radius.circular(8)),
+                          child: Stack(
+                            children: [
+                              Hero(
+                                tag: "${selectedBuilding.id}-image",
+                                child: ExtendedImage.network(
+                                  selectedBuilding.pictureURL,
+                                  fit: BoxFit.cover,
+                                  height: 125,
+                                  width: double.infinity,
+                                ),
                               ),
-                            ),
-                            Container(
-                              height: 125,
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.close, color: Colors.white,),
-                                        padding: EdgeInsets.zero,
-                                        onPressed: () {
-                                          cancelBuildingSelection();
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          selectedBuilding.name,
-                                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                              Container(
+                                height: 125,
+                                decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                        begin: FractionalOffset.topCenter,
+                                        end: FractionalOffset.bottomCenter,
+                                        colors: [
+                                          // Colors.grey.withOpacity(1.0),
+                                          Colors.grey.withOpacity(0.0),
+                                          Colors.black,
+                                        ],
+                                        stops: const [0, 1]
+                                    )
+                                ),
+                              ),
+                              Container(
+                                height: 125,
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.close, color: Colors.white,),
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            cancelBuildingSelection();
+                                          },
                                         )
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Expanded(
+                                          child: Hero(
+                                            tag: "${selectedBuilding.id}-title",
+                                            child: Text(
+                                              selectedBuilding.name,
+                                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                            ),
+                                          )
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       Expanded(
@@ -414,8 +426,9 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 color: SB_NAVY,
                                 onPressed: () {
                                   // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?navigate", transition: TransitionType.native);
                                 },
-                                child: const Icon(Icons.directions_bike_rounded),
+                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white,),
                               ),
                             ),
                             const Padding(padding: EdgeInsets.all(4)),
@@ -424,9 +437,10 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 padding: EdgeInsets.zero,
                                 color: SB_NAVY,
                                 onPressed: () {
-                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.walking);
+                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?navigate", transition: TransitionType.native);
                                 },
-                                child: const Icon(Icons.directions_walk_rounded),
+                                child: const Icon(Icons.directions_bike_rounded, color: Colors.white,),
                               ),
                             ),
                           ],
