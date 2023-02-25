@@ -28,7 +28,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   PageController _controller = PageController();
   int currPage = 0;
 
-  String navType = "cycling";
+  String navType = "walking";
   Map geometry = {};
   double duration = 0.0;
   double distance = 0.0;
@@ -113,8 +113,8 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
         Map<String, dynamic> responseJson = json.decode(response.body);
         setState(() {
           geometry = responseJson['routes'][0]['geometry'];
-          duration = responseJson['routes'][0]['duration'];
-          distance = responseJson['routes'][0]['distance'];
+          duration = double.parse(responseJson['routes'][0]['duration'].toString());
+          distance = double.parse(responseJson['routes'][0]['distance'].toString());
         });
       });
     } catch (e) {
@@ -127,7 +127,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng((currentPosition!.latitude + selectedBuilding.latitude) / 2, (currentPosition!.longitude + selectedBuilding.longitude) / 2),
-          zoom: Geolocator.distanceBetween(currentPosition!.latitude, currentPosition!.longitude, selectedBuilding.latitude, selectedBuilding.longitude) < 500 ? 16 : 14,
+          zoom: Geolocator.distanceBetween(currentPosition!.latitude, currentPosition!.longitude, selectedBuilding.latitude, selectedBuilding.longitude) < 500 ? 15.5 : 14,
         ),
       ),
     );
@@ -272,7 +272,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                                   });
                                                   generateRoute();
                                                 },
-                                                child: Icon(Icons.directions_bike_rounded, color: navType == "cycling" ? Colors.white : Colors.grey),
+                                                child: Icon(Icons.directions_bike_rounded, color: navType == "cycling" ? Colors.white : null),
                                               ),
                                             ),
                                             const Padding(padding: EdgeInsets.all(4)),
