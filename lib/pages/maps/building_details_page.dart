@@ -28,6 +28,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   PageController _controller = PageController();
   int currPage = 0;
 
+  String navType = "cycling";
   Map geometry = {};
   double duration = 0.0;
   double distance = 0.0;
@@ -67,7 +68,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   }
 
   void generateRoute() {
-    Future.delayed(const Duration(milliseconds: 200)).then((value) async {
+    Future.delayed(const Duration(milliseconds: 900)).then((value) async {
       mapController?.addSymbol(SymbolOptions(
         geometry: LatLng(selectedBuilding.latitude, selectedBuilding.longitude),
         iconImage: getBuildingTypeIcon(selectedBuilding.type),
@@ -86,9 +87,11 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
           },
         ],
       };
+      await mapController!.removeLayer("lines");
+      await mapController!.removeSource("fills");
       // Add new source and lineLayer
-      mapController?.addSource("fills", GeojsonSourceProperties(data: _fills));
-      mapController?.addLineLayer(
+      await mapController!.addSource("fills", GeojsonSourceProperties(data: _fills));
+      await mapController!.addLineLayer(
         "fills",
         "lines",
         LineLayerProperties(
@@ -104,7 +107,6 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
 
   Future<void> mapboxDirectionsRequest() async {
     String baseUrl = "https://api.mapbox.com/directions/v5/mapbox";
-    String navType = "cycling";
     String url = "$baseUrl/$navType/${currentPosition?.longitude},${currentPosition?.latitude};${selectedBuilding.longitude},${selectedBuilding.latitude}?alternatives=true&continue_straight=true&geometries=geojson&language=en&overview=full&steps=true&access_token=$MAPBOX_ACCESS_TOKEN";
     try {
       http.get(Uri.parse(url)).then((response) {
@@ -244,6 +246,36 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
+                                            SizedBox(
+                                              width: 45,
+                                              child: CupertinoButton(
+                                                padding: EdgeInsets.zero,
+                                                color: navType == "walking" ? SB_NAVY : null,
+                                                onPressed: () {
+                                                  setState(() {
+                                                    navType = "walking";
+                                                  });
+                                                  generateRoute();
+                                                },
+                                                child: Icon(Icons.directions_walk_rounded, color: navType == "walking" ? Colors.white : null),
+                                              ),
+                                            ),
+                                            const Padding(padding: EdgeInsets.all(4)),
+                                            SizedBox(
+                                              width: 45,
+                                              child: CupertinoButton(
+                                                padding: EdgeInsets.zero,
+                                                color: navType == "cycling" ? SB_NAVY : null,
+                                                onPressed: () {
+                                                  setState(() {
+                                                    navType = "cycling";
+                                                  });
+                                                  generateRoute();
+                                                },
+                                                child: Icon(Icons.directions_bike_rounded, color: navType == "cycling" ? Colors.white : Colors.grey),
+                                              ),
+                                            ),
+                                            const Padding(padding: EdgeInsets.all(4)),
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.center,
                                               mainAxisAlignment: MainAxisAlignment.center,
