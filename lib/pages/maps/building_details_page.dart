@@ -202,7 +202,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                           const Padding(padding: EdgeInsets.all(32),),
                           selectedBuilding.number != "0" ? Text("Building ${selectedBuilding.number}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)) : Container(),
                           const Padding(padding: EdgeInsets.all(8),),
-                          Text(selectedBuilding.description, style: const TextStyle(fontSize: 18)),
+                          Text(selectedBuilding.description, style: const TextStyle(fontSize: 16)),
                           const Padding(padding: EdgeInsets.all(8),),
                         ],
                       ),

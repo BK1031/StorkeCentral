@@ -126,7 +126,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
             children: [
               Text(scheduleItems.first.description.split("\n")[0], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const Padding(padding: EdgeInsets.all(4),),
-              Text(scheduleItems.first.description.split("\n")[1], style: const TextStyle()),
+              Text(scheduleItems.first.description.split("\n")[1], style: const TextStyle(fontSize: 16)),
               const Padding(padding: EdgeInsets.all(4),),
               SizedBox(
                 height: 250,
