@@ -6,7 +6,6 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:progress_indicators/progress_indicators.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/utils/auth_service.dart';
@@ -121,16 +120,7 @@ class _HomePageState extends State<HomePage> {
                                 fit: BoxFit.cover,
                                 height: 175,
                                 width: MediaQuery.of(context).size.width,
-                              ) : Center(
-                                child: HeartbeatProgressIndicator(
-                                  child: ExtendedImage.network(
-                                    "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
-                                    fit: BoxFit.cover,
-                                    height: 35,
-                                    width: 35,
-                                  )
-                                ),
-                              ),
+                              ) : Container(color: Colors.black.withOpacity(0.8)),
                               Container(
                                 color: Colors.black.withOpacity(0.4),
                                 padding: const EdgeInsets.all(8),

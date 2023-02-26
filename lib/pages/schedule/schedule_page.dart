@@ -33,6 +33,13 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   bool get wantKeepAlive => false;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getUserSchedule(selectedQuarter.id);
@@ -43,29 +50,42 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   @override
   void didPopNext() {
-    getUserSchedule(selectedQuarter.id);
+    if (DateTime.now().difference(lastScheduleFetch).inMinutes > 60) {
+      buildCalendar();
+      setState(() => classesFound = true);
+    }
   }
 
   Future<void> getUserSchedule(String quarter) async {
     if (!offlineMode) {
       try {
-        await AuthService.getAuthToken();
-        await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-          if (jsonDecode(value.body)["data"].length == 0) {
-            log("No schedule items found in db for this quarter.", LogLevel.warn);
-            setState(() {
-              classesFound = false;
-            });
-            clearCalendar();
-          } else {
-            setState(() {
-              classesFound = true;
-              userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
-            });
-            lastScheduleFetch = DateTime.now();
-            buildCalendar();
-          }
-        });
+        // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
+        log("${userScheduleItems.length} existing userScheduleItems");
+        if (userScheduleItems.isNotEmpty) log("Last Q: ${userScheduleItems.last.quarter}");
+        log("Selected Q: ${selectedQuarter.id}");
+
+        if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
+          await AuthService.getAuthToken();
+          await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            if (jsonDecode(value.body)["data"].length == 0) {
+              log("No schedule items found in db for this quarter.", LogLevel.warn);
+              setState(() {
+                classesFound = false;
+              });
+              clearCalendar();
+              userScheduleItems.clear();
+            } else {
+              setState(() {
+                classesFound = true;
+                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+              });
+              lastScheduleFetch = DateTime.now();
+              buildCalendar();
+            }
+          });
+        } else {
+          log("Schedule items already loaded for this quarter, skipping fetch.");
+        }
       } catch(err) {
         // TODO: Show error snackbar
         log(err.toString(), LogLevel.error);
@@ -75,7 +95,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     }
   }
 
-  // Big meaty function that actually creates the class events
+  // Function that actually creates the class events
   // TODO: Add finals to calendar
   void buildCalendar() {
     clearCalendar();
@@ -219,6 +239,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                     setState(() {
                                       selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
                                     });
+                                    getUserSchedule(selectedQuarter.id);
                                   },
                                   borderRadius: BorderRadius.circular(8),
                                   underline: Container(),
@@ -243,6 +264,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                 setState(() {
                                   selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
                                 });
+                                getUserSchedule(selectedQuarter.id);
                               },
                               borderRadius: BorderRadius.circular(8),
                               underline: Container(),
@@ -371,6 +393,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                 setState(() {
                                   selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
                                 });
+                                getUserSchedule(selectedQuarter.id);
                               },
                               borderRadius: BorderRadius.circular(8),
                               underline: Container(),
