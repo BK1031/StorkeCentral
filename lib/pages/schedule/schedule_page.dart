@@ -75,11 +75,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     }
   }
 
-  // Adds a placeholder 1 minute event to the calendar so we can scroll the
-  // main course times into view
-  void scrollToView() {
-  }
-
   // Big meaty function that actually creates the class events
   // TODO: Add finals to calendar
   void buildCalendar() {
@@ -103,7 +98,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
         color++;
       }
     }
-    scrollToView();
   }
 
   void clearCalendar() {
