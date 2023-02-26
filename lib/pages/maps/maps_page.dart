@@ -31,6 +31,13 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
   bool get wantKeepAlive => false;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     _searchFocus.addListener(_onSearchFocusChange);
@@ -388,9 +395,12 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                         Expanded(
                                           child: Hero(
                                             tag: "${selectedBuilding.id}-title",
-                                            child: Text(
-                                              selectedBuilding.name,
-                                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: Text(
+                                                selectedBuilding.name,
+                                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                              ),
                                             ),
                                           )
                                         ),

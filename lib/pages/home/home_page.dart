@@ -26,6 +26,13 @@ class _HomePageState extends State<HomePage> {
   Position? position;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getNewsHeadline();
