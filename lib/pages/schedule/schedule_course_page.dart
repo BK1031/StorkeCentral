@@ -27,6 +27,13 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
   _ScheduleCoursePageState(this.courseID);
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getScheduleItems();

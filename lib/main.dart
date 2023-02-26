@@ -28,6 +28,12 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+    return const Scaffold(
+        body: Center(
+            child: Text("Unexpected error. See log for details.")));
+  };
+
   await dotenv.load(fileName: ".env");
   SC_API_KEY = dotenv.env["SC_API_KEY"]!;
   UCSB_API_KEY = dotenv.env["UCSB_API_KEY"]!;

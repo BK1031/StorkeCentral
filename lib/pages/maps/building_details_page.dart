@@ -36,6 +36,13 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   _BuildingDetailsPageState(this.buildingID);
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getBuilding();
@@ -177,9 +184,12 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                   children: [
                     Hero(
                       tag: "${selectedBuilding.id}-title",
-                      child: Text(
-                        selectedBuilding.name,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          selectedBuilding.name,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
                       ),
                     ),
                   ],

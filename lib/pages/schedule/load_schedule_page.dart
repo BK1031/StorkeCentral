@@ -37,6 +37,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
 
   @override
   void initState() {
@@ -138,6 +144,19 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       setState(() {
         state = 0;
       });
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.error,
+        title: "Error",
+        text: "Error retrieving course info: ${err.toString()}",
+        backgroundColor: SB_NAVY,
+        confirmBtnColor: SB_RED,
+        confirmBtnText: "OK",
+        onConfirmBtnTap: () {
+          router.pop(context);
+          router.pop(context);
+        }
+      );
     }
   }
 
@@ -200,6 +219,19 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       setState(() {
         state = 0;
       });
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Error",
+          text: "Error saving schedule: ${err.toString()}",
+          backgroundColor: SB_NAVY,
+          confirmBtnColor: SB_RED,
+          confirmBtnText: "OK",
+          onConfirmBtnTap: () {
+            router.pop(context);
+            router.pop(context);
+          }
+      );
     }
   }
 
@@ -266,8 +298,6 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                                 border: InputBorder.none,
                                 hintText: "UCSB NetID",
                               ),
-                              textCapitalization: TextCapitalization.words,
-                              keyboardType: TextInputType.name,
                               style: const TextStyle(fontSize: 25),
                               onChanged: (input) {
                               },
@@ -285,7 +315,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                               textAlign: TextAlign.end,
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
-                                hintText: "password",
+                                hintText: "Password",
                               ),
                               obscureText: true,
                               style: const TextStyle(fontSize: 25),
