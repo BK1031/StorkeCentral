@@ -27,6 +27,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   int color = 0;
   bool classesFound = true;
+  bool loading = false;
   final CalendarController _controller = CalendarController();
 
   @override
@@ -65,18 +66,21 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
         log("Selected Q: ${selectedQuarter.id}");
 
         if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
+          setState(() => loading = true);
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(value.body)["data"].length == 0) {
               log("No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
+                loading = false;
               });
               clearCalendar();
               userScheduleItems.clear();
             } else {
               setState(() {
                 classesFound = true;
+                loading = false;
                 userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               lastScheduleFetch = DateTime.now();
@@ -89,6 +93,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       } catch(err) {
         // TODO: Show error snackbar
         log(err.toString(), LogLevel.error);
+        setState(() => classesFound = true);
       }
     } else {
       log("Offline mode, searching cache for schedule...");
@@ -98,6 +103,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   // Function that actually creates the class events
   // TODO: Add finals to calendar
   void buildCalendar() {
+    log("Building calendar...");
     clearCalendar();
     for (var item in userScheduleItems) {
       for (var day in dayStringToInt(item.days)) {
@@ -129,6 +135,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   // Helper function to get a certain day of the current week
   DateTime getNextWeekDay(int weekDay) {
     DateTime monday = DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1));
+    print(monday);
     return monday.add(Duration(days: weekDay - 1));
   }
 
@@ -416,6 +423,15 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                   ),
                 ),
               ),
+              Visibility(
+                visible: loading,
+                child: Center(
+                  child: RefreshProgressIndicator(
+                    backgroundColor: SB_NAVY,
+                    color: Colors.white,
+                  ),
+                ),
+              )
             ],
           )
       );
