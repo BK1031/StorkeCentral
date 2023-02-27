@@ -134,9 +134,10 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   // Helper function to get a certain day of the current week
   DateTime getNextWeekDay(int weekDay) {
-    DateTime monday = DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday - 1));
-    print(monday);
-    return monday.add(Duration(days: weekDay - 1));
+    DateTime sunday = DateTime.now().withoutTime;
+    if (DateTime.now().day != 7) sunday = DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday));
+    print(sunday);
+    return sunday.add(Duration(days: weekDay));
   }
 
   // Helper function to convert the days string that we get from GOLD to
