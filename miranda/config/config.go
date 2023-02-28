@@ -16,6 +16,9 @@ var DiscordToken = os.Getenv("DISCORD_TOKEN")
 var DiscordGuild = os.Getenv("DISCORD_GUILD")
 var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
 
+var OneSignalAppID = os.Getenv("ONESIGNAL_APP_ID")
+var OneSignalApiKey = os.Getenv("ONESIGNAL_API_KEY")
+
 var StatusEmail = os.Getenv("STATUS_EMAIL")
 
 var FirebaseServiceAccountEncoded = os.Getenv("FIREBASE_SERVICE_ACCOUNT")

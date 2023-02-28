@@ -24,6 +24,7 @@ func main() {
 	router = setupRouter()
 	service.InitializeDB()
 	service.InitializeFirebase()
+	service.InitializeOneSignal()
 	service.ConnectDiscord()
 	service.RegisterRincon()
 	controller.InitializeRoutes(router)

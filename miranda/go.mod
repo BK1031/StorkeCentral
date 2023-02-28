@@ -10,6 +10,7 @@ require (
 	cloud.google.com/go/storage v1.26.0 // indirect
 	firebase.google.com/go/v4 v4.10.0 // indirect
 	github.com/MicahParks/keyfunc v1.5.1 // indirect
+	github.com/OneSignal/onesignal-go-api v1.0.4 // indirect
 	github.com/bwmarrin/discordgo v0.27.0 // indirect
 	github.com/bytedance/sonic v1.8.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
@@ -45,7 +46,7 @@ require (
 	golang.org/x/arch v0.2.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 // indirect
+	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
