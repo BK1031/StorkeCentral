@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"miranda/config"
+	"miranda/model"
 	"os"
 	"time"
 
@@ -29,7 +30,7 @@ func InitializeDB() {
 		}
 	} else {
 		println("Connected to postgres database")
-		db.AutoMigrate()
+		db.AutoMigrate(&model.Notification{}, &model.NotificationData{})
 		println("AutoMigration complete")
 		DB = db
 	}

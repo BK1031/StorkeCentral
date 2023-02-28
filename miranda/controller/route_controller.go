@@ -11,6 +11,10 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/miranda/ping", Ping)
+	router.POST("/notifications", CreateNotification)
+	router.POST("/notifications/:notificationID", GetNotificationByID)
+	router.POST("/notifications/user/:userID", GetAllNotificationsForUser)
+	router.POST("/notifications/user/:userID/unread", GetAllUnreadNotificationsForUser)
 }
 
 func RequestLogger() gin.HandlerFunc {
