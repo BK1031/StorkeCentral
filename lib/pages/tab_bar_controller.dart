@@ -16,6 +16,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/login.dart';
+import 'package:storke_central/models/notification.dart' as sc;
 import 'package:storke_central/pages/home/home_page.dart';
 import 'package:storke_central/pages/maps/maps_page.dart';
 import 'package:storke_central/pages/profile/profile_page.dart';
@@ -89,6 +90,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void _registerOneSignalListeners() {
     OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
       log("OneSignal notification received: ${event.notification.notificationId}");
+      fetchNotifications().then((value) {
+        log("You now have ${notifications.where((element) => !element.read).length} unread notifications");
+      });
+      event.complete(event.notification);
     });
     OneSignal.shared.setNotificationOpenedHandler((result) {
       log("OneSignal notification opened: ${result.notification.notificationId}");
@@ -101,9 +106,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       await AuthService.getAuthToken();
       await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}/unread"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
-          buildings = jsonDecode(value.body)["data"].map<SCNotification>((json) => Building.fromJson(json)).toList();
+          notifications = jsonDecode(value.body)["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
         });
-        lastBuildingFetch = DateTime.now();
       });
     } catch(err) {
       // TODO: Show error snackbar

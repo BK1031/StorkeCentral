@@ -6,6 +6,7 @@ import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/models/notification.dart' as sc;
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
@@ -41,6 +42,8 @@ bool anonMode = false;
 User currentUser = User();
 List<Friend> friends = [];
 List<Friend> requests = [];
+
+List<sc.Notification> notifications = [];
 
 Position? currentPosition;
 
