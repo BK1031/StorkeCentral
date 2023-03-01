@@ -60,11 +60,12 @@ func CreateNotification(notification model.Notification) error {
 				osNotification.SetUrl(notification.LaunchURL)
 			}
 			osNotification.SetIncludePlayerIds([]string{GetPlayerIDForUser(notification.UserID)})
-			if notification.Priority == "HIGH" {
-				osNotification.SetApnsPushTypeOverride("time_sensitive")
-			} else {
-				osNotification.SetApnsPushTypeOverride("active")
-			}
+			//if notification.Priority == "HIGH" {
+			//	osNotification.SetPriority(10)
+			//	osNotification.Set
+			//} else {
+			//	osNotification.SetPriority(5)
+			//}
 			CreateOSNotification(&osNotification)
 		}
 	} else {

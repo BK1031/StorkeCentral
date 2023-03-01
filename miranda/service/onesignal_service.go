@@ -17,9 +17,9 @@ func InitializeOneSignal() {
 }
 
 func CreateOSNotification(notification *onesignal.Notification) {
+	notification.SetPriority(10)
 	notification.SetIosBadgeCount(1)
 	notification.SetIosBadgeType("Increase")
-	notification.SetPriority(10)
 	appAuth := context.WithValue(context.Background(), onesignal.AppAuth, config.OneSignalApiKey)
 
 	resp, r, err := OneSignal.DefaultApi.CreateNotification(appAuth).Notification(*notification).Execute()
