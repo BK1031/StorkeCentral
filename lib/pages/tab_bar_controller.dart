@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/login.dart';
 import 'package:storke_central/pages/home/home_page.dart';
@@ -39,10 +40,18 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   StreamSubscription<Position>? _positionStream;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _determinePosition();
+    _registerOneSignalListeners();
     firebaseAnalytics();
     fetchBuildings();
     if (!anonMode && !offlineMode) sendLoginEvent();
@@ -75,6 +84,55 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         currentPosition = position;
       });
     }
+  }
+
+  void _registerOneSignalListeners() {
+    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
+      log("OneSignal notification received: ${event.notification.notificationId}");
+    });
+    OneSignal.shared.setNotificationOpenedHandler((result) {
+      log("OneSignal notification opened: ${result.notification.notificationId}");
+      // TODO: navigate to notification page
+    });
+  }
+
+  Future<void> fetchNotifications() async {
+    try {
+      await AuthService.getAuthToken();
+      await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}/unread"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        setState(() {
+          buildings = jsonDecode(value.body)["data"].map<SCNotification>((json) => Building.fromJson(json)).toList();
+        });
+        lastBuildingFetch = DateTime.now();
+      });
+    } catch(err) {
+      // TODO: Show error snackbar
+      log(err.toString(), LogLevel.error);
+    }
+  }
+
+  Future<void> requestNotifications() async {
+    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+      log("Accepted permission: $accepted");
+      if (mounted) {
+        setState(() {
+          currentUser.privacy.pushNotifications =
+          accepted ? "ENABLED" : "DISABLED";
+        });
+      }
+      if (!accepted) showNotificationsDisabledAlert();
+    });
+  }
+
+  void showNotificationsDisabledAlert() {
+    CoolAlert.show(
+        context: context,
+        type: CoolAlertType.error,
+        title: "Permission Error",
+        widget: const Text("Please enable push notifications under StorkeCentral in the Settings app."),
+        confirmBtnColor: SB_RED,
+        confirmBtnText: "OK"
+    );
   }
 
   Future<void> firebaseAnalytics() async {
@@ -115,6 +173,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     } else {
       LocationPermission permission = await Geolocator.requestPermission();
       if (Random().nextBool()) {
+        // ignore: use_build_context_synchronously
         CoolAlert.show(
           context: context,
           type: CoolAlertType.warning,
@@ -140,10 +199,14 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (loginResponse.statusCode == 200) log("Sent login event: ${loginResponse.body}");
     else log("Login event silently failed");
 
-    // OneSignal.shared.setExternalUserId(currentUser.id);
-    // OneSignal.shared.setEmail(email: currentUser.email);
-    // final oneSignal = await OneSignal.shared.getDeviceState();
-    // currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
+    requestNotifications();
+    OneSignal.shared.setExternalUserId(currentUser.id);
+    OneSignal.shared.setEmail(email: currentUser.email);
+    if (currentUser.phoneNumber != "") OneSignal.shared.setSMSNumber(smsNumber: currentUser.phoneNumber);
+    final oneSignal = await OneSignal.shared.getDeviceState();
+    currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
+    currentUser.privacy.pushNotifications = oneSignal!.hasNotificationPermission ? "ENABLED" : "DISABLED";
+
     setUserStatus("ONLINE");
   }
 

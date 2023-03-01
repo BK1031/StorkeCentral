@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
@@ -48,7 +49,7 @@ Future<void> main() async {
 
   // Remove this method to stop OneSignal Debugging
   // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
-  // OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
+  OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
   router.define("/", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
