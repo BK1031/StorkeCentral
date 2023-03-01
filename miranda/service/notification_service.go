@@ -1,6 +1,11 @@
 package service
 
-import "miranda/model"
+import (
+	"miranda/config"
+	"miranda/model"
+
+	onesignal "github.com/OneSignal/onesignal-go-api"
+)
 
 func GetAllNotificationsForUser(userID string) []model.Notification {
 	var notifications []model.Notification
@@ -39,6 +44,23 @@ func CreateNotification(notification model.Notification) error {
 		if result := DB.Create(&notification); result.Error != nil {
 			return result.Error
 		}
+		// Create and send OneSignal notification if new notification is created
+		osNotification := onesignal.Notification{}
+		osNotification.SetAppId(config.OneSignalAppID)
+		osNotification.SetHeadings(onesignal.StringMap{En: &notification.Title})
+		osNotification.SetContents(onesignal.StringMap{En: &notification.Body})
+		// Transfer data from notification to osNotification
+		data := make(map[string]interface{})
+		for _, d := range notification.Data {
+			data[d.Key] = d.Value
+		}
+		osNotification.SetData(data)
+		// Transfer urls that are included
+		if notification.LaunchURL != "" {
+			osNotification.SetUrl(notification.LaunchURL)
+		}
+		osNotification.SetIncludePlayerIds([]string{GetPlayerIDForUser(notification.UserID)})
+		CreateOSNotification(&osNotification)
 	} else {
 		println("Notification with id: " + notification.ID + " has been updated!")
 	}
@@ -51,4 +73,12 @@ func CreateNotification(notification model.Notification) error {
 		println("Notification with id: " + notification.ID + " has empty data, nothing to do here!")
 	}
 	return nil
+}
+
+func GetPlayerIDForUser(userID string) string {
+	var playerID string
+	result := DB.Table("user_privacy").Where("user_id = ?", userID).Select("push_notification_token").Row().Scan(&playerID)
+	if result != nil {
+	}
+	return playerID
 }

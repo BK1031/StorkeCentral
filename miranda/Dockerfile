@@ -1,4 +1,4 @@
-FROM golang:1.17.7-alpine3.15 as builder
+FROM golang:1.19-alpine3.17 as builder
 
 ENV GOOS=linux
 
@@ -19,7 +19,7 @@ RUN go build -o /miranda
 ##
 ## Deploy
 ##
-FROM alpine:3.15
+FROM alpine:3.17
 
 WORKDIR /
 

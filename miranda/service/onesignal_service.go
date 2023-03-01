@@ -25,6 +25,5 @@ func CreateOSNotification(notification *onesignal.Notification) {
 		fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.CreateNotification``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `CreateNotification`: CreateNotificationSuccessResponse
 	fmt.Fprintf(os.Stdout, "Response from `DefaultApi.CreateNotification`: %v\n", resp)
 }
