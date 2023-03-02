@@ -265,7 +265,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
               child: Icon(notifications.where((element) => !element.read).isEmpty ? Icons.notifications_none_outlined : Icons.notifications_active)
             ),
             onPressed: () {
-              router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
+              router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal).then((value) => setState(() {}));
             },
           )
         ],

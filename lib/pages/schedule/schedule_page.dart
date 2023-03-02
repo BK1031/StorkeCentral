@@ -83,7 +83,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                 loading = false;
                 userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
-              lastScheduleFetch = DateTime.now();
               buildCalendar();
             }
           });
@@ -104,6 +103,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   // TODO: Add finals to calendar
   void buildCalendar() {
     log("Building calendar...");
+    lastScheduleFetch = DateTime.now();
     clearCalendar();
     for (var item in userScheduleItems) {
       for (var day in dayStringToInt(item.days)) {

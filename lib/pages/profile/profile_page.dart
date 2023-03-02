@@ -18,6 +18,13 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> with RouteAware {
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
@@ -70,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             Container(
-              padding: EdgeInsets.only(left: 8, top: 8, right: 8),
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
               child: Row(
                 children: [
                   Expanded(
@@ -78,9 +85,9 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       padding: EdgeInsets.zero,
                       color: Theme.of(context).cardColor,
                       onPressed: () {
-                        router.navigateTo(context, "/profile/edit", transition: TransitionType.native);
+                        router.navigateTo(context, "/profile/edit", transition: TransitionType.nativeModal).then((value) => setState(() {}));
                       },
-                      child: Text("Edit Profile", style: TextStyle(color: Theme.of(context).textTheme.button!.color)),
+                      child: Text("Edit Profile", style: TextStyle(color: Theme.of(context).textTheme.labelLarge!.color)),
                     ),
                   ),
                   const Padding(padding: EdgeInsets.all(4)),
@@ -91,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       onPressed: () {
                         router.navigateTo(context, "/settings", transition: TransitionType.native);
                       },
-                      child: Text("Settings", style: TextStyle(color: Theme.of(context).textTheme.button!.color),),
+                      child: Text("Settings", style: TextStyle(color: Theme.of(context).textTheme.labelLarge!.color),),
                     ),
                   )
                 ],
@@ -120,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
-                        router.navigateTo(context, "/settings/friends/add", transition: TransitionType.native);
+                        router.navigateTo(context, "/profile/friends/add", transition: TransitionType.native);
                       },
                     ),
                     ListTile(
@@ -142,7 +149,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
-                        router.navigateTo(context, "/settings/friends", transition: TransitionType.native);
+                        router.navigateTo(context, "/profile/friends", transition: TransitionType.native);
                       },
                     ),
                   ],

@@ -6,6 +6,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/utils/auth_service.dart';
@@ -141,11 +142,14 @@ class _HomePageState extends State<HomePage> {
                                           "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
                                           height: 35,
                                         ),
-                                        Padding(padding: EdgeInsets.all(4)),
-                                        Text(headlineArticle.date, style: const TextStyle(color: Colors.white, fontSize: 17)),
+                                        const Padding(padding: EdgeInsets.all(4)),
+                                        Text(
+                                          "NEWS | ${DateFormat("MMMM d, yyyy").format(DateTime.now())}",
+                                          style: const TextStyle(color: Colors.white, fontSize: 17)
+                                        ),
                                       ],
                                     ),
-                                    Text(headlineArticle.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
+                                    Text(utf8.decode(headlineArticle.title.codeUnits), style: const TextStyle(color: Colors.white, fontSize: 20)),
                                   ],
                                 ),
                               ),
