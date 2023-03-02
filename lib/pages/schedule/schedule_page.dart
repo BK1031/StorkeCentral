@@ -136,7 +136,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   DateTime getNextWeekDay(int weekDay) {
     DateTime sunday = DateTime.now().withoutTime;
     if (DateTime.now().day != 7) sunday = DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday));
-    print(sunday);
     return sunday.add(Duration(days: weekDay));
   }
 
@@ -242,8 +241,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                 child: DropdownButton<String>(
                                   value: selectedQuarter.id,
                                   onChanged: (String? newValue) {
-                                    print("New quarter selected: $newValue");
-                                    print(selectedQuarter.getWeek(getNextWeekDay(1)));
                                     setState(() {
                                       selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
                                     });

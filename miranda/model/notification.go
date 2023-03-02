@@ -11,6 +11,8 @@ type Notification struct {
 	PictureURL string             `json:"picture_url"`
 	LaunchURL  string             `json:"launch_url"`
 	Route      string             `json:"route"`
+	Priority   string             `json:"priority"`
+	Push       bool               `json:"push"`
 	Read       bool               `json:"read"`
 	Data       []NotificationData `gorm:"-" json:"data"`
 	CreatedAt  time.Time          `gorm:"autoCreateTime" json:"created_at"`

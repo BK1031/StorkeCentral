@@ -1,10 +1,9 @@
 package service
 
 import (
+	onesignal "github.com/OneSignal/onesignal-go-api"
 	"miranda/config"
 	"miranda/model"
-
-	onesignal "github.com/OneSignal/onesignal-go-api"
 )
 
 func GetAllNotificationsForUser(userID string) []model.Notification {
@@ -45,22 +44,30 @@ func CreateNotification(notification model.Notification) error {
 			return result.Error
 		}
 		// Create and send OneSignal notification if new notification is created
-		osNotification := onesignal.Notification{}
-		osNotification.SetAppId(config.OneSignalAppID)
-		osNotification.SetHeadings(onesignal.StringMap{En: &notification.Title})
-		osNotification.SetContents(onesignal.StringMap{En: &notification.Body})
-		// Transfer data from notification to osNotification
-		data := make(map[string]interface{})
-		for _, d := range notification.Data {
-			data[d.Key] = d.Value
+		if notification.Push {
+			osNotification := onesignal.Notification{}
+			osNotification.SetAppId(config.OneSignalAppID)
+			osNotification.SetHeadings(onesignal.StringMap{En: &notification.Title})
+			osNotification.SetContents(onesignal.StringMap{En: &notification.Body})
+			// Transfer data from notification to osNotification
+			data := make(map[string]interface{})
+			for _, d := range notification.Data {
+				data[d.Key] = d.Value
+			}
+			osNotification.SetData(data)
+			// Transfer urls that are included
+			if notification.LaunchURL != "" {
+				osNotification.SetUrl(notification.LaunchURL)
+			}
+			osNotification.SetIncludePlayerIds([]string{GetPlayerIDForUser(notification.UserID)})
+			//if notification.Priority == "HIGH" {
+			//	osNotification.SetPriority(10)
+			//	osNotification.Set
+			//} else {
+			//	osNotification.SetPriority(5)
+			//}
+			CreateOSNotification(&osNotification)
 		}
-		osNotification.SetData(data)
-		// Transfer urls that are included
-		if notification.LaunchURL != "" {
-			osNotification.SetUrl(notification.LaunchURL)
-		}
-		osNotification.SetIncludePlayerIds([]string{GetPlayerIDForUser(notification.UserID)})
-		CreateOSNotification(&osNotification)
 	} else {
 		println("Notification with id: " + notification.ID + " has been updated!")
 	}
