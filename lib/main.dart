@@ -10,6 +10,7 @@ import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/developer/logger_page.dart';
 import 'package:storke_central/pages/maps/building_details_page.dart';
+import 'package:storke_central/pages/notification_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
 import 'package:storke_central/pages/profile/edit_profile_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
@@ -48,7 +49,7 @@ Future<void> main() async {
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   // Remove this method to stop OneSignal Debugging
-  OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
+  // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
   OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
@@ -68,6 +69,9 @@ Future<void> main() async {
   router.define("/home", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const TabBarController();
   }));
+  router.define("/notifications", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const NotificationPage();
+  }));
 
   router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoadSchedulePage();
@@ -86,18 +90,18 @@ Future<void> main() async {
   router.define("/profile/edit", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const EditProfilePage();
   }));
+  router.define("/profile/friends", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const FriendsPage();
+  }));
+  router.define("/profile/friends/add", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const AddFriendPage();
+  }));
 
   router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const SettingsPage();
   }));
   router.define("/settings/about", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const SettingsAboutPage();
-  }));
-  router.define("/settings/friends", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
-    return const FriendsPage();
-  }));
-  router.define("/settings/friends/add", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
-    return const AddFriendPage();
   }));
 
   router.define("/developer/logger", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {

@@ -8,6 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -55,6 +56,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     _registerOneSignalListeners();
     firebaseAnalytics();
     fetchBuildings();
+    fetchNotifications();
     if (!anonMode && !offlineMode) sendLoginEvent();
   }
 
@@ -97,16 +99,17 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     });
     OneSignal.shared.setNotificationOpenedHandler((result) {
       log("OneSignal notification opened: ${result.notification.notificationId}");
-      // TODO: navigate to notification page
+      router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
     });
   }
 
   Future<void> fetchNotifications() async {
     try {
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}/unread"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
           notifications = jsonDecode(value.body)["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
+          notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         });
       });
     } catch(err) {
@@ -254,6 +257,18 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           pageTitles[_currPage],
           style: const TextStyle(fontWeight: FontWeight.bold)
         ),
+        actions: [
+          IconButton(
+            icon: Badge(
+              isLabelVisible: notifications.where((element) => !element.read).isNotEmpty,
+              label: Text(notifications.where((element) => !element.read).length.toString(), style: const TextStyle(color: Colors.white)),
+              child: Icon(notifications.where((element) => !element.read).isEmpty ? Icons.notifications_none_outlined : Icons.notifications_active)
+            ),
+            onPressed: () {
+              router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
+            },
+          )
+        ],
       ),
       bottomNavigationBar: CurvedNavigationBar(
         animationDuration: const Duration(milliseconds: 200),

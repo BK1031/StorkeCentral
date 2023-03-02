@@ -39,14 +39,15 @@ dependencies:
   firebase_auth: 4.2.5
   cloud_firestore: 4.3.1
   firebase_storage: 11.0.10
-  flutter_dotenv: ^5.0.2
-  fluro: 2.0.4
+  flutter_dotenv: 5.0.2
+  fluro: 2.0.5
   onesignal_flutter: ^3.5.0
-  intl: ^0.17.0
+  intl: 0.17.0
   curved_navigation_bar: ^1.0.3
   adaptive_theme: ^3.0.0
   shared_preferences: ^2.0.15
   percent_indicator: ^4.2.2
+  timeago: 3.3.0
   progress_indicators: ^1.0.0
   connectivity_plus: ^2.1.0
   localstorage: ^4.0.0+1
