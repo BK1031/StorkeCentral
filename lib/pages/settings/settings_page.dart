@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:fluro/fluro.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
+import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -21,11 +21,9 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
-  void setNotificationPreference(String value) {
-    currentUser.privacy.pushNotifications = value;
-    AuthService.getAuthToken().then((_) {
-      http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
-    });
+  Future<void> savePreferences() async {
+    await AuthService.getAuthToken();
+    await http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser)).then((value) => setState(() {}));
   }
 
   Future<void> setUnitsPreference(String value) async {
@@ -135,7 +133,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       activeColor: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : SB_LT_BLUE,
                       value: currentUser.privacy.pushNotifications == "ENABLED",
                       onChanged: (val) {
-                        setNotificationPreference(val ? "ENABLED" : "DISABLED");
+                        currentUser.privacy.pushNotifications = val ? "ENABLED" : "DISABLED";
+                        savePreferences();
                         setState(() {});
                       },
                     ),
@@ -153,6 +152,95 @@ class _SettingsPageState extends State<SettingsPage> {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value == "M" ? "Meters" : "Feet"),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                      child: Text(
+                        "Privacy",
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Pronouns Visibility"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.pronouns,
+                        onChanged: (String? newValue) {
+                          currentUser.privacy.pronouns = newValue!;
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["PUBLIC", "FRIENDS", "PRIVATE"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value.capitalize()),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Email Visibility"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.email,
+                        onChanged: (String? newValue) {
+                          currentUser.privacy.email = newValue!;
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["PUBLIC", "FRIENDS", "PRIVATE"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value.capitalize()),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Phone Number Visibility"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.phoneNumber,
+                        onChanged: (String? newValue) {
+                          currentUser.privacy.phoneNumber = newValue!;
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["PUBLIC", "FRIENDS", "PRIVATE"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value.capitalize()),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Status Visibility"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.status,
+                        onChanged: (String? newValue) {
+                          currentUser.privacy.status = newValue!;
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["PUBLIC", "FRIENDS", "PRIVATE"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value.capitalize()),
                           );
                         }).toList(),
                       ),
