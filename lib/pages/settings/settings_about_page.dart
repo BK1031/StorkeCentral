@@ -191,7 +191,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       onTap: () {},
                     ),
                     ListTile(
-                      title: const Text("Joshua \"curious george\" Thomas"),
+                      title: const Text("Jake Schultz"),
                       onTap: () {},
                     ),
                   ],

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:badges/badges.dart' as badges;
 import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -26,6 +27,7 @@ class _FriendsPageState extends State<FriendsPage> {
   int currPage = 0;
   PageController pageController = PageController();
 
+  List<String> loadingList = [];
   bool refreshing = false;
 
   @override
@@ -51,7 +53,7 @@ class _FriendsPageState extends State<FriendsPage> {
       }
       setState(() {
         friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
-        requests.sort((a, b) => a.status.compareTo(b.status));
+        requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
       log(response.body, LogLevel.error);
@@ -74,13 +76,22 @@ class _FriendsPageState extends State<FriendsPage> {
     return user;
   }
 
-  Future<void> acceptFriend(Friend friend) async {
+  Future<void> acceptFriend(User user) async {
+    Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
+    setState(() {
+      loadingList.add(friend.id);
+    });
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Sent friend request");
+      log("Friend request accepted!");
+      setState(() {
+        requests.removeWhere((element) => element.id == friend.id);
+        friends.add(friend);
+      });
       updateUserFriendsList();
+      // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,
           type: CoolAlertType.success,
@@ -92,6 +103,7 @@ class _FriendsPageState extends State<FriendsPage> {
       );
     } else {
       log(response.body, LogLevel.error);
+      // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,
           type: CoolAlertType.error,
@@ -102,6 +114,9 @@ class _FriendsPageState extends State<FriendsPage> {
           confirmBtnText: "OK"
       );
     }
+    setState(() {
+      loadingList.remove(friend.id);
+    });
   }
 
   @override
@@ -177,10 +192,10 @@ class _FriendsPageState extends State<FriendsPage> {
                           Icon(
                             CupertinoIcons.person_crop_circle_badge_xmark,
                             size: 100,
-                            color: Theme.of(context).textTheme.caption!.color,
+                            color: Theme.of(context).textTheme.bodySmall!.color,
                           ),
                           const Padding(padding: EdgeInsets.all(4)),
-                          const Text("No friends 😹", style: TextStyle(fontSize: 16),),
+                          const Text("No friends 😔", style: TextStyle(fontSize: 16),),
                         ],
                       ),
                     ),
@@ -190,39 +205,45 @@ class _FriendsPageState extends State<FriendsPage> {
                     itemCount: friends.length,
                     itemBuilder: (context, index) {
                       return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                child: ExtendedImage.network(
-                                  friends[index].user.profilePictureURL,
-                                  height: 60,
-                                  width: 60,
-                                  fit: BoxFit.cover,
-                                  borderRadius: BorderRadius.all(Radius.circular(125)),
-                                  shape: BoxShape.rectangle,
+                        child: InkWell(
+                          onTap: () {
+                            router.navigateTo(context, "/profile/user/${friends[index].user.id}", transition: TransitionType.native);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  child: ExtendedImage.network(
+                                    friends[index].user.profilePictureURL,
+                                    height: 60,
+                                    width: 60,
+                                    fit: BoxFit.cover,
+                                    borderRadius: BorderRadius.all(Radius.circular(125)),
+                                    shape: BoxShape.rectangle,
+                                  ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${friends[index].user.firstName} ${friends[index].user.lastName}",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                    Text(
-                                      "@${friends[index].user.userName}",
-                                      style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
-                                    )
-                                  ],
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${friends[index].user.firstName} ${friends[index].user.lastName}",
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                                      Text(
+                                        "@${friends[index].user.userName}",
+                                        style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                      )
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -239,7 +260,7 @@ class _FriendsPageState extends State<FriendsPage> {
                           Icon(
                             CupertinoIcons.person_crop_circle_badge_xmark,
                             size: 100,
-                            color: Theme.of(context).textTheme.caption!.color,
+                            color: Theme.of(context).textTheme.bodySmall!.color,
                           ),
                           const Padding(padding: EdgeInsets.all(4)),
                           const Text("No friend requests"),
@@ -252,71 +273,87 @@ class _FriendsPageState extends State<FriendsPage> {
                     itemCount: requests.length,
                     itemBuilder: (context, index) {
                       return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                child: ExtendedImage.network(
-                                  requests[index].user.profilePictureURL,
-                                  height: 60,
-                                  width: 60,
-                                  fit: BoxFit.cover,
-                                  borderRadius: BorderRadius.all(Radius.circular(125)),
-                                  shape: BoxShape.rectangle,
-                                ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${requests[index].user.firstName} ${requests[index].user.lastName}",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                    Text(
-                                      "@${requests[index].user.userName}",
-                                      style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Visibility(
-                                visible: requests[index].fromUserID != currentUser.id,
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                  color: SB_NAVY,
-                                  child: Row(
-                                    children: const [
-                                      Icon(Icons.person_add, color: Colors.white),
-                                      Padding(padding: EdgeInsets.all(4)),
-                                      Text("Accept", style: TextStyle(color: Colors.white),),
-                                    ],
+                        child: InkWell(
+                          onTap: () {
+                            router.navigateTo(context, "/profile/user/${requests[index].user.id}", transition: TransitionType.native);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  child: ExtendedImage.network(
+                                    requests[index].user.profilePictureURL,
+                                    height: 60,
+                                    width: 60,
+                                    fit: BoxFit.cover,
+                                    borderRadius: BorderRadius.all(Radius.circular(125)),
+                                    shape: BoxShape.rectangle,
                                   ),
-                                  onPressed: () {
-                                    acceptFriend(requests[index]);
-                                  },
                                 ),
-                              ),
-                              Visibility(
-                                visible: requests[index].fromUserID == currentUser.id,
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                  color: Theme.of(context).backgroundColor,
-                                  child: Row(
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
-                                      const Padding(padding: EdgeInsets.all(2)),
-                                      Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color),),
+                                      Text(
+                                        "${requests[index].user.firstName} ${requests[index].user.lastName}",
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                                      Text(
+                                        "@${requests[index].user.userName}",
+                                        style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                                      )
                                     ],
                                   ),
-                                  onPressed: () {},
                                 ),
-                              )
-                            ],
+                                Visibility(
+                                  visible: loadingList.contains(requests[index].id),
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Center(child: RefreshProgressIndicator(
+                                        color: Colors.white,
+                                        backgroundColor: SB_NAVY
+                                      ))
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: requests[index].fromUserID != currentUser.id && !loadingList.contains(requests[index].id),
+                                  child: CupertinoButton(
+                                    padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                    color: SB_NAVY,
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.person_add, color: Colors.white),
+                                        Padding(padding: EdgeInsets.all(4)),
+                                        Text("Accept", style: TextStyle(color: Colors.white),),
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      acceptFriend(requests[index].user);
+                                    },
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: requests[index].fromUserID == currentUser.id,
+                                  child: CupertinoButton(
+                                    padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                    color: Theme.of(context).colorScheme.background,
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                        const Padding(padding: EdgeInsets.all(2)),
+                                        Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
+                                      ],
+                                    ),
+                                    onPressed: () {},
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       );

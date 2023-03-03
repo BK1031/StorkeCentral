@@ -1,5 +1,4 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:badges/badges.dart' as badges;
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
@@ -16,6 +15,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> with RouteAware {
+
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
 
   @override
   void initState() {
@@ -59,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
               "${currentUser.firstName} ${currentUser.lastName}",
               style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
+            const Padding(padding: EdgeInsets.all(2)),
             Text(
               "@${currentUser.userName}",
               style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
@@ -70,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             Container(
-              padding: EdgeInsets.only(left: 8, top: 8, right: 8),
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
               child: Row(
                 children: [
                   Expanded(
@@ -78,9 +85,9 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       padding: EdgeInsets.zero,
                       color: Theme.of(context).cardColor,
                       onPressed: () {
-                        router.navigateTo(context, "/profile/edit", transition: TransitionType.native);
+                        router.navigateTo(context, "/profile/edit", transition: TransitionType.nativeModal).then((value) => setState(() {}));
                       },
-                      child: Text("Edit Profile", style: TextStyle(color: Theme.of(context).textTheme.button!.color)),
+                      child: Text("Edit Profile", style: TextStyle(color: Theme.of(context).textTheme.labelLarge!.color)),
                     ),
                   ),
                   const Padding(padding: EdgeInsets.all(4)),
@@ -91,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       onPressed: () {
                         router.navigateTo(context, "/settings", transition: TransitionType.native);
                       },
-                      child: Text("Settings", style: TextStyle(color: Theme.of(context).textTheme.button!.color),),
+                      child: Text("Settings", style: TextStyle(color: Theme.of(context).textTheme.labelLarge!.color),),
                     ),
                   )
                 ],
@@ -120,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
-                        router.navigateTo(context, "/settings/friends/add", transition: TransitionType.native);
+                        router.navigateTo(context, "/profile/friends/add", transition: TransitionType.native);
                       },
                     ),
                     ListTile(
@@ -134,15 +141,11 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                               Text("My Friends"),
                             ],
                           ),
-                          badges.Badge(
-                            showBadge: requests.where((element) => element.fromUserID != currentUser.id).isNotEmpty,
-                            badgeContent: Text(requests.where((element) => element.fromUserID != currentUser.id).length.toString(), style: const TextStyle(color: Colors.white)),
-                          )
                         ],
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
-                        router.navigateTo(context, "/settings/friends", transition: TransitionType.native);
+                        router.navigateTo(context, "/profile/friends", transition: TransitionType.native);
                       },
                     ),
                   ],
