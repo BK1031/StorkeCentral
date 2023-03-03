@@ -230,7 +230,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: user.userName == "" ? Padding(
             padding: const EdgeInsets.all(8),
             child: Center(
@@ -248,7 +248,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 height: 125,
                 width: 125,
                 fit: BoxFit.cover,
-                borderRadius: BorderRadius.all(Radius.circular(125)),
+                borderRadius: const BorderRadius.all(Radius.circular(125)),
                 shape: BoxShape.rectangle,
               ),
             ),
@@ -400,14 +400,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 style: const TextStyle(fontSize: 18),
               ),
             ),
-            Card(
-              child: Row(
-                children: [
-                  Text(
-                    "View Schedule"
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded)
-                ],
+            Visibility(
+              visible: getFriendshipStatus() == "FRIEND",
+              child: Card(
+                child: ListTile(
+                  leading: const Icon(Icons.calendar_month_rounded),
+                  title: const Text("View Schedule"),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                  onTap: () {
+                    router.navigateTo(context, "/schedule/user/${user.id}");
+                  },
+                )
               ),
             )
           ],

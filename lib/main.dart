@@ -19,6 +19,7 @@ import 'package:storke_central/pages/profile/profile_page.dart';
 import 'package:storke_central/pages/profile/user_profile_page.dart';
 import 'package:storke_central/pages/schedule/load_schedule_page.dart';
 import 'package:storke_central/pages/schedule/schedule_course_page.dart';
+import 'package:storke_central/pages/schedule/user_schedule_page.dart';
 import 'package:storke_central/pages/settings/settings_about_page.dart';
 import 'package:storke_central/pages/settings/settings_page.dart';
 import 'package:storke_central/pages/tab_bar_controller.dart';
@@ -79,6 +80,9 @@ Future<void> main() async {
   }));
   router.define("/schedule/view/:courseID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return ScheduleCoursePage(courseID: params!["courseID"][0]);
+  }));
+  router.define("/schedule/user/:userID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return UserSchedulePage(userID: params!["userID"][0]);
   }));
 
   router.define("/maps/buildings/:buildingID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
