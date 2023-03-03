@@ -406,99 +406,105 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     itemCount: suggestedFriends.length,
                     itemBuilder: (context, index) {
                       return Card(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              child: ExtendedImage.network(
-                                suggestedFriends[index].profilePictureURL,
-                                height: 60,
-                                width: 60,
-                                fit: BoxFit.cover,
-                                borderRadius: const BorderRadius.all(Radius.circular(125)),
-                                shape: BoxShape.rectangle,
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "${suggestedFriends[index].firstName} ${suggestedFriends[index].lastName}",
-                                    style: const TextStyle(fontSize: 18),
-                                  ),
-                                  Text(
-                                    "@${suggestedFriends[index].userName}",
-                                    style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Visibility(
-                              visible: loadingList.contains(suggestedFriends[index].id),
-                              child: Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Center(child: RefreshProgressIndicator(
-                                      color: Colors.white,
-                                      backgroundColor: SB_NAVY
-                                  ))
-                              ),
-                            ),
-                            Visibility(
-                              // User is not current user, is not already requested, is not already friend
-                              visible: suggestedFriends[index].id != currentUser.id && !requests.any((element) => element.id.contains(suggestedFriends[index].id)) && !friends.any((element) => element.id.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
-                              child: CupertinoButton(
-                                padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                color: SB_NAVY,
-                                child: Row(
-                                  children: const [
-                                    Icon(Icons.person_add, color: Colors.white),
-                                    Padding(padding: EdgeInsets.all(4)),
-                                    Text("Add"),
-                                  ],
+                        child: InkWell(
+                          onTap: () {
+                            router.navigateTo(context, "/profile/user/${suggestedFriends[index].id}", transition: TransitionType.native);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                child: ExtendedImage.network(
+                                  suggestedFriends[index].profilePictureURL,
+                                  height: 60,
+                                  width: 60,
+                                  fit: BoxFit.cover,
+                                  borderRadius: const BorderRadius.all(Radius.circular(125)),
+                                  shape: BoxShape.rectangle,
                                 ),
-                                onPressed: () {
-                                  acceptFriend(suggestedFriends[index]);
-                                },
                               ),
-                            ),
-                            Visibility(
-                              // User is not current user, is already requested to
-                              visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.toUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
-                              child: CupertinoButton(
-                                padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                color: Theme.of(context).scaffoldBackgroundColor,
-                                child: Row(
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
-                                    const Padding(padding: EdgeInsets.all(2)),
-                                    Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
+                                    Text(
+                                      "${suggestedFriends[index].firstName} ${suggestedFriends[index].lastName}",
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                    Text(
+                                      "@${suggestedFriends[index].userName}",
+                                      style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                                    )
                                   ],
                                 ),
-                                onPressed: () {},
                               ),
-                            ),
-                            Visibility(
-                              // User is not current user, is already requested from
-                              visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.fromUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
-                              child: CupertinoButton(
-                                padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                color: SB_NAVY,
-                                child: Row(
-                                  children: const [
-                                    Icon(Icons.person_add, color: Colors.white),
-                                    Padding(padding: EdgeInsets.all(4)),
-                                    Text("Accept", style: TextStyle(color: Colors.white),),
-                                  ],
+                              Visibility(
+                                visible: loadingList.contains(suggestedFriends[index].id),
+                                child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Center(child: RefreshProgressIndicator(
+                                        color: Colors.white,
+                                        backgroundColor: SB_NAVY
+                                    ))
                                 ),
-                                onPressed: () {
-                                  acceptFriend(suggestedFriends[index]);
-                                },
+                              ),
+                              Visibility(
+                                // User is not current user, is not already requested, is not already friend
+                                visible: suggestedFriends[index].id != currentUser.id && !requests.any((element) => element.id.contains(suggestedFriends[index].id)) && !friends.any((element) => element.id.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: SB_NAVY,
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.person_add, color: Colors.white),
+                                      Padding(padding: EdgeInsets.all(4)),
+                                      Text("Add"),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    requestFriend(suggestedFriends[index]);
+                                  },
+                                ),
+                              ),
+                              Visibility(
+                                // User is not current user, is already requested to
+                                visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.toUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: Theme.of(context).scaffoldBackgroundColor,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                      const Padding(padding: EdgeInsets.all(2)),
+                                      Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
+                                    ],
+                                  ),
+                                  onPressed: () {},
+                                ),
+                              ),
+                              Visibility(
+                                // User is not current user, is already requested from
+                                visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.fromUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: SB_NAVY,
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.person_add, color: Colors.white),
+                                      Padding(padding: EdgeInsets.all(4)),
+                                      Text("Accept", style: TextStyle(color: Colors.white),),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    acceptFriend(suggestedFriends[index]);
+                                  },
+                                )
                               )
-                            )
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
