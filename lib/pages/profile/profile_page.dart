@@ -1,5 +1,4 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:badges/badges.dart' as badges;
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
@@ -141,10 +140,6 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                               Text("My Friends"),
                             ],
                           ),
-                          badges.Badge(
-                            showBadge: requests.where((element) => element.fromUserID != currentUser.id).isNotEmpty,
-                            badgeContent: Text(requests.where((element) => element.fromUserID != currentUser.id).length.toString(), style: const TextStyle(color: Colors.white)),
-                          )
                         ],
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),

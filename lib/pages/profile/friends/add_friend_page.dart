@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -28,6 +29,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   List<User> suggestedFriends = [];
   TextEditingController textEditingController = TextEditingController();
 
+  List<String> loadingList = [];
   bool refreshing = false;
 
   _onChangedHandler(String input) {
@@ -59,11 +61,19 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Future<void> acceptFriend(User user) async {
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
+    setState(() {
+      loadingList.add(user.id);
+    });
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Sent friend request");
+      log("Friend request accepted!");
+      setState(() {
+        requests.removeWhere((element) => element.id == friend.id);
+        friends.add(friend);
+      });
       updateUserFriendsList();
+      // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,
           type: CoolAlertType.success,
@@ -75,6 +85,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       );
     } else {
       log(response.body, LogLevel.error);
+      // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,
           type: CoolAlertType.error,
@@ -85,6 +96,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
           confirmBtnText: "OK"
       );
     }
+    setState(() {
+      loadingList.remove(user.id);
+    });
   }
 
   Future<void> requestFriend(User user) async {
@@ -93,10 +107,16 @@ class _AddFriendPageState extends State<AddFriendPage> {
     friend.fromUserID = currentUser.id;
     friend.toUserID = user.id;
     friend.status = "REQUESTED";
+    setState(() {
+      loadingList.add(user.id);
+    });
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
       log("Sent friend request");
+      setState(() {
+        requests.add(friend);
+      });
       updateUserFriendsList();
       if (searchedUser.id != "") {
         // Rebuild searched user widget
@@ -110,6 +130,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
       log(response.body, LogLevel.error);
       // TODO: show error snackbar
     }
+    setState(() {
+      loadingList.remove(user.id);
+    });
   }
 
   Future<void> updateUserFriendsList() async {
@@ -127,7 +150,10 @@ class _AddFriendPageState extends State<AddFriendPage> {
           friends.add(friend);
         }
       }
-      setState(() {});
+      setState(() {
+        friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+        requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
+      });
     } else {
       log(response.body, LogLevel.error);
       // TODO: show error snackbar
@@ -209,6 +235,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                   hintText: "bk1031",
                                 ),
                                 style: const TextStyle(fontSize: 20),
+                                autocorrect: false,
                                 controller: textEditingController,
                                 onChanged: _onChangedHandler
                               ),
@@ -219,103 +246,122 @@ class _AddFriendPageState extends State<AddFriendPage> {
                           duration: const Duration(milliseconds: 200),
                           height: searchedUser.id != "" ? 100 : 0,
                           child: Card(
-                            child: Visibility(
-                              visible: searchedUser.id != "",
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    child: ExtendedImage.network(
-                                      searchedUser.profilePictureURL,
-                                      height: 60,
-                                      width: 60,
-                                      fit: BoxFit.cover,
-                                      borderRadius: const BorderRadius.all(Radius.circular(125)),
-                                      shape: BoxShape.rectangle,
+                            child: InkWell(
+                              onTap: () {
+                                router.navigateTo(context, "/profile/user/${searchedUser.id}", transition: TransitionType.native);
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Visibility(
+                                visible: searchedUser.id != "",
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      child: ExtendedImage.network(
+                                        searchedUser.profilePictureURL,
+                                        height: 60,
+                                        width: 60,
+                                        fit: BoxFit.cover,
+                                        borderRadius: const BorderRadius.all(Radius.circular(125)),
+                                        shape: BoxShape.rectangle,
+                                      ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "${searchedUser.firstName} ${searchedUser.lastName}",
-                                          style: const TextStyle(fontSize: 18),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "${searchedUser.firstName} ${searchedUser.lastName}",
+                                            style: const TextStyle(fontSize: 18),
+                                          ),
+                                          Text(
+                                            "@${searchedUser.userName}",
+                                            style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Visibility(
+                                      visible: loadingList.contains(searchedUser.id),
+                                      child: Padding(
+                                          padding: const EdgeInsets.all(8),
+                                          child: Center(child: RefreshProgressIndicator(
+                                              color: Colors.white,
+                                              backgroundColor: SB_NAVY
+                                          ))
+                                      ),
+                                    ),
+                                    Visibility(
+                                      // Searched user is not current user, is not already requested, is not already friend
+                                      visible: searchedUser.id != currentUser.id && !requests.any((element) => element.id.contains(searchedUser.id)) && !friends.any((element) => element.id.contains(searchedUser.id)) && !loadingList.contains(searchedUser.id),
+                                      child: CupertinoButton(
+                                        padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                        color: SB_NAVY,
+                                        child: Row(
+                                          children: const [
+                                            Icon(Icons.person_add, color: Colors.white),
+                                            Padding(padding: EdgeInsets.all(4)),
+                                            Text("Add"),
+                                          ],
                                         ),
-                                        Text(
-                                          "@${searchedUser.userName}",
-                                          style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  Visibility(
-                                    visible: searchedUser.id != currentUser.id && requests.where((element) => element.id.contains(searchedUser.id)).isEmpty && friends.where((element) => element.id.contains(searchedUser.id)).isEmpty,
-                                    child: CupertinoButton(
-                                      padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                      color: SB_NAVY,
-                                      child: Row(
-                                        children: const [
-                                          Icon(Icons.person_add, color: Colors.white),
-                                          Padding(padding: EdgeInsets.all(4)),
-                                          Text("Add"),
-                                        ],
+                                        onPressed: () {
+                                          requestFriend(searchedUser);
+                                        },
                                       ),
-                                      onPressed: () {
-                                        acceptFriend(searchedUser);
-                                      },
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: searchedUser.id != currentUser.id && friends.any((element) => element.user.id.contains(searchedUser.id)),
-                                    child: CupertinoButton(
-                                      padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                      color: Theme.of(context).backgroundColor,
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
-                                          const Padding(padding: EdgeInsets.all(2)),
-                                          Text("Friends", style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color),),
-                                        ],
+                                    Visibility(
+                                      // Searched user is not current user, is already friend
+                                      visible: searchedUser.id != currentUser.id && friends.any((element) => element.user.id.contains(searchedUser.id)) && !loadingList.contains(searchedUser.id),
+                                      child: CupertinoButton(
+                                        padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                            const Padding(padding: EdgeInsets.all(2)),
+                                            Text("Friends", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
+                                          ],
+                                        ),
+                                        onPressed: () {},
                                       ),
-                                      onPressed: () {},
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: searchedUser.id != currentUser.id && requests.where((element) => element.toUserID.contains(searchedUser.id)).isNotEmpty,
-                                    child: CupertinoButton(
-                                      padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                      color: Theme.of(context).backgroundColor,
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
-                                          const Padding(padding: EdgeInsets.all(2)),
-                                          Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color),),
-                                        ],
+                                    // Searched user is not current user, is already requested
+                                    Visibility(
+                                      visible: searchedUser.id != currentUser.id && requests.any((element) => element.toUserID.contains(searchedUser.id)) && !loadingList.contains(searchedUser.id),
+                                      child: CupertinoButton(
+                                        padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                            const Padding(padding: EdgeInsets.all(2)),
+                                            Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
+                                          ],
+                                        ),
+                                        onPressed: () {},
                                       ),
-                                      onPressed: () {},
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: searchedUser.id != currentUser.id && requests.where((element) => element.fromUserID.contains(searchedUser.id)).isNotEmpty,
-                                    child: CupertinoButton(
-                                      padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                      color: SB_NAVY,
-                                      child: Row(
-                                        children: const [
-                                          Icon(Icons.person_add, color: Colors.white),
-                                          Padding(padding: EdgeInsets.all(4)),
-                                          Text("Accept", style: TextStyle(color: Colors.white),),
-                                        ],
-                                      ),
-                                      onPressed: () {
-                                        acceptFriend(searchedUser);
-                                      },
+                                    Visibility(
+                                      visible: searchedUser.id != currentUser.id && requests.any((element) => element.fromUserID.contains(searchedUser.id)) && !loadingList.contains(searchedUser.id),
+                                      child: CupertinoButton(
+                                        padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                        color: SB_NAVY,
+                                        child: Row(
+                                          children: const [
+                                            Icon(Icons.person_add, color: Colors.white),
+                                            Padding(padding: EdgeInsets.all(4)),
+                                            Text("Accept", style: TextStyle(color: Colors.white),),
+                                          ],
+                                        ),
+                                        onPressed: () {
+                                          acceptFriend(searchedUser);
+                                        },
+                                      )
                                     )
-                                  )
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -343,9 +389,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
                   ),
                   Visibility(
                     visible: refreshing,
-                    child: const Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Center(child: RefreshProgressIndicator())
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Center(child: RefreshProgressIndicator(color: Colors.white, backgroundColor: SB_NAVY,))
                     ),
                   ),
                   Visibility(
@@ -391,7 +437,18 @@ class _AddFriendPageState extends State<AddFriendPage> {
                               ),
                             ),
                             Visibility(
-                              visible: suggestedFriends[index].id != currentUser.id && requests.where((element) => element.id.contains(suggestedFriends[index].id)).isEmpty && friends.where((element) => element.id.contains(suggestedFriends[index].id)).isEmpty,
+                              visible: loadingList.contains(suggestedFriends[index].id),
+                              child: Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Center(child: RefreshProgressIndicator(
+                                      color: Colors.white,
+                                      backgroundColor: SB_NAVY
+                                  ))
+                              ),
+                            ),
+                            Visibility(
+                              // User is not current user, is not already requested, is not already friend
+                              visible: suggestedFriends[index].id != currentUser.id && !requests.any((element) => element.id.contains(suggestedFriends[index].id)) && !friends.any((element) => element.id.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
                               child: CupertinoButton(
                                 padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                 color: SB_NAVY,
@@ -408,36 +465,38 @@ class _AddFriendPageState extends State<AddFriendPage> {
                               ),
                             ),
                             Visibility(
-                              visible: suggestedFriends[index].id != currentUser.id && requests.where((element) => element.toUserID.contains(suggestedFriends[index].id)).isNotEmpty,
+                              // User is not current user, is already requested to
+                              visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.toUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
                               child: CupertinoButton(
                                 padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                color: Theme.of(context).backgroundColor,
+                                color: Theme.of(context).scaffoldBackgroundColor,
                                 child: Row(
                                   children: [
                                     Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
                                     const Padding(padding: EdgeInsets.all(2)),
-                                    Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color),),
+                                    Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
                                   ],
                                 ),
                                 onPressed: () {},
                               ),
                             ),
                             Visibility(
-                                visible: suggestedFriends[index].id != currentUser.id && requests.where((element) => element.fromUserID.contains(suggestedFriends[index].id)).isNotEmpty,
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                  color: SB_NAVY,
-                                  child: Row(
-                                    children: const [
-                                      Icon(Icons.person_add, color: Colors.white),
-                                      Padding(padding: EdgeInsets.all(4)),
-                                      Text("Accept", style: TextStyle(color: Colors.white),),
-                                    ],
-                                  ),
-                                  onPressed: () {
-                                    acceptFriend(suggestedFriends[index]);
-                                  },
-                                )
+                              // User is not current user, is already requested from
+                              visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.fromUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
+                              child: CupertinoButton(
+                                padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                color: SB_NAVY,
+                                child: Row(
+                                  children: const [
+                                    Icon(Icons.person_add, color: Colors.white),
+                                    Padding(padding: EdgeInsets.all(4)),
+                                    Text("Accept", style: TextStyle(color: Colors.white),),
+                                  ],
+                                ),
+                                onPressed: () {
+                                  acceptFriend(suggestedFriends[index]);
+                                },
+                              )
                             )
                           ],
                         ),

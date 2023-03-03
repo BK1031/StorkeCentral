@@ -16,6 +16,7 @@ import 'package:storke_central/pages/profile/edit_profile_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
 import 'package:storke_central/pages/profile/friends/friends_page.dart';
 import 'package:storke_central/pages/profile/profile_page.dart';
+import 'package:storke_central/pages/profile/user_profile_page.dart';
 import 'package:storke_central/pages/schedule/load_schedule_page.dart';
 import 'package:storke_central/pages/schedule/schedule_course_page.dart';
 import 'package:storke_central/pages/settings/settings_about_page.dart';
@@ -95,6 +96,9 @@ Future<void> main() async {
   }));
   router.define("/profile/friends/add", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const AddFriendPage();
+  }));
+  router.define("/profile/user/:userID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return UserProfilePage(userID: params!["userID"][0]);
   }));
 
   router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {

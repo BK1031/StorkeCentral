@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/building.dart';
+import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/login.dart';
 import 'package:storke_central/models/notification.dart' as sc;
 import 'package:storke_central/pages/home/home_page.dart';
@@ -57,6 +58,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     firebaseAnalytics();
     fetchBuildings();
     fetchNotifications();
+    updateUserFriendsList();
     if (!anonMode && !offlineMode) sendLoginEvent();
   }
 
@@ -223,6 +225,29 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     AuthService.getAuthToken().then((_) {
       http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });
+  }
+
+  Future<void> updateUserFriendsList() async {
+    await AuthService.getAuthToken();
+    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    if (response.statusCode == 200) {
+      log("Successfully updated local friend list");
+      friends.clear();
+      requests.clear();
+      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
+        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+        if (friend.status == "REQUESTED") {
+          requests.add(friend);
+        } else if (friend.status == "ACCEPTED") {
+          friends.add(friend);
+        }
+      }
+      friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+      requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
+    } else {
+      log(response.body, LogLevel.error);
+      // TODO: show error snackbar
+    }
   }
 
   void fetchBuildings() async {
