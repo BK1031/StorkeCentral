@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:calendar_view/calendar_view.dart';
-import 'package:fluro/fluro.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/quarter.dart';
@@ -286,7 +284,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                       appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
                         return InkWell(
                           onTap: () {
-                            router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
+                            // router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
                           },
                           borderRadius: BorderRadius.circular(4),
                           child: Container(
@@ -334,21 +332,10 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const Padding(padding: EdgeInsets.all(4),),
-                          const Text(
-                              "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
+                          Text(
+                              "We didn't find any classes for ${user.firstName} this week! Let them know to sync their classes from GOLD!"
                           ),
                           const Padding(padding: EdgeInsets.all(8),),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              color: SB_NAVY,
-                              onPressed: () {
-                                router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
-                              },
-                              child: const Text("Sync Classes", style: TextStyle(color: Colors.white),),
-                            ),
-                          ),
                         ],
                       ),
                     ),
