@@ -65,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
               "${currentUser.firstName} ${currentUser.lastName}",
               style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
+            const Padding(padding: EdgeInsets.all(2)),
             Text(
               "@${currentUser.userName}",
               style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),

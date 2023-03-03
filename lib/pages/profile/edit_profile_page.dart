@@ -35,6 +35,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   List<String> genderList = ["Male", "Female", "Other", "Prefer not to say"];
 
+  bool loading = false;
+
   @override
   void setState(fn) {
     if (mounted) {
@@ -57,8 +59,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> saveUser() async {
     currentUser = editUser;
     log(currentUser.toJson());
+    setState(() => loading = true);
     await AuthService.getAuthToken();
     await http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+    setState(() => loading = false);
   }
 
   @override
@@ -197,13 +201,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const Padding(padding: EdgeInsets.all(8)),
             SizedBox(
               width: double.infinity,
-              child: CupertinoButton(
-                color: SB_NAVY,
-                onPressed: () {
-                  saveUser();
-                  router.pop(context);
-                },
-                child: const Text("Save Changes", style: TextStyle(color: Colors.white),),
+              child: loading ? Padding(
+                padding: const EdgeInsets.all(8),
+                  child: Center(
+                    child: RefreshProgressIndicator(
+                      color: Colors.white,
+                      backgroundColor: SB_NAVY
+                    )
+                  )
+                ) : CupertinoButton(
+                  color: SB_NAVY,
+                  onPressed: () {
+                    saveUser();
+                    router.pop(context);
+                  },
+                  child: const Text("Save Changes", style: TextStyle(color: Colors.white)
+                ),
               ),
             ),
           ],
