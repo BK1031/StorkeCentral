@@ -40,7 +40,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void initState() {
     super.initState();
     getUser();
-    getFriendshipStatus();
+    updateUserFriendsList().then((value) => getFriendshipStatus());
   }
 
   void getUser() async {
@@ -398,6 +398,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
               trailing: Text(
                 showPhoneNumber() ? user.phoneNumber : "Private",
                 style: const TextStyle(fontSize: 18),
+              ),
+            ),
+            Card(
+              child: Row(
+                children: [
+                  Text(
+                    "View Schedule"
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded)
+                ],
               ),
             )
           ],
