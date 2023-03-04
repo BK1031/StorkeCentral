@@ -62,11 +62,6 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
       setState(() {
         user = User.fromJson(jsonDecode(response.body)["data"]);
       });
-      log("====== USER PROFILE INFO ======");
-      log("FIRST NAME: ${user.firstName}");
-      log("LAST NAME: ${user.lastName}");
-      log("EMAIL: ${user.email}");
-      log("====== =============== ======");
     }
     else {
       log("Account not found!");
