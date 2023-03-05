@@ -37,6 +37,7 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   Future<void> updateUserFriendsList() async {
+    setState(() => refreshing = true);
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
@@ -59,6 +60,7 @@ class _FriendsPageState extends State<FriendsPage> {
       log(response.body, LogLevel.error);
       // TODO: show error snackbar
     }
+    setState(() => refreshing = false);
   }
 
   Future<User> getFriend(String id) async {
@@ -181,73 +183,83 @@ class _FriendsPageState extends State<FriendsPage> {
                   });
                 },
                 children: [
-                  refreshing ? const Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Center(child: RefreshProgressIndicator())
-                  ) :  friends.isEmpty ? Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Icon(
-                            CupertinoIcons.person_crop_circle_badge_xmark,
-                            size: 100,
-                            color: Theme.of(context).textTheme.bodySmall!.color,
-                          ),
-                          const Padding(padding: EdgeInsets.all(4)),
-                          const Text("No friends 😔", style: TextStyle(fontSize: 16),),
-                        ],
+                  Column(
+                    children: [
+                      Visibility(
+                        visible: refreshing,
+                        child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Center(child: RefreshProgressIndicator(backgroundColor: SB_NAVY, color: Colors.white,))
+                        ),
                       ),
-                    ),
-                  ) : ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: friends.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        child: InkWell(
-                          onTap: () {
-                            router.navigateTo(context, "/profile/user/${friends[index].user.id}", transition: TransitionType.native);
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: ExtendedImage.network(
-                                    friends[index].user.profilePictureURL,
-                                    height: 60,
-                                    width: 60,
-                                    fit: BoxFit.cover,
-                                    borderRadius: BorderRadius.all(Radius.circular(125)),
-                                    shape: BoxShape.rectangle,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                      friends.isEmpty ? Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Icon(
+                                CupertinoIcons.person_crop_circle_badge_xmark,
+                                size: 100,
+                                color: Theme.of(context).textTheme.bodySmall!.color,
+                              ),
+                              const Padding(padding: EdgeInsets.all(4)),
+                              const Text("No friends 😔", style: TextStyle(fontSize: 16),),
+                            ],
+                          ),
+                        ),
+                      ) : Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.all(8),
+                          itemCount: friends.length,
+                          itemBuilder: (context, index) {
+                            return Card(
+                              child: InkWell(
+                                onTap: () {
+                                  router.navigateTo(context, "/profile/user/${friends[index].user.id}", transition: TransitionType.native);
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        "${friends[index].user.firstName} ${friends[index].user.lastName}",
-                                        style: TextStyle(fontSize: 18),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        child: ExtendedImage.network(
+                                          friends[index].user.profilePictureURL,
+                                          height: 60,
+                                          width: 60,
+                                          fit: BoxFit.cover,
+                                          borderRadius: BorderRadius.all(Radius.circular(125)),
+                                          shape: BoxShape.rectangle,
+                                        ),
                                       ),
-                                      Text(
-                                        "@${friends[index].user.userName}",
-                                        style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
-                                      )
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "${friends[index].user.firstName} ${friends[index].user.lastName}",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                            Text(
+                                              "@${friends[index].user.userName}",
+                                              style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                            )
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                   refreshing ? const Padding(
                       padding: EdgeInsets.all(8),
