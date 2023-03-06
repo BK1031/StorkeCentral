@@ -29,9 +29,10 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   // 0 = fetching gold schedule
   // 1 = invalid credentials
   // 2 = have gold courses, getting course information
-  // 3 = generating schedule
-  // 4 = saving schedule
-  // 5 = done
+  // 3 = waiting for user to confirm courses
+  // 4 = generating schedule
+  // 5 = saving schedule
+  // 6 = done
   int state = 0;
 
   TextEditingController usernameController = TextEditingController();
@@ -183,15 +184,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     }
   }
 
-  Future<void> createUserSchedule(String quarter) async {
-    setState(() {
-      state = 3;
-    });
+  void createUserSchedule(String quarter) {
     for (GoldCourse course in goldCourses) {
       log("Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
-        if (section.enrollCode == course.enrollCode || (section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge")) {
-          log("[x] ${section.enrollCode} ${section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge" ? " (Instructor)" : ""}");
+        if (section.enrollCode == course.enrollCode || section.section == "0100") {
+          log("[x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
           goldSectionMap[section] = true;
         } else {
           log("[ ] ${section.enrollCode}");
@@ -199,42 +197,47 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         }
       }
     }
-    setState(() => state = 4);
-    // saveUserSchedule();
+    setState(() => state = 3);
   }
 
-  Future<void> saveUserSchedule(String quarter) async {
+  void generateUserSchedule(String quarter) {
+    setState(() => state = 4);
+    // Generate userScheduleItems from goldCourses and goldSectionMap
+    userScheduleItems.clear();
+    for (GoldCourse course in goldCourses) {
+      log("Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      for (GoldSection section in course.sections) {
+        if (goldSectionMap[section]!) {
+          for (GoldCourseTime time in section.times) {
+            setState(() {
+              UserScheduleItem userScheduleItem = UserScheduleItem();
+              userScheduleItem.userID = currentUser.id;
+              userScheduleItem.courseID = section.enrollCode;
+              userScheduleItem.title = course.courseID;
+              userScheduleItem.description = "${course.title}\n${course.description}";
+              userScheduleItem.building = time.building;
+              userScheduleItem.room = time.room;
+              userScheduleItem.startTime = time.beginTime;
+              userScheduleItem.endTime = time.endTime;
+              userScheduleItem.days = time.days;
+              userScheduleItem.quarter = quarter;
+              userScheduleItems.add(userScheduleItem);
+            });
+            log("+ ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
+          }
+        }
+      }
+    }
+    log("Generated ${userScheduleItems.length} schedule items");
+    saveUserSchedule();
+  }
+
+  Future<void> saveUserSchedule() async {
     try {
       setState(() {
         state = 5;
       });
-      // Generate userScheduleItems from goldCourses and goldSectionMap
-      userScheduleItems.clear();
-      for (GoldCourse course in goldCourses) {
-        log("Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
-        for (GoldSection section in course.sections) {
-          if (goldSectionMap[section]!) {
-            for (GoldCourseTime time in section.times) {
-              setState(() {
-                UserScheduleItem userScheduleItem = UserScheduleItem();
-                userScheduleItem.userID = currentUser.id;
-                userScheduleItem.courseID = section.enrollCode;
-                userScheduleItem.title = course.courseID;
-                userScheduleItem.description = "${course.title}\n${course.description}";
-                userScheduleItem.building = time.building;
-                userScheduleItem.room = time.room;
-                userScheduleItem.startTime = time.beginTime;
-                userScheduleItem.endTime = time.endTime;
-                userScheduleItem.days = time.days;
-                userScheduleItem.quarter = quarter;
-                userScheduleItems.add(userScheduleItem);
-              });
-              log("+ ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
-            }
-          }
-        }
-      }
-      log("Generated ${userScheduleItems.length} schedule items");
+
       log("Saving schedule to database...");
 
       await AuthService.getAuthToken();
@@ -430,24 +433,87 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   )
                 ],
               ),
+              Visibility(
+                visible: state == 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    goldCourses.isNotEmpty ? "Please confirm the sections we found for you." : "It looks like we couldn't find any courses for you. Please try again later.",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  )
+                ),
+              ),
+              state == 3 ? Column(
+                  children: goldCourses.map((e) => Card(
+                      child: ExpansionTile(
+                        title: Text("${e.title} (${e.sections.where((element) => goldSectionMap[element]!).length} sections)"),
+                        children: e.sections.map((s) => Container(
+                          padding: const EdgeInsets.all(8),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                goldSectionMap[s] = !goldSectionMap[s]!;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
+                                const Padding(padding: EdgeInsets.all(8)),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("${s.enrollCode} - ${s.section == "0100" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
+                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )).toList(),
+                      )
+                  )).toList()
+              ) : Container(),
+              Visibility(
+                visible: state == 3,
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: const EdgeInsets.all(8),
+                  child: CupertinoButton(
+                    color: SB_NAVY,
+                    onPressed: () {
+                      if (goldCourses.isNotEmpty) {
+                        generateUserSchedule(selectedQuarter.id);
+                      } else {
+                        fetchGoldSchedule();
+                      }
+                    },
+                    child: Text(goldCourses.isNotEmpty ? "Save Schedule" : "Try Again", style: const TextStyle(color: Colors.white),),
+                  ),
+                ),
+              ),
               Row(
                 children: [
                   Visibility(
-                    visible: state > 3,
+                    visible: state > 4,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(Icons.check_circle_rounded, color: SB_GREEN, size: 32),
                     ),
                   ),
                   Visibility(
-                    visible: state == 3,
+                    visible: state == 4,
                     child: const Padding(
                         padding: EdgeInsets.all(8),
                         child: Center(child: RefreshProgressIndicator())
                     ),
                   ),
                   Visibility(
-                    visible: state < 3,
+                    visible: state < 4,
                     child: const Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Icon(null, size: 32),
@@ -463,61 +529,6 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                       )
                   )
                 ],
-              ),
-              Visibility(
-                visible: state == 4,
-                child: const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text("Please confirm the courses we found for you.", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-                ),
-              ),
-              state == 4 ? Column(
-                children: goldCourses.map((e) => Card(
-                  child: ExpansionTile(
-                    title: Text("${e.title} (${e.sections.where((element) => goldSectionMap[element]!).length} sections)"),
-                    children: e.sections.map((s) => Container(
-                      padding: const EdgeInsets.all(8),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () {
-                          setState(() {
-                            goldSectionMap[s] = !goldSectionMap[s]!;
-                          });
-                        },
-                        child: Row(
-                          children: [
-                            Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
-                            const Padding(padding: EdgeInsets.all(8)),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("${s.enrollCode} - ${s.instructors.isNotEmpty && s.instructors.first.role == "Teaching and in charge" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                  // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
-                                  Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )).toList(),
-                  )
-                )).toList()
-              ) : Container(),
-              Visibility(
-                visible: state == 4,
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  padding: const EdgeInsets.all(8),
-                  child: CupertinoButton(
-                    color: SB_NAVY,
-                    onPressed: () {
-                      saveUserSchedule(selectedQuarter.id);
-                    },
-                    child: const Text("Save Schedule", style: TextStyle(color: Colors.white),),
-                  ),
-                ),
               ),
               Row(
                 children: [
