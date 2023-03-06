@@ -29,13 +29,16 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   // 0 = fetching gold schedule
   // 1 = invalid credentials
   // 2 = have gold courses, getting course information
-  // 3 = generating schedule
-  // 4 = saving schedule
-  // 5 = done
+  // 3 = waiting for user to confirm courses
+  // 4 = generating schedule
+  // 5 = saving schedule
+  // 6 = done
   int state = 0;
 
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+
+  Map<GoldSection, bool> goldSectionMap = {};
 
   @override
   void setState(fn) {
@@ -48,6 +51,27 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   void initState() {
     super.initState();
     fetchGoldSchedule();
+  }
+
+  List<String> getListFromDayString(String days) {
+    List<String> daysList = [];
+    if (days.contains("M")) daysList.add("Monday");
+    if (days.contains("T")) daysList.add("Tuesday");
+    if (days.contains("W")) daysList.add("Wednesday");
+    if (days.contains("R")) daysList.add("Thursday");
+    if (days.contains("F")) daysList.add("Friday");
+    return daysList;
+  }
+
+  String to12HourTime(String time) {
+    int hour = int.parse(time.split(":")[0]);
+    int minute = int.parse(time.split(":")[1]);
+    String ampm = "AM";
+    if (hour > 12) {
+      hour -= 12;
+      ampm = "PM";
+    }
+    return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
   }
 
   Future<void> fetchGoldSchedule() async {
@@ -160,16 +184,30 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     }
   }
 
-  Future<void> createUserSchedule(String quarter) async {
-    setState(() {
-      state = 3;
-    });
+  void createUserSchedule(String quarter) {
+    for (GoldCourse course in goldCourses) {
+      log("Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      for (GoldSection section in course.sections) {
+        if (section.enrollCode == course.enrollCode || section.section == "0100") {
+          log("[x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
+          goldSectionMap[section] = true;
+        } else {
+          log("[ ] ${section.enrollCode}");
+          goldSectionMap[section] = false;
+        }
+      }
+    }
+    setState(() => state = 3);
+  }
+
+  void generateUserSchedule(String quarter) {
+    setState(() => state = 4);
+    // Generate userScheduleItems from goldCourses and goldSectionMap
     userScheduleItems.clear();
     for (GoldCourse course in goldCourses) {
-      log("Generating schedule for ${course.toString()}");
+      log("Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
-        if (section.enrollCode == course.enrollCode || (section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge")) {
-          log("Including section ${section.enrollCode}");
+        if (goldSectionMap[section]!) {
           for (GoldCourseTime time in section.times) {
             setState(() {
               UserScheduleItem userScheduleItem = UserScheduleItem();
@@ -185,10 +223,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
               userScheduleItem.quarter = quarter;
               userScheduleItems.add(userScheduleItem);
             });
-            log("Added ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
+            log("+ ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
           }
-        } else {
-          log("Skipping section ${section.enrollCode}");
         }
       }
     }
@@ -199,15 +235,18 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   Future<void> saveUserSchedule() async {
     try {
       setState(() {
-        state = 4;
+        state = 5;
       });
+
+      log("Saving schedule to database...");
+
       await AuthService.getAuthToken();
       await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       await AuthService.getAuthToken();
       await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(userScheduleItems));
       log("Saved schedule to database");
       setState(() {
-        state = 5;
+        state = 6;
         // Set lastScheduleFetch to force a refresh
         lastScheduleFetch = DateTime.now().subtract(const Duration(minutes: 200));
       });
@@ -388,45 +427,74 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                       "Retrieving course information from GOLD",
                       style: TextStyle(
                         fontSize: 16,
-                        color: state < 2 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
+                        color: state < 2 ? Theme.of(context).textTheme.bodySmall!.color : Theme.of(context).textTheme.bodyLarge!.color
                       ),
                     )
                   )
                 ],
               ),
-              Row(
-                children: [
-                  Visibility(
-                    visible: state > 3,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Icon(Icons.check_circle_rounded, color: SB_GREEN, size: 32),
-                    ),
-                  ),
-                  Visibility(
-                    visible: state == 3,
-                    child: const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Center(child: RefreshProgressIndicator())
-                    ),
-                  ),
-                  Visibility(
-                    visible: state < 3,
-                    child: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Icon(null, size: 32),
-                    ),
-                  ),
-                  Expanded(
-                      child: Text(
-                        "Generating schedule",
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: state < 3 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
-                        ),
-                      )
+              Visibility(
+                visible: state == 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    goldCourses.isNotEmpty ? "Please confirm the sections we found for you." : "It looks like we couldn't find any courses for you. Please try again later.",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
                   )
-                ],
+                ),
+              ),
+              state == 3 ? Column(
+                  children: goldCourses.map((e) => Card(
+                      child: ExpansionTile(
+                        title: Text("${e.title} (${e.sections.where((element) => goldSectionMap[element]!).length} sections)"),
+                        children: e.sections.map((s) => Container(
+                          padding: const EdgeInsets.all(8),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                goldSectionMap[s] = !goldSectionMap[s]!;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
+                                const Padding(padding: EdgeInsets.all(8)),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("${s.enrollCode} - ${s.section == "0100" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
+                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )).toList(),
+                      )
+                  )).toList()
+              ) : Container(),
+              Visibility(
+                visible: state == 3,
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: const EdgeInsets.all(8),
+                  child: CupertinoButton(
+                    color: SB_NAVY,
+                    onPressed: () {
+                      if (goldCourses.isNotEmpty) {
+                        generateUserSchedule(selectedQuarter.id);
+                      } else {
+                        fetchGoldSchedule();
+                      }
+                    },
+                    child: Text(goldCourses.isNotEmpty ? "Save Schedule" : "Try Again", style: const TextStyle(color: Colors.white),),
+                  ),
+                ),
               ),
               Row(
                 children: [
@@ -453,17 +521,51 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   ),
                   Expanded(
                       child: Text(
+                        "Generating schedule",
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: state < 3 ? Theme.of(context).textTheme.bodySmall!.color : Theme.of(context).textTheme.bodyLarge!.color
+                        ),
+                      )
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Visibility(
+                    visible: state > 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.check_circle_rounded, color: SB_GREEN, size: 32),
+                    ),
+                  ),
+                  Visibility(
+                    visible: state == 5,
+                    child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Center(child: RefreshProgressIndicator())
+                    ),
+                  ),
+                  Visibility(
+                    visible: state < 5,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(null, size: 32),
+                    ),
+                  ),
+                  Expanded(
+                      child: Text(
                         "Saving schedule",
                         style: TextStyle(
                             fontSize: 16,
-                            color: state < 4 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
+                            color: state < 4 ? Theme.of(context).textTheme.bodySmall!.color : Theme.of(context).textTheme.bodyLarge!.color
                         ),
                       )
                   )
                 ],
               ),
               Visibility(
-                visible: state == 5,
+                visible: state == 6,
                 child: Row(
                   children: [
                     Padding(

@@ -53,7 +53,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   void didPopNext() {
     if (DateTime.now().difference(lastScheduleFetch).inMinutes > 60) {
       buildCalendar();
-      setState(() => classesFound = true);
     }
   }
 
@@ -62,8 +61,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       try {
         // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
         log("${userScheduleItems.length} existing userScheduleItems");
-        if (userScheduleItems.isNotEmpty) log("Last Q: ${userScheduleItems.last.quarter}");
-        log("Selected Q: ${selectedQuarter.id}");
 
         if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
           setState(() => loading = true);
@@ -211,7 +208,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           floatingActionButton: FloatingActionButton(
             child: const Icon(Icons.refresh),
             onPressed: () {
-              router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
+              router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
             },
           ),
           body: Stack(
