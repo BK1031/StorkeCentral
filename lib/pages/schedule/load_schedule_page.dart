@@ -7,10 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
-import 'package:storke_central/models/gold_course_time.dart';
 import 'package:storke_central/models/gold_section.dart';
 import 'package:storke_central/models/user_course.dart';
-import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -37,6 +35,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
+  Map<GoldSection, bool> goldSectionMap = {};
+
   @override
   void setState(fn) {
     if (mounted) {
@@ -48,6 +48,27 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   void initState() {
     super.initState();
     fetchGoldSchedule();
+  }
+
+  List<String> getListFromDayString(String days) {
+    List<String> daysList = [];
+    if (days.contains("M")) daysList.add("Monday");
+    if (days.contains("T")) daysList.add("Tuesday");
+    if (days.contains("W")) daysList.add("Wednesday");
+    if (days.contains("R")) daysList.add("Thursday");
+    if (days.contains("F")) daysList.add("Friday");
+    return daysList;
+  }
+
+  String to12HourTime(String time) {
+    int hour = int.parse(time.split(":")[0]);
+    int minute = int.parse(time.split(":")[1]);
+    String ampm = "AM";
+    if (hour > 12) {
+      hour -= 12;
+      ampm = "PM";
+    }
+    return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
   }
 
   Future<void> fetchGoldSchedule() async {
@@ -166,40 +187,43 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     });
     userScheduleItems.clear();
     for (GoldCourse course in goldCourses) {
-      log("Generating schedule for ${course.toString()}");
+      log("Generating schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
         if (section.enrollCode == course.enrollCode || (section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge")) {
-          log("Including section ${section.enrollCode}");
-          for (GoldCourseTime time in section.times) {
-            setState(() {
-              UserScheduleItem userScheduleItem = UserScheduleItem();
-              userScheduleItem.userID = currentUser.id;
-              userScheduleItem.courseID = section.enrollCode;
-              userScheduleItem.title = course.courseID;
-              userScheduleItem.description = "${course.title}\n${course.description}";
-              userScheduleItem.building = time.building;
-              userScheduleItem.room = time.room;
-              userScheduleItem.startTime = time.beginTime;
-              userScheduleItem.endTime = time.endTime;
-              userScheduleItem.days = time.days;
-              userScheduleItem.quarter = quarter;
-              userScheduleItems.add(userScheduleItem);
-            });
-            log("Added ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
-          }
+          log("[x] ${section.enrollCode} ${section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge" ? " (Instructor)" : ""}");
+          goldSectionMap[section] = true;
+          // for (GoldCourseTime time in section.times) {
+          //   setState(() {
+          //     UserScheduleItem userScheduleItem = UserScheduleItem();
+          //     userScheduleItem.userID = currentUser.id;
+          //     userScheduleItem.courseID = section.enrollCode;
+          //     userScheduleItem.title = course.courseID;
+          //     userScheduleItem.description = "${course.title}\n${course.description}";
+          //     userScheduleItem.building = time.building;
+          //     userScheduleItem.room = time.room;
+          //     userScheduleItem.startTime = time.beginTime;
+          //     userScheduleItem.endTime = time.endTime;
+          //     userScheduleItem.days = time.days;
+          //     userScheduleItem.quarter = quarter;
+          //     userScheduleItems.add(userScheduleItem);
+          //   });
+          //   // log("Added ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
+          // }
         } else {
-          log("Skipping section ${section.enrollCode}");
+          log("[ ] ${section.enrollCode}");
+          goldSectionMap[section] = false;
         }
       }
     }
     log("Generated ${userScheduleItems.length} schedule items");
-    saveUserSchedule();
+    setState(() => state = 4);
+    // saveUserSchedule();
   }
 
   Future<void> saveUserSchedule() async {
     try {
       setState(() {
-        state = 4;
+        state = 5;
       });
       await AuthService.getAuthToken();
       await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -207,7 +231,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(userScheduleItems));
       log("Saved schedule to database");
       setState(() {
-        state = 5;
+        state = 6;
         // Set lastScheduleFetch to force a refresh
         lastScheduleFetch = DateTime.now().subtract(const Duration(minutes: 200));
       });
@@ -388,7 +412,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                       "Retrieving course information from GOLD",
                       style: TextStyle(
                         fontSize: 16,
-                        color: state < 2 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
+                        color: state < 2 ? Theme.of(context).textTheme.bodySmall!.color : Theme.of(context).textTheme.bodyLarge!.color
                       ),
                     )
                   )
@@ -422,30 +446,76 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         "Generating schedule",
                         style: TextStyle(
                             fontSize: 16,
-                            color: state < 3 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
+                            color: state < 3 ? Theme.of(context).textTheme.bodySmall!.color : Theme.of(context).textTheme.bodyLarge!.color
                         ),
                       )
                   )
                 ],
               ),
+              Visibility(
+                visible: state == 4,
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("Please confirm the courses we found for you.", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                ),
+              ),
+              Visibility(
+                visible: state == 4,
+                child: Container(
+                  child: Column(
+                    children: goldCourses.map((e) => Card(
+                      child: ExpansionTile(
+                        title: Text("${e.title} (${e.sections.where((element) => goldSectionMap[element]!).length} sections)"),
+                        children: e.sections.map((s) => Container(
+                          padding: const EdgeInsets.all(8),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                goldSectionMap[s] = !goldSectionMap[s]!;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
+                                const Padding(padding: EdgeInsets.all(8)),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("${s.enrollCode} - ${s.instructors.isNotEmpty && s.instructors.first.role == "Teaching and in charge" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
+                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )).toList(),
+                      )
+                    )).toList()
+                  ),
+                ),
+              ),
               Row(
                 children: [
                   Visibility(
-                    visible: state > 4,
+                    visible: state > 5,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(Icons.check_circle_rounded, color: SB_GREEN, size: 32),
                     ),
                   ),
                   Visibility(
-                    visible: state == 4,
+                    visible: state == 5,
                     child: const Padding(
                         padding: EdgeInsets.all(8),
                         child: Center(child: RefreshProgressIndicator())
                     ),
                   ),
                   Visibility(
-                    visible: state < 4,
+                    visible: state < 5,
                     child: const Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Icon(null, size: 32),
@@ -456,14 +526,14 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         "Saving schedule",
                         style: TextStyle(
                             fontSize: 16,
-                            color: state < 4 ? Theme.of(context).textTheme.caption!.color : Theme.of(context).textTheme.bodyText1!.color
+                            color: state < 4 ? Theme.of(context).textTheme.bodySmall!.color : Theme.of(context).textTheme.bodyLarge!.color
                         ),
                       )
                   )
                 ],
               ),
               Visibility(
-                visible: state == 5,
+                visible: state == 6,
                 child: Row(
                   children: [
                     Padding(
