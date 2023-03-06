@@ -7,8 +7,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/gold_course.dart';
+import 'package:storke_central/models/gold_course_time.dart';
 import 'package:storke_central/models/gold_section.dart';
 import 'package:storke_central/models/user_course.dart';
+import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -185,46 +187,56 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     setState(() {
       state = 3;
     });
-    userScheduleItems.clear();
     for (GoldCourse course in goldCourses) {
-      log("Generating schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      log("Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
         if (section.enrollCode == course.enrollCode || (section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge")) {
           log("[x] ${section.enrollCode} ${section.instructors.isNotEmpty && section.instructors.first.role == "Teaching and in charge" ? " (Instructor)" : ""}");
           goldSectionMap[section] = true;
-          // for (GoldCourseTime time in section.times) {
-          //   setState(() {
-          //     UserScheduleItem userScheduleItem = UserScheduleItem();
-          //     userScheduleItem.userID = currentUser.id;
-          //     userScheduleItem.courseID = section.enrollCode;
-          //     userScheduleItem.title = course.courseID;
-          //     userScheduleItem.description = "${course.title}\n${course.description}";
-          //     userScheduleItem.building = time.building;
-          //     userScheduleItem.room = time.room;
-          //     userScheduleItem.startTime = time.beginTime;
-          //     userScheduleItem.endTime = time.endTime;
-          //     userScheduleItem.days = time.days;
-          //     userScheduleItem.quarter = quarter;
-          //     userScheduleItems.add(userScheduleItem);
-          //   });
-          //   // log("Added ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
-          // }
         } else {
           log("[ ] ${section.enrollCode}");
           goldSectionMap[section] = false;
         }
       }
     }
-    log("Generated ${userScheduleItems.length} schedule items");
     setState(() => state = 4);
     // saveUserSchedule();
   }
 
-  Future<void> saveUserSchedule() async {
+  Future<void> saveUserSchedule(String quarter) async {
     try {
       setState(() {
         state = 5;
       });
+      // Generate userScheduleItems from goldCourses and goldSectionMap
+      userScheduleItems.clear();
+      for (GoldCourse course in goldCourses) {
+        log("Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+        for (GoldSection section in course.sections) {
+          if (goldSectionMap[section]!) {
+            for (GoldCourseTime time in section.times) {
+              setState(() {
+                UserScheduleItem userScheduleItem = UserScheduleItem();
+                userScheduleItem.userID = currentUser.id;
+                userScheduleItem.courseID = section.enrollCode;
+                userScheduleItem.title = course.courseID;
+                userScheduleItem.description = "${course.title}\n${course.description}";
+                userScheduleItem.building = time.building;
+                userScheduleItem.room = time.room;
+                userScheduleItem.startTime = time.beginTime;
+                userScheduleItem.endTime = time.endTime;
+                userScheduleItem.days = time.days;
+                userScheduleItem.quarter = quarter;
+                userScheduleItems.add(userScheduleItem);
+              });
+              log("+ ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
+            }
+          }
+        }
+      }
+      log("Generated ${userScheduleItems.length} schedule items");
+      log("Saving schedule to database...");
+
       await AuthService.getAuthToken();
       await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       await AuthService.getAuthToken();
@@ -459,42 +471,51 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   child: Text("Please confirm the courses we found for you.", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 ),
               ),
+              state == 4 ? Column(
+                children: goldCourses.map((e) => Card(
+                  child: ExpansionTile(
+                    title: Text("${e.title} (${e.sections.where((element) => goldSectionMap[element]!).length} sections)"),
+                    children: e.sections.map((s) => Container(
+                      padding: const EdgeInsets.all(8),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          setState(() {
+                            goldSectionMap[s] = !goldSectionMap[s]!;
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
+                            const Padding(padding: EdgeInsets.all(8)),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("${s.enrollCode} - ${s.instructors.isNotEmpty && s.instructors.first.role == "Teaching and in charge" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
+                                  Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )).toList(),
+                  )
+                )).toList()
+              ) : Container(),
               Visibility(
                 visible: state == 4,
                 child: Container(
-                  child: Column(
-                    children: goldCourses.map((e) => Card(
-                      child: ExpansionTile(
-                        title: Text("${e.title} (${e.sections.where((element) => goldSectionMap[element]!).length} sections)"),
-                        children: e.sections.map((s) => Container(
-                          padding: const EdgeInsets.all(8),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              setState(() {
-                                goldSectionMap[s] = !goldSectionMap[s]!;
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
-                                const Padding(padding: EdgeInsets.all(8)),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text("${s.enrollCode} - ${s.instructors.isNotEmpty && s.instructors.first.role == "Teaching and in charge" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                      // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
-                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )).toList(),
-                      )
-                    )).toList()
+                  width: MediaQuery.of(context).size.width,
+                  padding: const EdgeInsets.all(8),
+                  child: CupertinoButton(
+                    color: SB_NAVY,
+                    onPressed: () {
+                      saveUserSchedule(selectedQuarter.id);
+                    },
+                    child: const Text("Save Schedule", style: TextStyle(color: Colors.white),),
                   ),
                 ),
               ),
