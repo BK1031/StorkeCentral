@@ -106,13 +106,39 @@ func fetchDining() {
 			//fmt.Println("Close: " + closeDate.String())
 
 			meals = append(meals, model.Meal{
-				ID:             meal["diningCommonCode"].(string) + meal["mealCode"].(string) + "-" + meal["date"].(string),
-				Name:           meal["mealCode"].(string),
-				DiningHallCode: meal["diningCommonCode"].(string),
-				Open:           openDate.UTC(),
-				Close:          closeDate.UTC(),
+				ID:           meal["diningCommonCode"].(string) + "-" + meal["mealCode"].(string) + "-" + meal["date"].(string),
+				Name:         meal["mealCode"].(string),
+				DiningHallID: meal["diningCommonCode"].(string),
+				Open:         openDate.UTC(),
+				Close:        closeDate.UTC(),
 			})
 		}
 	}
+
+	for _, m := range meals {
+		queryDate := m.Open.Local().Format("2006-01-02")
+		resp, err = client.R().
+			EnableTrace().
+			SetHeader("ucsb-api-key", config.UcsbApiKey).
+			Get("https://api.ucsb.edu/dining/menu/v1/" + queryDate + "/" + m.DiningHallID + "/" + m.Name)
+		fmt.Println("Response Info:")
+		fmt.Println("  Error      :", err)
+		fmt.Println("  Status Code:", resp.StatusCode())
+		fmt.Println("  Time       :", resp.Time())
+		fmt.Println()
+
+		json.Unmarshal(resp.Body(), &result)
+		for _, item := range result {
+			m.MenuItems = append(m.MenuItems, model.MenuItem{
+				MealID:  m.ID,
+				Name:    item["name"].(string),
+				Station: item["station"].(string),
+			})
+			//fmt.Println(m.MenuItems[len(m.MenuItems)-1])
+		}
+		fmt.Println(m.MenuItems)
+	}
+
 	fmt.Println(meals)
+	fmt.Println(meals[1].MenuItems)
 }
