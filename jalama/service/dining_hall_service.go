@@ -39,7 +39,7 @@ func FetchAllDiningHalls() []model.DiningHall {
 	var responseMap []map[string]interface{}
 	json.Unmarshal(resp.Body(), &responseMap)
 	for _, hall := range responseMap {
-		hall := model.DiningHall{
+		diningHall := model.DiningHall{
 			ID:             hall["code"].(string),
 			Name:           hall["name"].(string),
 			HasSackMeal:    hall["hasSackMeal"].(bool),
@@ -49,8 +49,8 @@ func FetchAllDiningHalls() []model.DiningHall {
 			Longitude:      hall["location"].(map[string]interface{})["longitude"].(float64),
 		}
 		// Save dining hall to database
-		if DB.Where("id = ?", hall.ID).Updates(&hall).RowsAffected == 0 {
-			if result := DB.Create(&hall); result.Error != nil {
+		if DB.Where("id = ?", diningHall.ID).Updates(&diningHall).RowsAffected == 0 {
+			if result := DB.Create(&diningHall); result.Error != nil {
 			}
 		}
 	}

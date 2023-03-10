@@ -13,7 +13,11 @@ func GetAllDiningHalls(c *gin.Context) {
 
 func GetDiningHall(c *gin.Context) {
 	result := service.GetDiningHall(c.Param("diningHallID"))
-	c.JSON(http.StatusOK, result)
+	if result.ID == "" {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No dining hall found with given id: " + c.Param("diningHallID")})
+	} else {
+		c.JSON(http.StatusOK, result)
+	}
 }
 
 func FetchAllDiningHalls(c *gin.Context) {
