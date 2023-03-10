@@ -32,10 +32,12 @@ func main() {
 	service.InitializeFirebase()
 	service.ConnectDiscord()
 	service.RegisterRincon()
+	controller.RegisterMealCronJob()
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }
 
+// Testing function for pulling dining hall data, meal timings, menu items
 func fetchDining() {
 	client := resty.New()
 	resp, err := client.R().
