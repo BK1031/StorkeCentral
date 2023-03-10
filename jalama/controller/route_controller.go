@@ -11,6 +11,9 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/jalama/ping", Ping)
+	router.GET("/dining", GetAllDiningHalls)
+	router.GET("/dining/:diningHallID", GetDiningHall)
+	router.GET("/dining/fetch", FetchAllDiningHalls)
 }
 
 func RequestLogger() gin.HandlerFunc {

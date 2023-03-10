@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"jalama/config"
+	"jalama/model"
 	"os"
 	"time"
 
@@ -29,7 +30,7 @@ func InitializeDB() {
 		}
 	} else {
 		println("Connected to postgres database")
-		db.AutoMigrate()
+		db.AutoMigrate(&model.DiningHall{}, &model.Meal{}, &model.MenuItem{})
 		println("AutoMigration complete")
 		DB = db
 	}

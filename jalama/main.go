@@ -8,6 +8,7 @@ import (
 	"jalama/config"
 	"jalama/controller"
 	"jalama/model"
+	"jalama/service"
 	"strconv"
 	"strings"
 	"time"
@@ -26,14 +27,13 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	fetchDining()
-	//router = setupRouter()
-	//service.InitializeDB()
-	//service.InitializeFirebase()
-	//service.ConnectDiscord()
-	//service.RegisterRincon()
-	//controller.InitializeRoutes(router)
-	//router.Run(":" + config.Port)
+	router = setupRouter()
+	service.InitializeDB()
+	service.InitializeFirebase()
+	service.ConnectDiscord()
+	service.RegisterRincon()
+	controller.InitializeRoutes(router)
+	router.Run(":" + config.Port)
 }
 
 func fetchDining() {
