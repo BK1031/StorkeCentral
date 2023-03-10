@@ -2,11 +2,10 @@ package service
 
 import (
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"jalama/config"
 	"jalama/model"
 	"strconv"
-
-	"github.com/bwmarrin/discordgo"
 )
 
 var Discord *discordgo.Session
@@ -28,6 +27,11 @@ func ConnectDiscord() {
 func DiscordLogNewMeal(meal model.Meal) {
 	var embeds []*discordgo.MessageEmbed
 	var fields []*discordgo.MessageEmbedField
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Dining Hall",
+		Value:  meal.DiningHallID,
+		Inline: false,
+	})
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Time",
 		Value:  meal.Open.Local().Format("3:04 PM") + " - " + meal.Close.Local().Format("3:04 PM") + " (" + meal.Open.Local().Format("Mon Jan 02, 2006") + ")",
