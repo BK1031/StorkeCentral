@@ -138,5 +138,7 @@ func FetchMenuForMeal(mealID string) {
 			if result := DB.Create(&menuItem); result.Error != nil {
 			}
 		}
+		meal.MenuItems = append(meal.MenuItems, menuItem)
 	}
+	DiscordLogNewMeal(meal)
 }
