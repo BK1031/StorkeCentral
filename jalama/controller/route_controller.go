@@ -14,6 +14,7 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/dining", GetAllDiningHalls)
 	router.GET("/dining/:diningHallID", GetDiningHall)
 	router.GET("/dining/fetch", FetchAllDiningHalls)
+	router.GET("/dining/meals/:date/fetch", FetchAllMealsForDay)
 }
 
 func RequestLogger() gin.HandlerFunc {
