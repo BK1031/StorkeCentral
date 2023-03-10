@@ -132,7 +132,7 @@ services:
     depends_on:
       - db
       - rincon
-    build: ./tepusquet
+    build: ./arguello
     image: bk1031/sc_arguello
     ports:
       - "4006:4006"
@@ -172,6 +172,31 @@ services:
       DISCORD_CHANNEL: $MIRANDA_DISCORD_CHANNEL
       ONESIGNAL_APP_ID: $MIRANDA_ONESIGNAL_APP_ID
       ONESIGNAL_API_KEY: $MIRANDA_ONESIGNAL_API_KEY
+      STATUS_EMAIL: $MIRANDA_STATUS_EMAIL
+      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+
+  jalama:
+    container_name: jalama
+    depends_on:
+      - db
+      - rincon
+    build: ./jalama
+    image: bk1031/sc_jalama
+    ports:
+      - "4008:4008"
+    environment:
+      ENV: $ENV
+      PORT: $JALAMA_PORT
+      RINCON_PORT: $RINCON_PORT
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PORT: $POSTGRES_PORT
+      DISCORD_TOKEN: $JALAMA_DISCORD_TOKEN
+      DISCORD_GUILD: $JALAMA_DISCORD_GUILD
+      DISCORD_CHANNEL: $JALAMA_DISCORD_CHANNEL
+      UCSB_API_KEY: $UCSB_API_KEY
+      MEAL_UPDATE_DELAY: $JALAMA_MEAL_UPDATE_DELAY
       STATUS_EMAIL: $MIRANDA_STATUS_EMAIL
       FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
 
