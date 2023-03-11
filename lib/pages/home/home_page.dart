@@ -1,18 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:storke_central/models/dining_hall.dart';
-import 'package:storke_central/models/news_article.dart';
-import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
-import 'package:storke_central/utils/logger.dart';
-import 'package:storke_central/utils/theme.dart';
+import 'package:storke_central/utils/string_extension.dart';
+
+import '../../models/dining_hall.dart';
+import '../../models/dining_hall_meal.dart';
+import '../../models/news_article.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -27,84 +28,144 @@ class _HomePageState extends State<HomePage> {
   Position? position;
 
   @override
-  void setState(fn) {
-    if (mounted) {
-      super.setState(fn);
+  void initState() {
+    super.initState();
+    _determinePosition();
+    getDiningHalls();
+    getNewsHeadline();
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    positionStream?.cancel();
+  }
+
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Failed to retrieve location!",
+          text: "We were unable to retrieve device location. Please verify that Location Services are enabled for this app in System Settings."
+      );
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return CoolAlert.show(
+            context: context,
+            type: CoolAlertType.error,
+            title: "Failed to retrieve location!",
+            text: "We were unable to retrieve device location. Please verify that Location Services are enabled for this app in System Settings."
+        );
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Failed to retrieve location!",
+          text: "We were unable to retrieve device location. Please verify that Location Services are enabled for this app in System Settings."
+      );
+    }
+    positionStream = Geolocator.getPositionStream().listen((Position position) {
+      // print(position == null ? 'Unknown' : position.latitude.toString() + ', ' + position.longitude.toString());
+      if (mounted) {
+        setState(() {
+          this.position = position;
+        });
+      }
+    });
+  }
+
+  Future<void> getDiningHalls() async {
+    try {
+      http.get(Uri.parse("https://api.ucsb.edu/dining/commons/v1/"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
+        var diningHallJson = jsonDecode(value.body);
+        diningHallList.clear();
+        for (int i = 0; i < diningHallJson.length; i++) {
+          DiningHall diningHall = DiningHall.fromJson(diningHallJson[i]);
+          diningHall.distanceFromUser = Geolocator.distanceBetween(diningHall.latitude, diningHall.longitude, position!.latitude, position!.longitude);
+          print("Distance to ${diningHall.name}: ${diningHall.distanceFromUser} m");
+          setState(() {
+            diningHallList.add(diningHall);
+            diningHallList.sort((a, b) => a.distanceFromUser.compareTo(b.distanceFromUser));
+          });
+          http.get(Uri.parse("https://api.ucsb.edu/dining/commons/v1/hours/${DateFormat("yyyy-MM-dd").format(DateTime.now())}/${diningHall.code}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
+            var diningHallJson = jsonDecode(value.body);
+            for (int i = 0; i < diningHallJson.length; i++) {
+              if (diningHallJson[i]["open"] != null) {
+                DiningHallMeal meal = DiningHallMeal.fromJson(diningHallJson[i]);
+                diningHall.meals.add(meal);
+              }
+            }
+            setState(() {
+              diningHallList.firstWhere((element) => element.code == diningHall.code).status = getDiningHallStatus(diningHall);
+            });
+          });
+        }
+      });
+    } catch(e) {
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Failed to retrieve dining halls!",
+          text: e.toString()
+      );
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getNewsHeadline();
-    getDining();
+  String getDiningHallStatus(DiningHall diningHall) {
+    // Calculate dining hall status
+    for (int i = 0; i < diningHall.meals.length; i++) {
+      if (diningHall.meals[i].open.isAfter(DateTime.now())) {
+        return ("${diningHall.meals[i].mealCode.capitalize()} at ${DateFormat("jm").format(diningHall.meals[i].open)}");
+      }
+      else if (diningHall.meals[i].open.isBefore(DateTime.now()) && diningHall.meals[i].close.isAfter(DateTime.now())) {
+        return ("${diningHall.meals[i].mealCode.capitalize()} until ${DateFormat("jm").format(diningHall.meals[i].close)}");
+      }
+    }
+    // TODO: get next days breakfast
+    return "Closed Today";
   }
 
   Future<void> getNewsHeadline() async {
-    if (!offlineMode) {
-      try {
-        if (headlineArticle.id == "" || DateTime.now().difference(lastHeadlineArticleFetch).inMinutes > 60) {
-          await AuthService.getAuthToken();
-          var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
-          setState(() {
-            headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
-          });
-          lastHeadlineArticleFetch = DateTime.now();
-        } else {
-          log("Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 60 minutes)");
-        }
-      } catch(e) {
-        log(e.toString(), LogLevel.error);
-        // TODO: show error snackbar
-      }
-    } else {
-      log("Offline mode, searching cache for news...");
-    }
-  }
-
-  Future<void> getDining() async {
-    if (!offlineMode) {
-      try {
-        await Future.delayed(const Duration(milliseconds: 100));
-        diningHallList.clear();
-        setState(() {
-            diningHallList.add(DiningHall.fromJson({
-              'name': "Dining Hall 1",
-              'code': "carrillo",
-              'hasSackMeal': false,
-              'hasTakeOut': false,
-              'hasDiningCam': true,
-              'location': {'latitude': 0.0, 'longitude': 0.0}
-            }));
-            diningHallList.add(DiningHall.fromJson({
-              'name': "Dining Hall 2",
-              'code': "de-la-guerra",
-              'hasSackMeal': false,
-              'hasTakeOut': false,
-              'hasDiningCam': true,
-              'location': {'latitude': 0.0, 'longitude': 0.0}
-            }));
-            diningHallList.add(DiningHall.fromJson({
-              'name': "Dining Hall 3",
-              'code': "portola",
-              'hasSackMeal': false,
-              'hasTakeOut': false,
-              'hasDiningCam': true,
-              'location': {'latitude': 0.0, 'longitude': 0.0}
-            }));
+    try {
+      await Future.delayed(const Duration(milliseconds: 100));
+      setState(() {
+        selectedArticle = NewsArticle.fromJson({
+          "id": "id",
+          "title": "Munger Hall’s Architectural Consultant Resigns in Protest of Its Construction",
+          'by_line': "Asumi Shuda",
+          "excerpt": "excerpt",
+          'picture_url': "https://dailynexus.s3.us-west-1.amazonaws.com/dailynexus/wp-content/uploads/2021/10/27175455/uc-santa-barbara-munger-hall-exterior___CourtesyofUCSBCurrent-1-430x330.jpg",
+          'date': "2021-10-28",
+          "article_url": "articleUrl",
+          "created_at": DateTime.now().toIso8601String(),
         });
-      } catch(e) {
-        log(e.toString(), LogLevel.error);
-        // TODO: show error snackbar
-      }
-    } else {
-      log("Offline mode, searching cache for dining...");
+      });
+    } catch(e) {
+      CoolAlert.show(
+          context: context,
+          type: CoolAlertType.error,
+          title: "Failed to retrieve news headlines!",
+          text: e.toString()
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Home", style: TextStyle(fontWeight: FontWeight.bold),),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -123,12 +184,12 @@ class _HomePageState extends State<HomePage> {
                           borderRadius: const BorderRadius.all(Radius.circular(8)),
                           child: Stack(
                             children: [
-                              headlineArticle.pictureUrl != "" ? ExtendedImage.network(
-                                headlineArticle.pictureUrl,
+                              ExtendedImage.network(
+                                selectedArticle.pictureUrl,
                                 fit: BoxFit.cover,
                                 height: 175,
                                 width: MediaQuery.of(context).size.width,
-                              ) : Container(color: Colors.black.withOpacity(0.8)),
+                              ),
                               Container(
                                 color: Colors.black.withOpacity(0.4),
                                 padding: const EdgeInsets.all(8),
@@ -142,14 +203,11 @@ class _HomePageState extends State<HomePage> {
                                           "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
                                           height: 35,
                                         ),
-                                        const Padding(padding: EdgeInsets.all(4)),
-                                        Text(
-                                          "NEWS | ${DateFormat("MMMM d, yyyy").format(DateTime.now())}",
-                                          style: const TextStyle(color: Colors.white, fontSize: 17)
-                                        ),
+                                        Padding(padding: EdgeInsets.all(4)),
+                                        Text("NEWS | ${selectedArticle.date}", style: const TextStyle(color: Colors.white, fontSize: 17)),
                                       ],
                                     ),
-                                    Text(utf8.decode(headlineArticle.title.codeUnits), style: const TextStyle(color: Colors.white, fontSize: 20)),
+                                    Text(selectedArticle.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
                                   ],
                                 ),
                               ),
@@ -160,7 +218,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                    padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: const [
                         Icon(Icons.fastfood),
@@ -188,24 +246,24 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   child: Stack(
                                     children: [
-                                      // Hero(
-                                      //   tag: diningHallList[i].code,
-                                      //   child: Image.asset(
-                                      //     "images/${diningHallList[i].code}.jpeg",
-                                      //     fit: BoxFit.cover,
-                                      //     height: 150,
-                                      //     width: 150,
-                                      //   ),
-                                      // ),
+                                      Hero(
+                                        tag: diningHallList[i].code,
+                                        child: Image.asset(
+                                          "images/${diningHallList[i].code}.jpeg",
+                                          fit: BoxFit.cover,
+                                          height: 150,
+                                          width: 150,
+                                        ),
+                                      ),
                                       Container(
                                         height: 350.0,
                                         decoration: BoxDecoration(
+                                            color: Colors.white,
                                             gradient: LinearGradient(
                                                 begin: FractionalOffset.topCenter,
                                                 end: FractionalOffset.bottomCenter,
                                                 colors: [
-                                                  Colors.grey.withOpacity(1.0),
-                                                  // Colors.grey.withOpacity(0.0),
+                                                  Colors.grey.withOpacity(0.0),
                                                   Colors.black,
                                                 ],
                                                 stops: const [0, 1]
@@ -249,12 +307,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Visibility(
-            // visible: true,
-            visible: (DateTime.now().hour > 17 || DateTime.now().hour < 3) && (DateTime.now().weekday == 5 || DateTime.now().weekday == 6),
+            visible: DateTime.now().hour > 17 && DateTime.now().weekday == 5 || DateTime.now().weekday == 6,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Card(
-                color: SB_RED,
+                color: Colors.redAccent,
                 child: InkWell(
                   onTap: () => router.navigateTo(context, "/overdose-response", transition: TransitionType.native),
                   child: Container(
