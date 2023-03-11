@@ -10,7 +10,9 @@ The main reason for this rewrite was to develop backend services to support user
 
 Development of the backend took priority for winter and most of spring quarter in 2022. Once the 3 main microservices were completed (montecito, lacumbre, rincon), frontend development began once agian. It was decided to do a full rewrite of the existing codebase for a couple reasons. The biggest one was the release of Flutter 3.0 at the end of March 2021.
 
-Over the course of summer 2021, development of the new frontend went into full swing, and the rest, as they say is history (main branch lol). 
+Over the course of summer 2021, development of the new frontend went into full swing, and the rest, as they say is history (viewable on the main branch lol).
+
+Since a brand new repository was created for the rewrite, all the old commit history is gone. So this branch was created by just overwriting all the files with those from the original project backup (hence why theres 243 commits with the last 3 being deleting a bunch of stuff lol). 
 
 Beta Testers:
 - Neel Tripathi
