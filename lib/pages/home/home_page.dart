@@ -66,32 +66,11 @@ class _HomePageState extends State<HomePage> {
     if (!offlineMode) {
       try {
         await Future.delayed(const Duration(milliseconds: 100));
-        diningHallList.clear();
-        setState(() {
-            diningHallList.add(DiningHall.fromJson({
-              'name': "Dining Hall 1",
-              'code': "carrillo",
-              'hasSackMeal': false,
-              'hasTakeOut': false,
-              'hasDiningCam': true,
-              'location': {'latitude': 0.0, 'longitude': 0.0}
-            }));
-            diningHallList.add(DiningHall.fromJson({
-              'name': "Dining Hall 2",
-              'code': "de-la-guerra",
-              'hasSackMeal': false,
-              'hasTakeOut': false,
-              'hasDiningCam': true,
-              'location': {'latitude': 0.0, 'longitude': 0.0}
-            }));
-            diningHallList.add(DiningHall.fromJson({
-              'name': "Dining Hall 3",
-              'code': "portola",
-              'hasSackMeal': false,
-              'hasTakeOut': false,
-              'hasDiningCam': true,
-              'location': {'latitude': 0.0, 'longitude': 0.0}
-            }));
+        await http.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          setState(() {
+            diningHallList = jsonDecode(value.body)["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
+          });
+          lastBuildingFetch = DateTime.now();
         });
       } catch(e) {
         log(e.toString(), LogLevel.error);
@@ -188,15 +167,15 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   child: Stack(
                                     children: [
-                                      // Hero(
-                                      //   tag: diningHallList[i].code,
-                                      //   child: Image.asset(
-                                      //     "images/${diningHallList[i].code}.jpeg",
-                                      //     fit: BoxFit.cover,
-                                      //     height: 150,
-                                      //     width: 150,
-                                      //   ),
-                                      // ),
+                                      Hero(
+                                        tag: diningHallList[i].code,
+                                        child: Image.asset(
+                                          "images/${diningHallList[i].code}.jpeg",
+                                          fit: BoxFit.cover,
+                                          height: 150,
+                                          width: 150,
+                                        ),
+                                      ),
                                       Container(
                                         height: 350.0,
                                         decoration: BoxDecoration(

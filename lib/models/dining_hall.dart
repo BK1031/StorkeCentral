@@ -9,12 +9,20 @@ class DiningHall {
   double latitude = 0.0;
   double longitude = 0.0;
 
+  String pictureUrl = "";
   double distanceFromUser = 0.0;
   String status = "Loading...";
 
   List<DiningHallMeal> meals = [];
 
   DiningHall();
+
+  pictureFromId(String id) {
+    if (id == "carrillo") return "images/carrillo.jpeg";
+    else if (id == "de-la-guerra") return "images/de-la-guerra.jpeg";
+    else if (id == "ortega") return "images/ortega.jpeg";
+    else if (id == "portola") return "images/portola.jpeg";
+  }
 
   DiningHall.fromJson(Map<String, dynamic> json) {
     name = json["name"] ?? "";
