@@ -8,10 +8,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
+import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
+import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,9 +24,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-  StreamSubscription<Position>? positionStream;
-  Position? position;
 
   @override
   void setState(fn) {
@@ -69,8 +68,15 @@ class _HomePageState extends State<HomePage> {
         await http.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             diningHallList = jsonDecode(value.body)["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
+            for (int i = 0; i < diningHallList.length; i++) {
+              diningHallList[i].distanceFromUser = Geolocator.distanceBetween(diningHallList[i].latitude, diningHallList[i].longitude, currentPosition!.latitude, currentPosition!.longitude);
+            }
           });
-          lastBuildingFetch = DateTime.now();
+        });
+        getDiningMenus().then((_) {
+          for (int i = 0; i < diningHallList.length; i++) {
+            diningHallList[i].status = getDiningStatus(diningHallList[i].id);
+          }
         });
       } catch(e) {
         log(e.toString(), LogLevel.error);
@@ -79,6 +85,44 @@ class _HomePageState extends State<HomePage> {
     } else {
       log("Offline mode, searching cache for dining...");
     }
+  }
+
+  Future<void> getDiningMenus() async {
+    // DateTime queryDate = DateTime.now();
+    DateTime queryDate = DateTime.parse("2023-03-23 08:00:00.000");
+    if (!offlineMode) {
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        await http.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          setState(() {
+            diningMealList = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
+          });
+        });
+      } catch(e) {
+        log(e.toString(), LogLevel.error);
+        // TODO: show error snackbar
+      }
+    } else {
+      log("Offline mode, searching cache for dining...");
+    }
+  }
+
+  String getDiningStatus(String diningHallID) {
+    // DateTime now = DateTime.now();
+    DateTime now = DateTime.parse("2023-03-23 08:00:00.000");
+    List<DiningHallMeal> meals = diningMealList.where((element) => element.diningHallID == diningHallID).toList();
+    meals.sort((a, b) => a.open.compareTo(b.open));
+    log("Current Time: $now - ${now.timeZoneName}");
+    for (int j = 0; j < meals.length; j++) {
+      log("${meals[j].name} from ${DateFormat("MM/dd h:mm a").format(meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(meals[j].close.toLocal())}");
+      if (now.isBefore(meals[j].open.toLocal())) {
+        return "${meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(meals[j].open.toLocal())}";
+      } else if (now.isAfter(meals[j].open.toLocal()) && now.isBefore(meals[j].close.toLocal())) {
+        return "${meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(meals[j].close.toLocal())}";
+      }
+    }
+    // TODO: Get next days breakfast
+    return "Closed Today";
   }
 
   @override
@@ -161,16 +205,16 @@ class _HomePageState extends State<HomePage> {
                               child: GestureDetector(
                                 onTap: () {
                                   selectedDiningHall = diningHallList[i];
-                                  router.navigateTo(context, "/dining/${diningHallList[i].code}", transition: TransitionType.native);
+                                  router.navigateTo(context, "/dining/${diningHallList[i].id}", transition: TransitionType.native);
                                 },
                                 child: ClipRRect(
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   child: Stack(
                                     children: [
                                       Hero(
-                                        tag: diningHallList[i].code,
+                                        tag: diningHallList[i].id,
                                         child: Image.asset(
-                                          "images/${diningHallList[i].code}.jpeg",
+                                          "images/${diningHallList[i].id}.jpeg",
                                           fit: BoxFit.cover,
                                           height: 150,
                                           width: 150,
@@ -183,8 +227,8 @@ class _HomePageState extends State<HomePage> {
                                                 begin: FractionalOffset.topCenter,
                                                 end: FractionalOffset.bottomCenter,
                                                 colors: [
-                                                  Colors.grey.withOpacity(1.0),
-                                                  // Colors.grey.withOpacity(0.0),
+                                                  // Colors.grey.withOpacity(1.0),
+                                                  Colors.grey.withOpacity(0.0),
                                                   Colors.black,
                                                 ],
                                                 stops: const [0, 1]
@@ -205,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                                                       child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white),)
                                                   ),
                                                 ),
-                                                Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} m", style: const TextStyle(color: Colors.white, fontSize: 12),)
+                                                Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)
                                               ],
                                             ),
                                             Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)

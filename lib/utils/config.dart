@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/dining_hall.dart';
+import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
@@ -48,6 +49,7 @@ List<sc.Notification> notifications = [];
 Position? currentPosition;
 
 List<DiningHall> diningHallList = [];
+List<DiningHallMeal> diningMealList = [];
 DiningHall selectedDiningHall = DiningHall();
 
 NewsArticle headlineArticle = NewsArticle();

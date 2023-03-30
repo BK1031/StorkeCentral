@@ -1,40 +1,56 @@
 import 'dining_hall_menu_item.dart';
-import 'package:intl/intl.dart';
 
 class DiningHallMeal {
-  String diningCommonCode = "";
-  String mealCode = "";
-  DateTime date = DateTime.now();
-  DateTime open = DateTime.now();
-  DateTime close = DateTime.now();
+  String id = "";
+  String name = "";
+  String diningHallID = "";
+  DateTime open = DateTime.now().toUtc();
+  DateTime close = DateTime.now().toUtc();
+  DateTime createdAt = DateTime.now().toUtc();
 
   List<DiningHallMenuItem> menuItems = [];
 
   DiningHallMeal();
 
   DiningHallMeal.fromJson(Map<String, dynamic> json) {
-    diningCommonCode = json["diningCommonCode"] ?? "";
-    mealCode = json["mealCode"] ?? "";
-    date = DateTime.tryParse(json["date"]) ?? DateTime.now();
-    open = DateTime.tryParse("${json["date"]} ${json["open"].toString().contains("AM") ? (int.parse(json["open"].toString().split(" AM")[0].toString().split(":")[0]) < 10 ? ("0" + json["open"].toString().split(" AM")[0]) : json["open"].toString().split(" AM")[0]) : (int.parse(json["open"].toString().split(" PM")[0].split(":")[0]) + 12).toString() + json["open"].toString().split(" PM")[0].split(":")[1]}:00") ?? DateTime.now();
-    close = DateTime.tryParse("${json["date"]} ${json["close"].toString().contains("AM") ? (int.parse(json["close"].toString().split(" AM")[0].toString().split(":")[0]) < 10 ? ("0" + json["close"].toString().split(" AM")[0]) : json["close"].toString().split(" AM")[0]) : (int.parse(json["close"].toString().split(" PM")[0].split(":")[0]) + 12).toString() + json["close"].toString().split(" PM")[0].split(":")[1]}:00") ?? DateTime.now();
+    id = json["id"] ?? "";
+    name = json["name"] ?? "";
+    diningHallID = json["dining_hall_id"] ?? "";
+    open = DateTime.tryParse(json["open"]) ?? DateTime.now().toUtc();
+    close = DateTime.tryParse(json["close"]) ?? DateTime.now().toUtc();
+    for (int i = 0; i < json["menu_items"].length; i++) {
+      menuItems.add(DiningHallMenuItem.fromJson(json["menu_items"][i]));
+    }
+    createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
 
   Map<String, dynamic> toJson() => {
-    'diningCommonCode': diningCommonCode,
-    'mealCode': mealCode,
-    'date': DateFormat("yyyy-MM-dd").format(date),
-    'open': DateFormat("jm").format(open),
-    'close': DateFormat("jm").format(close),
+    'id': id,
+    'name': name,
+    'dining_hall_id': diningHallID,
+    "open": open.toIso8601String(),
+    "close": close.toIso8601String(),
+    "created_at": createdAt.toIso8601String()
   };
 }
 
 /*
 {
-    "diningCommonCode": "carrillo",
-    "mealCode": "breakfast",
-    "date": "2021-09-27",
-    "open": "7:15 AM",
-    "close": "10:00 AM"
-}
+  "id": "portola-lunch-2023-03-23",
+  "name": "lunch",
+  "dining_hall_id": "portola",
+  "open": "2023-03-23T11:00:00Z",
+  "close": "2023-03-23T15:00:00Z",
+  "menu_items": [
+    {
+      "meal_id": "portola-lunch-2023-03-23",
+      "name": "Strawberry Salad w/Poppyseed Dressing (v",
+      "station": "Greens \u0026 Grains",
+      "created_at": "2023-03-22T05:09:30.053008Z"
+    },
+    ...
+  ],
+  "created_at": "2023-03-22T05:09:29.741477Z"
+},
+
  */

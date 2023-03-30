@@ -1,13 +1,14 @@
 import 'dining_hall_meal.dart';
 
 class DiningHall {
+  String id = "";
   String name = "";
-  String code = "";
   bool hasSackMeal = false;
   bool hasTakeOut = false;
   bool hasDiningCam = false;
   double latitude = 0.0;
   double longitude = 0.0;
+  DateTime createdAt = DateTime.now().toUtc();
 
   String pictureUrl = "";
   double distanceFromUser = 0.0;
@@ -25,23 +26,25 @@ class DiningHall {
   }
 
   DiningHall.fromJson(Map<String, dynamic> json) {
+    id = json["id"] ?? "";
     name = json["name"] ?? "";
-    code = json["code"] ?? "";
     hasSackMeal = json["hasSackMeal"] ?? false;
     hasTakeOut = json["hasTakeOut"] ?? false;
     hasDiningCam = json["hasDiningCam"] ?? false;
-    latitude = json["location"]["latitude"] ?? 0.0;
-    longitude = json["location"]["longitude"] ?? 0.0;
+    latitude = json["latitude"] ?? 0.0;
+    longitude = json["longitude"] ?? 0.0;
+    createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
-    'code': code,
     'hasSackMeal': hasSackMeal,
     'hasTakeOut': hasTakeOut,
     'hasDiningCam': hasDiningCam,
     'latitude': latitude,
     'longitude': longitude,
+    "created_at": createdAt.toIso8601String()
   };
 }
 
