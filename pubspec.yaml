@@ -48,6 +48,7 @@ dependencies:
   shared_preferences: ^2.0.15
   percent_indicator: ^4.2.2
   timeago: 3.3.0
+  grouped_list: ^5.1.2
   progress_indicators: ^1.0.0
   connectivity_plus: ^2.1.0
   localstorage: ^4.0.0+1

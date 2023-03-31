@@ -88,8 +88,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> getDiningMenus() async {
-    // DateTime queryDate = DateTime.now();
-    DateTime queryDate = DateTime.parse("2023-03-23 08:00:00.000");
+    DateTime queryDate = DateTime.now();
+    // DateTime queryDate = DateTime.parse("2023-03-23 08:00:00.000");
     if (!offlineMode) {
       try {
         await Future.delayed(const Duration(milliseconds: 100));
@@ -108,8 +108,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   String getDiningStatus(String diningHallID) {
-    // DateTime now = DateTime.now();
-    DateTime now = DateTime.parse("2023-03-23 08:00:00.000");
+    DateTime now = DateTime.now();
+    // DateTime now = DateTime.parse("2023-03-23 11:00:00.100");
     List<DiningHallMeal> meals = diningMealList.where((element) => element.diningHallID == diningHallID).toList();
     meals.sort((a, b) => a.open.compareTo(b.open));
     log("Current Time: $now - ${now.timeZoneName}");
@@ -212,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                                   child: Stack(
                                     children: [
                                       Hero(
-                                        tag: diningHallList[i].id,
+                                        tag: "${diningHallList[i].id}-image",
                                         child: Image.asset(
                                           "images/${diningHallList[i].id}.jpeg",
                                           fit: BoxFit.cover,
@@ -245,8 +245,11 @@ class _HomePageState extends State<HomePage> {
                                               children: [
                                                 Expanded(
                                                   child: Hero(
-                                                      tag: diningHallList[i].name,
-                                                      child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white),)
+                                                      tag: "${diningHallList[i].id}-title",
+                                                      child: Material(
+                                                        color: Colors.transparent,
+                                                        child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white))
+                                                      )
                                                   ),
                                                 ),
                                                 Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)

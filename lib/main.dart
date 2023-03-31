@@ -9,6 +9,7 @@ import 'package:storke_central/pages/auth/auth_checker_page.dart';
 import 'package:storke_central/pages/auth/register_page.dart';
 import 'package:storke_central/pages/auth/server_status_page.dart';
 import 'package:storke_central/pages/developer/logger_page.dart';
+import 'package:storke_central/pages/home/dining/dining_hall_page.dart';
 import 'package:storke_central/pages/maps/building_details_page.dart';
 import 'package:storke_central/pages/notification_page.dart';
 import 'package:storke_central/pages/onboarding_page.dart';
@@ -73,6 +74,10 @@ Future<void> main() async {
   }));
   router.define("/notifications", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const NotificationPage();
+  }));
+
+  router.define("/dining/:diningHallID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return DiningHallPage(diningHallID: params!["diningHallID"][0]);
   }));
 
   router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
