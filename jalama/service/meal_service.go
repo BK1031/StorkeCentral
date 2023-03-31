@@ -3,7 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 	"jalama/config"
 	"jalama/model"
 	"strconv"
@@ -75,6 +75,7 @@ func FetchAllMealsForDay(date string) []model.Meal {
 				hour += 12
 			}
 			openDate := currentTime.Add(time.Hour*time.Duration(hour) + time.Minute*time.Duration(minute))
+			openDateUTC := openDate.UTC()
 
 			closeTime := meal["close"].(string)
 			closeTimeSegments := strings.Split(closeTime, " ")
@@ -86,13 +87,14 @@ func FetchAllMealsForDay(date string) []model.Meal {
 				hour += 12
 			}
 			closeDate := currentTime.Add(time.Hour*time.Duration(hour) + time.Minute*time.Duration(minute))
+			closeDateUTC := closeDate.UTC()
 
 			diningMeal := model.Meal{
 				ID:           meal["diningCommonCode"].(string) + "-" + meal["mealCode"].(string) + "-" + meal["date"].(string),
 				Name:         meal["mealCode"].(string),
 				DiningHallID: meal["diningCommonCode"].(string),
-				Open:         openDate.UTC(),
-				Close:        closeDate.UTC(),
+				Open:         openDateUTC,
+				Close:        closeDateUTC,
 			}
 			// Save dining meal to database
 			if DB.Where("id = ?", diningMeal.ID).Updates(&diningMeal).RowsAffected == 0 {
