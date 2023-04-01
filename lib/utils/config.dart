@@ -75,7 +75,7 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = winter23;
+Quarter currentQuarter = spring23;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [fall22, winter23, spring23];
 
