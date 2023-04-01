@@ -151,7 +151,8 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                   ],
                 ),
               ),
-            )
+            ),
+            const Padding(padding: EdgeInsets.all(48)),
           ],
         ),
       ),
