@@ -82,7 +82,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng((scheduleBuildings.first.latitude + scheduleBuildings.last.latitude) / 2, (scheduleBuildings.first.longitude + scheduleBuildings.last.longitude) / 2),
-          zoom: Geolocator.distanceBetween(scheduleBuildings.first.latitude, scheduleBuildings.first.longitude, scheduleBuildings.last.latitude, scheduleBuildings.last.longitude) < 500 ? 15 : 14,
+          zoom: Geolocator.distanceBetween(scheduleBuildings.first.latitude, scheduleBuildings.first.longitude, scheduleBuildings.last.latitude, scheduleBuildings.last.longitude) < 400 ? 15.5 : 14,
         ),
       ),
     );

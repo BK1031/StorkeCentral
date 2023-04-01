@@ -18,7 +18,7 @@ import 'package:storke_central/utils/syncfusion_meeting.dart';
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
-Version appVersion = Version("2.3.3+1");
+Version appVersion = Version("2.4.0+1");
 
 // ignore: non_constant_identifier_names
 String API_HOST = "https://api.storkecentr.al";
