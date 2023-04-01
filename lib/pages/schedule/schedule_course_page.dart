@@ -82,7 +82,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng((scheduleBuildings.first.latitude + scheduleBuildings.last.latitude) / 2, (scheduleBuildings.first.longitude + scheduleBuildings.last.longitude) / 2),
-          zoom: Geolocator.distanceBetween(scheduleBuildings.first.latitude, scheduleBuildings.first.longitude, scheduleBuildings.last.latitude, scheduleBuildings.last.longitude) < 500 ? 16 : 14,
+          zoom: Geolocator.distanceBetween(scheduleBuildings.first.latitude, scheduleBuildings.first.longitude, scheduleBuildings.last.latitude, scheduleBuildings.last.longitude) < 500 ? 15 : 14,
         ),
       ),
     );
@@ -111,6 +111,17 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
     if (days.contains("R")) daysList.add("Thursday");
     if (days.contains("F")) daysList.add("Friday");
     return daysList;
+  }
+
+  String to12HourTime(String time) {
+    int hour = int.parse(time.split(":")[0]);
+    int minute = int.parse(time.split(":")[1]);
+    String ampm = "AM";
+    if (hour > 12) {
+      hour -= 12;
+      ampm = "PM";
+    }
+    return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
   }
 
   void _onMapCreated(MapboxMapController controller) {
@@ -166,7 +177,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("${scheduleItems.indexOf(e) == 0 ? "Lecture" : "Section"} (${e.startTime} - ${e.endTime})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                Text("${scheduleItems.indexOf(e) == 0 ? "Lecture" : "Section"} (${to12HourTime(e.startTime)} - ${to12HourTime(e.endTime)})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                 Text("${scheduleBuildings[scheduleItems.indexOf(e)].name} ${e.room}", style: TextStyle(color: SB_NAVY)),
                                 Text(getListFromDayString(e.days).join(", "), style: const TextStyle()),
                               ],
