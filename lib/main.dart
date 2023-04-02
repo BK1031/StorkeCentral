@@ -2,6 +2,7 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -127,7 +128,7 @@ Future<void> main() async {
     initial: AdaptiveThemeMode.light,
     builder: (theme, darkTheme) => MaterialApp(
       title: "StorkeCentral",
-      initialRoute: "/check-auth",
+      initialRoute: kIsWeb ? "/" : "/check-auth",
       onGenerateRoute: router.generator,
       theme: theme,
       darkTheme: darkTheme,

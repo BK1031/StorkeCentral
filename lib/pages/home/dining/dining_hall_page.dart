@@ -24,7 +24,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
 
   String diningHallID = "";
   String selectedMeal = "breakfast";
-  PageController _controller = PageController();
+  final PageController _controller = PageController();
   int currPage = 0;
   bool loading = false;
 
@@ -86,16 +86,20 @@ class _DiningHallPageState extends State<DiningHallPage> {
     for (int j = 0; j < selectedDiningHall.meals.length; j++) {
       log("${selectedDiningHall.meals[j].name} from ${DateFormat("MM/dd h:mm a").format(selectedDiningHall.meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}");
       if (now.isBefore(selectedDiningHall.meals[j].open.toLocal())) {
-        setState(() {
-          selectedMeal = selectedDiningHall.meals[j].name;
+        Future.delayed(const Duration(milliseconds: 100), () {
+          setState(() {
+            selectedMeal = selectedDiningHall.meals[j].name;
+          });
+          _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         });
-        _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         return "${selectedDiningHall.meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].open.toLocal())}";
       } else if (now.isAfter(selectedDiningHall.meals[j].open.toLocal()) && now.isBefore(selectedDiningHall.meals[j].close.toLocal())) {
-        setState(() {
-          selectedMeal = selectedDiningHall.meals[j].name;
+        Future.delayed(const Duration(milliseconds: 100), () {
+          setState(() {
+            selectedMeal = selectedDiningHall.meals[j].name;
+          });
+          _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         });
-        _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         return "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
       }
     }
@@ -160,103 +164,100 @@ class _DiningHallPageState extends State<DiningHallPage> {
               ),
             ],
           ),
+          Container(
+            padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+            child: Card(
+              child: Row(
+                  children: selectedDiningHall.meals.map((e) => Expanded(
+                    child: CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      color: selectedMeal == e.name ? SB_NAVY : null,
+                      onPressed: () {
+                        setState(() {
+                          selectedMeal = e.name;
+                        });
+                        _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                      },
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(e.name.capitalize(), style: TextStyle(color: selectedMeal == e.name ? Colors.white : Theme.of(context).textTheme.labelLarge!.color)),
+                          Text("${DateFormat("jm").format(e.open.toLocal())} - ${DateFormat("jm").format(e.close.toLocal())}", style: TextStyle(fontSize: 13, color: selectedMeal == e.name ? Colors.white : SB_NAVY)),
+                        ],
+                      ),
+                    ),
+                  )).toList()
+              ),
+            ),
+          ),
           Expanded(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 0.0, left: 8.0, right: 8.0),
-                  child: loading ? Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Center(
-                          child: RefreshProgressIndicator(
-                              color: Colors.white,
-                              backgroundColor: SB_NAVY
-                          )
+            child: Padding(
+              padding: const EdgeInsets.only(top: 0.0, left: 8.0, right: 8.0),
+              child: loading ? Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
+                      child: RefreshProgressIndicator(
+                          color: Colors.white,
+                          backgroundColor: SB_NAVY
                       )
-                  ) : selectedDiningHall.meals.isEmpty ? Container(
-                    height: 300,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        width: 250,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.no_food_rounded, size: 65, color: Theme.of(context).textTheme.caption!.color,),
-                            const Padding(padding: EdgeInsets.all(4),),
-                            const Text(
-                              "No Menu Found",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Padding(padding: EdgeInsets.all(4),),
-                            Text(
-                                "We couldn't find a menu listed for this dining hall today, ${selectedDiningHall.name} may be closed today."
-                            ),
-                            const Padding(padding: EdgeInsets.all(8),),
-                          ],
+                  )
+              ) : selectedDiningHall.meals.isEmpty ? Container(
+                height: 300,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    width: 250,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.no_food_rounded, size: 65, color: Theme.of(context).textTheme.caption!.color,),
+                        const Padding(padding: EdgeInsets.all(4),),
+                        const Text(
+                          "No Menu Found",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                      ),
-                    )
-                  ) : PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: _controller,
-                    children: selectedDiningHall.meals.map((e) => GroupedListView<dynamic, String>(
-                      elements: e.menuItems,
-                      groupBy: (element) => element.station,
-                      groupSeparatorBuilder: (String groupByValue) => Card(
-                        color: SB_NAVY,
-                        child: Container(
-                          height: 35,
-                          padding: const EdgeInsets.all(8),
-                          child: Center(child: Text(groupByValue, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)))
-                        )
-                      ),
-                      itemBuilder: (context, dynamic element) => Card(
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.fastfood_rounded),
-                              const Padding(padding: EdgeInsets.all(4)),
-                              Text(element.name, style: const TextStyle(fontSize: 16)),
-                            ],
-                          ),
-                        )
-                      ),
-                      // itemComparator: (item1, item2) => item1['name'].compareTo(item2['name']), // optional
-                      useStickyGroupSeparators: false, // optional
-                      floatingHeader: true, // optional
-                      order: GroupedListOrder.ASC, // optional
-                    )).toList(),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
-                  child: Card(
-                    child: Row(
-                      children: selectedDiningHall.meals.map((e) => Expanded(
-                        child: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          color: selectedMeal == e.name ? SB_NAVY : null,
-                          onPressed: () {
-                            setState(() {
-                              selectedMeal = e.name;
-                            });
-                            _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(e.name.capitalize(), style: TextStyle(color: selectedMeal == e.name ? Colors.white : Theme.of(context).textTheme.labelLarge!.color)),
-                              Text("${DateFormat("jm").format(e.open.toLocal())} - ${DateFormat("jm").format(e.close.toLocal())}", style: TextStyle(fontSize: 13, color: selectedMeal == e.name ? Colors.white : SB_NAVY)),
-                            ],
-                          ),
+                        const Padding(padding: EdgeInsets.all(4),),
+                        Text(
+                            "We couldn't find a menu listed for this dining hall today, ${selectedDiningHall.name} may be closed today."
                         ),
-                      )).toList()
+                        const Padding(padding: EdgeInsets.all(8),),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                )
+              ) : PageView(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: _controller,
+                children: selectedDiningHall.meals.map((e) => GroupedListView<dynamic, String>(
+                  padding: EdgeInsets.zero,
+                  elements: e.menuItems,
+                  groupBy: (element) => element.station,
+                  groupSeparatorBuilder: (String groupByValue) => Card(
+                    color: SB_NAVY,
+                    child: Container(
+                      height: 35,
+                      padding: const EdgeInsets.all(8),
+                      child: Center(child: Text(groupByValue, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)))
+                    )
+                  ),
+                  itemBuilder: (context, dynamic element) => Card(
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.fastfood_rounded),
+                          const Padding(padding: EdgeInsets.all(4)),
+                          Text(element.name, style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                    )
+                  ),
+                  // itemComparator: (item1, item2) => item1['name'].compareTo(item2['name']), // optional
+                  useStickyGroupSeparators: false, // optional
+                  floatingHeader: true, // optional
+                  order: GroupedListOrder.ASC, // optional
+                )).toList(),
+              ),
             ),
           ),
         ],
