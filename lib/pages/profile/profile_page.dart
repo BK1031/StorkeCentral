@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
 
@@ -29,6 +30,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
+    AuthService.verifyUserSession(context, "/profile");
   }
 
   @override

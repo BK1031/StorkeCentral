@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:cool_alert/cool_alert.dart';
+
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:fluro/fluro.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -38,5 +38,17 @@ class AuthService {
     SC_AUTH_TOKEN = await fb.FirebaseAuth.instance.currentUser!.getIdToken(true);
     log("Retrieved auth token: ...${SC_AUTH_TOKEN.substring(SC_AUTH_TOKEN.length - 20)}");
     // await Future.delayed(const Duration(milliseconds: 100));
+  }
+
+  static bool verifyUserSession(context, String path) {
+    if (!anonMode && !offlineMode && currentUser.id == "") {
+      log("User info is missing, checking auth...");
+      Future.delayed(Duration.zero, () {
+        router.navigateTo(context, "/check-auth?route=${Uri.encodeComponent(path)}", clearStack: true, replace: true, transition: TransitionType.fadeIn);
+      });
+      return false;
+    } else {
+      return true;
+    }
   }
 }

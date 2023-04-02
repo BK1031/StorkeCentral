@@ -53,7 +53,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (verifyUserSession("/home")) {
+    if (AuthService.verifyUserSession(context, "/home")) {
       _determinePosition();
       if (!kIsWeb) _registerOneSignalListeners();
       fetchBuildings();
@@ -63,18 +63,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         updateUserFriendsList();
         fetchNotifications();
       }
-    }
-  }
-
-  bool verifyUserSession(String path) {
-    if (!anonMode && !offlineMode && currentUser.id == "") {
-      log("User info is missing, checking auth...");
-      Future.delayed(Duration.zero, () {
-        router.navigateTo(context, "/check-auth?route=${Uri.encodeComponent(path)}", clearStack: true, replace: true, transition: TransitionType.fadeIn);
-      });
-      return false;
-    } else {
-      return true;
     }
   }
 
