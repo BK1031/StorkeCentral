@@ -93,7 +93,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
           }
           await loadPreferences();
-          router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          if (ModalRoute.of(context)!.settings.name!.contains("?route=")) {
+            String route = ModalRoute.of(context)!.settings.name!.split("?route=")[1];
+            String routeDecoded = Uri.decodeComponent(route);
+            router.navigateTo(context, routeDecoded, transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          } else {
+            router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          }
         } catch (err) {
           log(err);
           // loadOfflineMode();

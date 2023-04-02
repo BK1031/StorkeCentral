@@ -7,6 +7,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -79,10 +80,14 @@ class _RegisterPageState extends State<RegisterPage> {
               router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
             } else {
               log("User does not have a StorkeCentral account");
-              firstNameController.text = registerUser.firstName;
-              lastNameController.text = registerUser.lastName;
-              emailController.text = registerUser.email;
-              _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+              if (kIsWeb) {
+                router.navigateTo(context, "/download", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+              } else {
+                firstNameController.text = registerUser.firstName;
+                lastNameController.text = registerUser.lastName;
+                emailController.text = registerUser.email;
+                _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+              }
             }
           });
         } else {

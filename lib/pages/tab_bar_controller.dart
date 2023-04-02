@@ -53,13 +53,29 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _determinePosition();
-    _registerOneSignalListeners();
-    firebaseAnalytics();
-    fetchBuildings();
-    fetchNotifications();
-    updateUserFriendsList();
-    if (!anonMode && !offlineMode) sendLoginEvent();
+    if (verifyUserSession("/home")) {
+      _determinePosition();
+      if (!kIsWeb) _registerOneSignalListeners();
+      fetchBuildings();
+      if (!anonMode && !offlineMode) {
+        firebaseAnalytics();
+        sendLoginEvent();
+        updateUserFriendsList();
+        fetchNotifications();
+      }
+    }
+  }
+
+  bool verifyUserSession(String path) {
+    if (!anonMode && !offlineMode && currentUser.id == "") {
+      log("User info is missing, checking auth...");
+      Future.delayed(Duration.zero, () {
+        router.navigateTo(context, "/check-auth?route=${Uri.encodeComponent(path)}", clearStack: true, replace: true, transition: TransitionType.fadeIn);
+      });
+      return false;
+    } else {
+      return true;
+    }
   }
 
   @override
@@ -153,28 +169,34 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     Login login = Login();
     login.userID = currentUser.id;
 
-    if (Platform.isIOS) login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
-    if (Platform.isAndroid) login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
     if (kIsWeb) login.appVersion = "StorkeCentral Web v${appVersion.toString()}";
+    else if (Platform.isIOS) login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
+    else if (Platform.isAndroid) login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
 
-    login.deviceName = Platform.localHostname;
-    login.deviceVersion = "${Platform.operatingSystem.toUpperCase()} ${Platform.operatingSystemVersion}";
+    if (!kIsWeb) {
+      login.deviceName = Platform.localHostname;
+      login.deviceVersion = "${Platform.operatingSystem.toUpperCase()} ${Platform.operatingSystemVersion}";
+    }
 
     LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      currentUser.privacy.location = "DISABLED";
-    } else if (permission == LocationPermission.deniedForever) {
-      currentUser.privacy.location = "DISABLED_FOREVER";
-    } else if (permission == LocationPermission.whileInUse) {
-      currentUser.privacy.location = "ENABLED_WHEN_IN_USE";
-    } else if (permission == LocationPermission.always) {
-      currentUser.privacy.location = "ENABLED_ALWAYS";
+    if (!kIsWeb) {
+      // Don't override the user's privacy settings if they're using the web version
+      if (permission == LocationPermission.denied) {
+        currentUser.privacy.location = "DISABLED";
+      } else if (permission == LocationPermission.deniedForever) {
+        currentUser.privacy.location = "DISABLED_FOREVER";
+      } else if (permission == LocationPermission.whileInUse) {
+        currentUser.privacy.location = "ENABLED_WHEN_IN_USE";
+      } else if (permission == LocationPermission.always) {
+        currentUser.privacy.location = "ENABLED_ALWAYS";
+      }
     }
     if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
       if (currentPosition?.latitude != null) {
         login.latitude = currentPosition!.latitude;
         login.longitude = currentPosition!.longitude;
-      } else {
+      } else if (!kIsWeb) {
+        // getLastKnownPosition() doesn't work on web
         Position? lastPosition = await Geolocator.getLastKnownPosition();
         login.latitude = lastPosition?.latitude ?? 0.0;
         login.longitude = lastPosition?.longitude ?? 0.0;
@@ -194,27 +216,33 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       }
     }
 
-    final info = NetworkInfo();
-    var wifiName = await info.getWifiName(); // FooNetwork
-    var wifiIP = await info.getWifiIP(); // 192.168.1.43
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.wifi) login.connectionType = "WiFi";
-    if (connectivityResult == ConnectivityResult.mobile) login.connectionType = "Cellular";
-    login.connectionSSID = wifiName ?? "error";
-    login.connectionIP = wifiIP ?? "null";
+    if (!kIsWeb) {
+      // None of this shit works on web lol
+      final info = NetworkInfo();
+      var wifiName = await info.getWifiName(); // FooNetwork
+      var wifiIP = await info.getWifiIP(); // 192.168.1.43
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.wifi) login.connectionType = "WiFi";
+      if (connectivityResult == ConnectivityResult.mobile) login.connectionType = "Cellular";
+      login.connectionSSID = wifiName ?? "error";
+      login.connectionIP = wifiIP ?? "null";
+    }
 
     await AuthService.getAuthToken();
     var loginResponse = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/logins"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(login));
     if (loginResponse.statusCode == 200) log("Sent login event: ${loginResponse.body}");
     else log("Login event silently failed");
 
-    requestNotifications();
-    OneSignal.shared.setExternalUserId(currentUser.id);
-    OneSignal.shared.setEmail(email: currentUser.email);
-    if (currentUser.phoneNumber != "") OneSignal.shared.setSMSNumber(smsNumber: currentUser.phoneNumber);
-    final oneSignal = await OneSignal.shared.getDeviceState();
-    currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
-    currentUser.privacy.pushNotifications = oneSignal!.hasNotificationPermission ? "ENABLED" : "DISABLED";
+    if (!kIsWeb) {
+      // Don't change any onesignal shit on the web
+      requestNotifications();
+      OneSignal.shared.setExternalUserId(currentUser.id);
+      OneSignal.shared.setEmail(email: currentUser.email);
+      if (currentUser.phoneNumber != "") OneSignal.shared.setSMSNumber(smsNumber: currentUser.phoneNumber);
+      final oneSignal = await OneSignal.shared.getDeviceState();
+      currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
+      currentUser.privacy.pushNotifications = oneSignal!.hasNotificationPermission ? "ENABLED" : "DISABLED";
+    }
 
     setUserStatus("ONLINE");
   }
