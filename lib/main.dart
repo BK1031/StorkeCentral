@@ -13,7 +13,7 @@ import 'package:storke_central/pages/developer/logger_page.dart';
 import 'package:storke_central/pages/home/dining/dining_hall_page.dart';
 import 'package:storke_central/pages/maps/building_details_page.dart';
 import 'package:storke_central/pages/notification_page.dart';
-import 'package:storke_central/pages/onboarding_page.dart';
+import 'package:storke_central/pages/onboarding/onboarding_page.dart';
 import 'package:storke_central/pages/profile/edit_profile_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
 import 'package:storke_central/pages/profile/friends/friends_page.dart';
@@ -60,6 +60,16 @@ Future<void> main() async {
   router.define("/", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const OnboardingPage();
   }));
+  router.define("/features", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const OnboardingPage();
+  }));
+  router.define("/beta", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const OnboardingPage();
+  }));
+  router.define("/download", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const OnboardingPage();
+  }));
+
   router.define("/check-auth", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const AuthCheckerPage();
   }));
