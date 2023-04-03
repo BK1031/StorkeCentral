@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -25,7 +24,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   TextEditingController pronounController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
 
-  User editUser = currentUser;
+  String editBio = currentUser.bio;
+  String editPronouns = currentUser.pronouns;
+  String editPhone = currentUser.phoneNumber;
+  String editGender = currentUser.gender;
 
   var phoneMaskFormatter = MaskTextInputFormatter(
       mask: '(###) ###-####',
@@ -57,7 +59,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> saveUser() async {
-    currentUser = editUser;
+    currentUser.bio = editBio;
+    currentUser.pronouns = editPronouns;
+    currentUser.phoneNumber = editPhone;
+    currentUser.gender = editGender;
     log(currentUser.toJson());
     setState(() => loading = true);
     await AuthService.getAuthToken();
@@ -109,7 +114,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18),
               onChanged: (input) {
-                editUser.bio = input;
+                editBio = input;
+                print(editBio);
+                print(currentUser.bio);
               },
             ),
             Row(
@@ -126,7 +133,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     style: const TextStyle(fontSize: 22),
                     onChanged: (input) {
-                      editUser.pronouns = input;
+                      editPronouns = input;
                     },
                   ),
                 ),
@@ -148,7 +155,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     keyboardType: TextInputType.datetime,
                     style: const TextStyle(fontSize: 22),
                     onChanged: (input) {
-                      editUser.phoneNumber = input;
+                      editPhone = input;
                     },
                   ),
                 ),
@@ -163,7 +170,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: DropdownButton<String>(
-                      value: editUser.gender,
+                      value: editGender,
                       alignment: Alignment.centerRight,
                       underline: Container(),
                       style: TextStyle(fontSize: 18, color: AdaptiveTheme.of(context).theme.textTheme.bodyLarge!.color),
@@ -189,7 +196,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       onChanged: (item) {
                         if (mounted) {
                           setState(() {
-                            editUser.gender = item!;
+                            editGender = item!;
                           });
                         }
                       },

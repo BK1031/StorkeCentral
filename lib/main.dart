@@ -17,6 +17,7 @@ import 'package:storke_central/pages/onboarding/beta_page.dart';
 import 'package:storke_central/pages/onboarding/download_page.dart';
 import 'package:storke_central/pages/onboarding/features_page.dart';
 import 'package:storke_central/pages/onboarding/onboarding_page.dart';
+import 'package:storke_central/pages/profile/beta_invite_page.dart';
 import 'package:storke_central/pages/profile/edit_profile_page.dart';
 import 'package:storke_central/pages/profile/friends/add_friend_page.dart';
 import 'package:storke_central/pages/profile/friends/friends_page.dart';
@@ -113,6 +114,9 @@ Future<void> main() async {
   }));
   router.define("/profile/edit", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const EditProfilePage();
+  }));
+  router.define("/profile/beta", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+    return const BetaInvitePage();
   }));
   router.define("/profile/friends", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const FriendsPage();

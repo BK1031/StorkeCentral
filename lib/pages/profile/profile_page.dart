@@ -107,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
               child: Card(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,6 +148,36 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                       trailing: const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: () {
                         router.navigateTo(context, "/profile/friends", transition: TransitionType.native);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                      child: Text(
+                        "Public Beta",
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    ListTile(
+                      title: Row(
+                        children: const [
+                          Icon(Icons.person_add),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Text("Invite Friends"),
+                        ],
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: () {
+                        router.navigateTo(context, "/profile/beta", transition: TransitionType.native);
                       },
                     ),
                   ],

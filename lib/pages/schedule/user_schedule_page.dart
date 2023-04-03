@@ -145,7 +145,8 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
   // Helper function to get a certain day of the current week
   DateTime getNextWeekDay(int weekDay) {
     DateTime sunday = DateTime.now().withoutTime;
-    if (DateTime.now().day != 7) sunday = DateTime.now().withoutTime.subtract(Duration(days: DateTime.now().weekday));
+    // DateTime sunday = DateTime.parse("2023-04-10 11:00:00.100").withoutTime;
+    if (sunday.weekday != 7) sunday = sunday.withoutTime.subtract(Duration(days: sunday.weekday));
     return sunday.add(Duration(days: weekDay));
   }
 

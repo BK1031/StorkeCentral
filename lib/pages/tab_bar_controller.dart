@@ -238,9 +238,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void setUserStatus(String status) {
     currentUser.status = status;
     FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
-    AuthService.getAuthToken().then((_) {
-      http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
-    });
   }
 
   Future<void> updateUserFriendsList() async {
