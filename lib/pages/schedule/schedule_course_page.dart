@@ -117,6 +117,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
     int hour = int.parse(time.split(":")[0]);
     int minute = int.parse(time.split(":")[1]);
     String ampm = "AM";
+    if (hour == 12) ampm = "PM";
     if (hour > 12) {
       hour -= 12;
       ampm = "PM";
