@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/robfig/cron/v3"
+	cron "github.com/robfig/cron/v3"
 	"jalama/config"
 	"jalama/service"
 	"net/http"
@@ -32,6 +32,11 @@ func GetMenuForMeal(c *gin.Context) {
 func FetchAllMealsForDay(c *gin.Context) {
 	result := service.FetchAllMealsForDay(c.Param("date"))
 	c.JSON(http.StatusOK, result)
+}
+
+func FetchMenuForMeal(c *gin.Context) {
+	service.FetchMenuForMeal(c.Param("mealID"))
+	c.JSON(http.StatusOK, service.GetMenuForMeal(c.Param("mealID")))
 }
 
 func RegisterMealCronJob() {
