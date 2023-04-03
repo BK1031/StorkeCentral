@@ -83,7 +83,7 @@ class _HeaderState extends State<Header> {
       );
     } else {
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(16),
         child: Card(
           color: darkTheme.cardColor,
           child: Container(

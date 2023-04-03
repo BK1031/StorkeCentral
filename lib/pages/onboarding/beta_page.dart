@@ -24,10 +24,10 @@ class _BetaPageState extends State<BetaPage> {
             children: [
               const Header(),
               Container(
-                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.all(8),
                 // color: Colors.greenAccent,
                 width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
-                child: const Text("Download Page", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                child: const Text("Join our public beta!", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
               ),
               const Footer(),
             ],
