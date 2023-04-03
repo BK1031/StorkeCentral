@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:fluro/fluro.dart';
@@ -13,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
@@ -20,6 +23,7 @@ import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -35,7 +39,13 @@ class _RegisterPageState extends State<RegisterPage> {
   final PageController _pageController = PageController();
   User registerUser = User();
   bool validUsername = true;
-  int registerStage = 0;
+
+  String inviteCode = "";
+  bool validInvite = false;
+  DateTime expires = DateTime.now();
+  int codeCap = 5;
+  List<String> invitedUsers = [];
+  User invitedBy = User();
 
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
@@ -91,6 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
             }
           });
         } else {
+          // ignore: use_build_context_synchronously
           CoolAlert.show(
               context: context,
               type: CoolAlertType.warning,
@@ -113,6 +124,47 @@ class _RegisterPageState extends State<RegisterPage> {
           confirmBtnColor: SB_RED,
           confirmBtnText: "OK"
       );
+    }
+  }
+
+  void verifyInvite() {
+    try {
+      FirebaseFirestore.instance.doc("beta/$inviteCode").get().then((value) async {
+        if (value.exists) {
+          setState(() {
+            expires = value.get("expires").toDate();
+            expires = expires.toLocal();
+            codeCap = value.get("cap");
+            validInvite = true;
+          });
+          invitedUsers.clear();
+          value.get("uses").forEach((element) {
+            invitedUsers.add(element.toString());
+          });
+          await AuthService.getAuthToken();
+          var response = await http.get(Uri.parse("$API_HOST/users/${value.get("createdBy")}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+          if (response.statusCode == 200) {
+            setState(() {
+              invitedBy = User.fromJson(jsonDecode(response.body)["data"]);
+            });
+          }
+        } else {
+          setState(() => validInvite = false);
+        }
+      });
+    } catch (err) {
+      // Invalid code
+      setState(() => validInvite = false);
+    }
+  }
+
+  void registerInviteCode() {
+    try {
+      FirebaseFirestore.instance.doc("beta/$inviteCode").update({
+        "uses": FieldValue.arrayUnion([registerUser.id])
+      });
+    } catch (err) {
+      log(err, LogLevel.error);
     }
   }
 
@@ -244,7 +296,7 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             type: CoolAlertType.error,
             title: "Invalid Username",
-            widget: Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
+            widget: const Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
             backgroundColor: SB_NAVY,
             confirmBtnColor: SB_RED,
             confirmBtnText: "OK",
@@ -259,6 +311,7 @@ class _RegisterPageState extends State<RegisterPage> {
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
+        registerInviteCode();
         if (createUser.statusCode == 200) {
           CoolAlert.show(
               context: context,
@@ -346,6 +399,134 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+  Widget buildBetaPage(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("Enter your invite code to get started.", style: TextStyle(fontSize: 18),),
+          TextField(
+            textAlign: TextAlign.center,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: "XXX-XXX",
+            ),
+            textCapitalization: TextCapitalization.characters,
+            keyboardType: TextInputType.text,
+            autocorrect: false,
+            style: const TextStyle(fontSize: 25),
+            onChanged: (input) {
+              inviteCode = input;
+              const duration = Duration(milliseconds: 800);
+              if (searchOnStoppedTyping != null) {
+                setState(() => searchOnStoppedTyping?.cancel());
+              }
+              setState(() => searchOnStoppedTyping = Timer(duration, () {
+                if (inviteCode != "") verifyInvite();
+              }));
+            },
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: validInvite ? 150 : 0,
+            child: Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                    child: Text(
+                      "Invited By",
+                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          child: ExtendedImage.network(
+                            invitedBy.profilePictureURL,
+                            height: 50,
+                            width: 50,
+                            fit: BoxFit.cover,
+                            borderRadius: const BorderRadius.all(Radius.circular(125)),
+                            shape: BoxShape.rectangle,
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "${invitedBy.firstName} ${invitedBy.lastName}",
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                              Text(
+                                "@${invitedBy.userName}",
+                                style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                              )
+                            ],
+                          ),
+                        ),
+                        Text(
+                          "${invitedUsers.length}/$codeCap",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: invitedUsers.length >= codeCap ? SB_RED : SB_GREEN),
+                        )
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible: DateTime.now().isBefore(expires),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
+                        child: Text(
+                          "Invite code expires ${DateFormat("MMMMd").format(expires)} (in ${timeago.format(expires, locale: "en_short", allowFromNow: true)})",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: DateTime.now().isAfter(expires),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
+                        child: Text(
+                          "Invite code expired ${DateFormat("MMMMd").format(expires)} (${timeago.format(expires, locale: "en_short", allowFromNow: true)} ago)",
+                          style: TextStyle(fontSize: 16, color: SB_RED),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ),
+          ),
+          const Padding(padding: EdgeInsets.all(8),),
+          Visibility(
+            visible: validInvite && DateTime.now().isBefore(expires) && invitedUsers.length < codeCap,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: CupertinoButton.filled(
+                child: const Text("Next"),
+                onPressed: () {
+                  _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                },
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget buildPage2(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -355,7 +536,7 @@ class _RegisterPageState extends State<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Let's start by picking a username.", style: TextStyle(fontSize: 18),),
+              const Center(child: Text("Welcome! Let's start by picking a username.", style: TextStyle(fontSize: 18), textAlign: TextAlign.center,)),
               Row(
                 children: [
                   Text("@", style: TextStyle(color: registerUser.userName != "" ? Colors.black : Colors.black54, fontSize: 25),),
@@ -367,6 +548,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: "bk1031",
                       ),
                       textCapitalization: TextCapitalization.none,
+                      autocorrect: false,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
                       ],
@@ -398,13 +580,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: const Text("Next"),
                   onPressed: () {
                     if (validUsername && registerUser.userName != "") {
-                      _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                      _pageController.animateToPage(3, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                     } else {
                       CoolAlert.show(
                           context: context,
                           type: CoolAlertType.error,
                           title: "Invalid Username",
-                          widget: Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
+                          widget: const Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
                           backgroundColor: SB_NAVY,
                           confirmBtnColor: SB_RED,
                           confirmBtnText: "OK"
@@ -432,7 +614,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const Text("Nice! Let's continue creating your account.", style: TextStyle(fontSize: 18),),
               Row(
                 children: [
-                  Text("First Name", style: TextStyle(color: Colors.black54, fontSize: 25),),
+                  const Text("First Name", style: TextStyle(color: Colors.black54, fontSize: 25),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -458,7 +640,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               Row(
                 children: [
-                  Text("Last Name", style: TextStyle(color: Colors.black54, fontSize: 25),),
+                  const Text("Last Name", style: TextStyle(color: Colors.black54, fontSize: 25),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -484,7 +666,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               Row(
                 children: [
-                  Text("Email", style: TextStyle(color: Colors.black54, fontSize: 25),),
+                  const Text("Email", style: TextStyle(color: Colors.black54, fontSize: 25),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -505,7 +687,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               Row(
                 children: [
-                  Text("Phone #", style: TextStyle(color: Colors.black54, fontSize: 25),),
+                  const Text("Phone #", style: TextStyle(color: Colors.black54, fontSize: 25),),
                   const Padding(padding: EdgeInsets.all(2)),
                   Expanded(
                     child: TextField(
@@ -537,7 +719,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: () {
                     if (validUsername && registerUser.userName != "") {
                       if (registerUser.firstName != "" && registerUser.lastName != "") {
-                        _pageController.animateToPage(3, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                        _pageController.animateToPage(4, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                       }
                       else {
                         CoolAlert.show(
@@ -555,13 +737,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           context: context,
                           type: CoolAlertType.error,
                           title: "Invalid Username",
-                          widget: Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
+                          widget: const Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
                           backgroundColor: SB_NAVY,
                           confirmBtnColor: SB_RED,
                           confirmBtnText: "OK",
                           onConfirmBtnTap: () {
                             router.pop(context);
-                            _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                            _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                           }
                       );
                     }
@@ -586,7 +768,7 @@ class _RegisterPageState extends State<RegisterPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Gender", style: TextStyle(color: Colors.black54, fontSize: 25),),
+              const Text("Gender", style: TextStyle(color: Colors.black54, fontSize: 25),),
               const Padding(padding: EdgeInsets.all(2)),
               Card(
                 child: Padding(
@@ -685,6 +867,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: CupertinoButton.filled(
               child: const Text("Create Account"),
               onPressed: () {
+                // registerInviteCode();
                 registerUserAccount();
               }
             ),
@@ -725,6 +908,7 @@ class _RegisterPageState extends State<RegisterPage> {
               controller: _pageController,
               children: [
                 buildPage1(context),
+                buildBetaPage(context),
                 buildPage2(context),
                 buildPage3(context),
                 buildPage4(context)

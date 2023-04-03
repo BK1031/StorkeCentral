@@ -296,15 +296,18 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           style: const TextStyle(fontWeight: FontWeight.bold)
         ),
         actions: [
-          IconButton(
-            icon: Badge(
-              isLabelVisible: notifications.where((element) => !element.read).isNotEmpty,
-              label: Text(notifications.where((element) => !element.read).length.toString(), style: const TextStyle(color: Colors.white)),
-              child: Icon(notifications.where((element) => !element.read).isEmpty ? Icons.notifications_none_outlined : Icons.notifications_active)
+          Visibility(
+            visible: !anonMode,
+            child: IconButton(
+              icon: Badge(
+                isLabelVisible: notifications.where((element) => !element.read).isNotEmpty,
+                label: Text(notifications.where((element) => !element.read).length.toString(), style: const TextStyle(color: Colors.white)),
+                child: Icon(notifications.where((element) => !element.read).isEmpty ? Icons.notifications_none_outlined : Icons.notifications_active)
+              ),
+              onPressed: () {
+                router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal).then((value) => setState(() {}));
+              },
             ),
-            onPressed: () {
-              router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal).then((value) => setState(() {}));
-            },
           )
         ],
       ),
@@ -313,11 +316,15 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         backgroundColor: Colors.transparent,
         color: Theme.of(context).cardColor,
         index: _currPage,
-        items: [
+        items: !anonMode ? [
           Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/user-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
+        ] : [
+          Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
+          Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
+          Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
         ],
         onTap: (index) {
           setState(() {
@@ -334,12 +341,16 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             _currPage = index;
           });
         },
-        children: const [
+        children: !anonMode ? const [
           HomePage(),
           SchedulePage(),
           MapsPage(),
           ProfilePage()
-        ],
+        ] : const [
+          HomePage(),
+          SchedulePage(),
+          MapsPage(),
+        ]
       ),
     );
   }

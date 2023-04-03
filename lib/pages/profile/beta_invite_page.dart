@@ -78,7 +78,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
     FirebaseFirestore.instance.doc("beta/users").update({currentUser.id: inviteCode}).then((value) {
       FirebaseFirestore.instance.doc("beta/$inviteCode").set({
         "createdBy": currentUser.id,
-        "expires": Timestamp.fromDate(expires),
+        "expires": Timestamp.fromDate(DateTime.now().add(const Duration(days: 7))),
         "cap": codeCap,
         "uses": []
       });
