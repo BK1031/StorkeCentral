@@ -1,6 +1,7 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
@@ -135,7 +136,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
     });
     mapController?.addSymbol(SymbolOptions(
       geometry: LatLng(building.latitude, building.longitude),
-      iconSize: 1.5,
+      iconSize: kIsWeb ? 0.5 : 1.5,
       iconOffset: const Offset(0, -10),
       iconImage: getBuildingTypeIcon(building.type),
     ));
@@ -166,7 +167,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
       body: Stack(
         children: [
           MapboxMap(
-            accessToken: MAPBOX_ACCESS_TOKEN,
+            accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
             onMapCreated: _onMapCreated,
             initialCameraPosition: const CameraPosition(
               target: LatLng(34.412278, -119.847787),

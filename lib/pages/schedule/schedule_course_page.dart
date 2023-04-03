@@ -1,4 +1,5 @@
 import 'package:fluro/fluro.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:geolocator/geolocator.dart';
@@ -70,9 +71,8 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
     for (Building b in scheduleBuildings) {
       mapController?.addSymbol(
         SymbolOptions(
-          textField: "lol",
           geometry: LatLng(b.latitude, b.longitude),
-          iconSize: 1.5,
+          iconSize: kIsWeb ? 0.5 : 1.5,
           iconOffset: const Offset(0, -10),
           iconImage: getBuildingTypeIcon(b.type),
         ),
@@ -152,7 +152,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: MapboxMap(
-                    accessToken: MAPBOX_ACCESS_TOKEN,
+                    accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
                     onMapCreated: _onMapCreated,
                     initialCameraPosition: const CameraPosition(
                       target: LatLng(34.412278, -119.847787),

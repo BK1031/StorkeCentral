@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -79,7 +80,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
       mapController?.addSymbol(SymbolOptions(
         geometry: LatLng(selectedBuilding.latitude, selectedBuilding.longitude),
         iconImage: getBuildingTypeIcon(selectedBuilding.type),
-        iconSize: 1.5,
+        iconSize: kIsWeb ? 0.5 : 1.5,
       ));
       await mapboxDirectionsRequest();
       animateCameraToBuilding();
@@ -231,7 +232,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                       child: Stack(
                         children: [
                           MapboxMap(
-                            accessToken: MAPBOX_ACCESS_TOKEN,
+                            accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
                             onMapCreated: _onMapCreated,
                             initialCameraPosition: const CameraPosition(
                               target: LatLng(34.412278, -119.847787),

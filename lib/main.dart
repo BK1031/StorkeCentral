@@ -48,6 +48,7 @@ Future<void> main() async {
   SC_API_KEY = dotenv.env["SC_API_KEY"]!;
   UCSB_API_KEY = dotenv.env["UCSB_API_KEY"]!;
   UCSB_DINING_CAM_KEY = dotenv.env['UCSB_DINING_KEY']!;
+  MAPBOX_PUBLIC_TOKEN = dotenv.env['MAPBOX_PUBLIC_TOKEN']!;
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
   ONESIGNAL_APP_ID = dotenv.env['ONESIGNAL_APP_ID']!;
 

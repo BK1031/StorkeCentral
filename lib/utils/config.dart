@@ -20,7 +20,7 @@ import 'package:storke_central/utils/syncfusion_meeting.dart';
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
-Version appVersion = Version("2.4.1+3");
+Version appVersion = Version("2.4.2+1");
 
 String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
@@ -30,6 +30,7 @@ String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
 String UCSB_API_KEY = "ucsb-api-key";
 String UCSB_DINING_CAM_KEY = "ucsb-dining-key";
+String MAPBOX_PUBLIC_TOKEN = "mapbox-public-token";
 String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
 String ONESIGNAL_APP_ID = "onesignal-app-id";
 
