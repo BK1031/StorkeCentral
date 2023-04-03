@@ -214,7 +214,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "${invitedUsers[index].firstName} ${friends[index].user.lastName}",
+                                        "${invitedUsers[index].firstName} ${invitedUsers[index].lastName}",
                                         style: TextStyle(fontSize: 18),
                                       ),
                                       Text(
