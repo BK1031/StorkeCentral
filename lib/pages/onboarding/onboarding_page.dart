@@ -12,7 +12,7 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage> {
 
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   late VideoPlayerController _controller1;
   late VideoPlayerController _controller2;
   late VideoPlayerController _controller3;
