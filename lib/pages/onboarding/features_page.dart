@@ -29,6 +29,17 @@ class _FeaturesPageState extends State<FeaturesPage> {
                 width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
                 child: const Text("Features", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
               ),
+              Container(
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.all(16),
+                // color: Colors.greenAccent,
+                width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Here's a full breakdown of everything you can do with StorkeCentral.", style: TextStyle(color: Colors.white, fontSize: 18)),
+                  ],
+                ),
+              ),
               const Footer(),
             ],
           ),
