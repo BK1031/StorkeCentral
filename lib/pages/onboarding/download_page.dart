@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:storke_central/utils/config.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'footer.dart';
@@ -42,13 +43,13 @@ class _DownloadPageState extends State<DownloadPage> {
                     Wrap(
                       children: [
                         InkWell(
-                          onTap: () => launchUrl(Uri.parse("https://apps.apple.com/us/app/apple-store/id1594777645")),
+                          onTap: () => launchUrl(Uri.parse(APP_STORE_URL)),
                           borderRadius: BorderRadius.circular(8),
                           child: Image.asset("images/icons/download-app-store.png", width: 200)
                         ),
                         const Padding(padding: EdgeInsets.all(8)),
                         InkWell(
-                            onTap: () => launchUrl(Uri.parse("https://apps.apple.com/us/app/apple-store/id1594777645")),
+                            onTap: () => launchUrl(Uri.parse(PLAY_STORE_URL)),
                             borderRadius: BorderRadius.circular(8),
                             child: Image.asset("images/icons/download-play-store.png", width: 220)
                         ),

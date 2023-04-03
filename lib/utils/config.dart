@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,24 +20,22 @@ import 'package:storke_central/utils/syncfusion_meeting.dart';
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
-Version appVersion = Version("2.4.1+2");
+Version appVersion = Version("2.4.1+3");
 
-// ignore: non_constant_identifier_names
 String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
 // String API_HOST = "https://77c0-169-231-9-220.ngrok.io";
-// ignore: non_constant_identifier_names
+
 String SC_API_KEY = "sc-api-key";
-// ignore: non_constant_identifier_names
 String SC_AUTH_TOKEN = "sc-auth-token";
-// ignore: non_constant_identifier_names
 String UCSB_API_KEY = "ucsb-api-key";
-// ignore: non_constant_identifier_names
 String UCSB_DINING_CAM_KEY = "ucsb-dining-key";
-// ignore: non_constant_identifier_names
 String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
-// ignore: non_constant_identifier_names
 String ONESIGNAL_APP_ID = "onesignal-app-id";
+
+String APP_STORE_URL = "https://apps.apple.com/us/app/apple-store/id1594777645";
+String PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.bk1031.storke_central";
+String TESTFLIGHT_URL = "https://beta.itunes.apple.com/v1/app/1594777645";
 
 bool offlineMode = false;
 bool anonMode = false;

@@ -19,6 +19,7 @@ import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/login.dart';
 import 'package:storke_central/models/notification.dart' as sc;
+import 'package:storke_central/models/version.dart';
 import 'package:storke_central/pages/home/home_page.dart';
 import 'package:storke_central/pages/maps/maps_page.dart';
 import 'package:storke_central/pages/profile/profile_page.dart';
@@ -27,6 +28,7 @@ import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TabBarController extends StatefulWidget {
   const TabBarController({Key? key}) : super(key: key);
@@ -54,6 +56,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (AuthService.verifyUserSession(context, "/home")) {
+      checkAppVersion();
       _determinePosition();
       if (!kIsWeb) _registerOneSignalListeners();
       fetchBuildings();
@@ -70,7 +73,9 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       log("App has been resumed");
+      AuthService.getUser(currentUser.id);
       _determinePosition();
+      checkAppVersion();
       if (!anonMode && !offlineMode) sendLoginEvent();
     } else {
       log("App has been backgrounded");
@@ -83,6 +88,54 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void dispose() {
     super.dispose();
     _positionStream?.cancel();
+  }
+
+  void checkAppVersion() {
+    FirebaseFirestore.instance.doc("meta/version").get().then((value) {
+      Version stable = Version(value.get("stable"));
+      Version beta = Version(value.get("beta"));
+      if (appVersion.getVersionCode() < stable.getVersionCode()) {
+        log("App is behind stable version (${appVersion.toString()} < ${stable.toString()})");
+        if (!kIsWeb) {
+          CoolAlert.show(
+              context: context,
+              type: CoolAlertType.warning,
+              title: "Update Available",
+              text: "A new version of Storke Central is available. Please update to receive the latest bug fixes and use our newest features.",
+              backgroundColor: SB_NAVY,
+              confirmBtnText: "UPDATE",
+              confirmBtnColor: SB_AMBER,
+              onConfirmBtnTap: () {
+                router.pop(context);
+                if (Platform.isAndroid) {
+                  launchUrl(Uri.parse(PLAY_STORE_URL));
+                } else if (Platform.isIOS) {
+                  launchUrl(Uri.parse(APP_STORE_URL));
+                }
+              }
+          );
+        }
+      } else if (currentUser.roles.where((r) => r.role == "PRIVATE_BETA").isNotEmpty && appVersion.getVersionCode() < beta.getVersionCode()) {
+        log("App is behind beta version (${appVersion.toString()} < ${beta.toString()})");
+        if (!kIsWeb) {
+          CoolAlert.show(
+              context: context,
+              type: CoolAlertType.warning,
+              title: "New Beta Available",
+              text: "A new version of the Storke Central Beta is available. Please update your app from TestFlight to receive the latest bug fixes and use our newest features.",
+              backgroundColor: SB_NAVY,
+              confirmBtnText: "UPDATE",
+              confirmBtnColor: SB_AMBER,
+              onConfirmBtnTap: () {
+                router.pop(context);
+                launchUrl(Uri.parse(TESTFLIGHT_URL));
+              }
+          );
+        }
+      } else {
+        log("App is up to date (${appVersion.toString()})");
+      }
+    });
   }
 
   Future<void> _determinePosition() async {
