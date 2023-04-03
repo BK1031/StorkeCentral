@@ -26,8 +26,8 @@ class BetaInvitePage extends StatefulWidget {
 class _BetaInvitePageState extends State<BetaInvitePage> {
 
   String inviteCode = "";
-  DateTime expires = DateTime.now();
-  int codeCap = 5;
+  DateTime expires = DateTime.now().add(const Duration(days: 7));
+  int codeCap = 10;
   List<User> invitedUsers = [];
 
   @override
