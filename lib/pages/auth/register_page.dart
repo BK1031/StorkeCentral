@@ -7,6 +7,7 @@ import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -63,11 +64,25 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   initState() {
     super.initState();
+    _registerFirebaseDynamicLinkListener();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (ModalRoute.of(context)!.settings.name!.contains("?invite=")) {
         inviteCode = ModalRoute.of(context)!.settings.name!.split("?invite=")[1];
         verifyInvite();
       }
+    });
+  }
+
+  void _registerFirebaseDynamicLinkListener() {
+    // Additional handler just for invite links since `initialLink` doesn't work reliably on iOS
+    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+      log("[registration_page] Firebase Dynamic Link received: ${dynamicLinkData.link}");
+      if (dynamicLinkData.link.toString().contains("?invite=")) {
+        inviteCode = dynamicLinkData.link.toString().split("?invite=")[1];
+        verifyInvite();
+      }
+    }).onError((error) {
+      log("Firebase Dynamic Link error: $error", LogLevel.error);
     });
   }
 
@@ -156,7 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
           value.get("uses").forEach((element) {
             invitedUsers.add(element.toString());
           });
-          await AuthService.getAuthToken();
+          // await AuthService.getAuthToken();
           var response = await http.get(Uri.parse("$API_HOST/users/${value.get("createdBy")}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
           if (response.statusCode == 200) {
             setState(() {
