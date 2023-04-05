@@ -90,16 +90,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _registerFirebaseDynamicLinkListener() {
     // Additional handler just for invite links since `initialLink` doesn't work reliably on iOS
-    _dynamicLinkSubscription = FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      log("[registration_page] Firebase Dynamic Link received: ${dynamicLinkData.link}");
-      if (dynamicLinkData.link.toString().contains("?invite=")) {
-        inviteCode = dynamicLinkData.link.toString().split("?invite=")[1];
-        verifyInvite();
-      }
-    });
-    _dynamicLinkSubscription?.onError((error) {
-      log("Firebase Dynamic Link error: $error", LogLevel.error);
-    });
+    if (!kIsWeb) {
+      _dynamicLinkSubscription =
+          FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+            log("[registration_page] Firebase Dynamic Link received: ${dynamicLinkData.link}");
+            if (dynamicLinkData.link.toString().contains("?invite=")) {
+              inviteCode = dynamicLinkData.link.toString().split("?invite=")[1];
+              verifyInvite();
+            }
+          });
+      _dynamicLinkSubscription?.onError((error) {
+        log("Firebase Dynamic Link error: $error", LogLevel.error);
+      });
+    }
   }
 
   Future<void> loginGoogle() async {

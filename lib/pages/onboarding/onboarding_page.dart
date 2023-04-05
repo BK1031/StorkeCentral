@@ -61,25 +61,25 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void setupPlayers() {
-    _controller1 = VideoPlayerController.network("https://app.pacificesports.org/assets/Landing1.mp4")..initialize().then((_) {
+    _controller1 = VideoPlayerController.network("https://storkecentr.al/static/Landing1.mp4")..initialize().then((_) {
       setState(() {});
     });
     _controller1.setVolume(0.0);
     _controller1.play();
 
-    _controller2 = VideoPlayerController.network("https://app.pacificesports.org/assets/Landing2.mp4")..initialize().then((_) {
+    _controller2 = VideoPlayerController.network("https://storkecentr.al/static/Landing2.mp4")..initialize().then((_) {
       setState(() {});
     });
-    _controller3 = VideoPlayerController.network("https://app.pacificesports.org/assets/Landing3.mp4")..initialize().then((_) {
+    _controller3 = VideoPlayerController.network("https://storkecentr.al/static/Landing3.mp4")..initialize().then((_) {
       setState(() {});
     });
-    _controller4 = VideoPlayerController.network("https://app.pacificesports.org/assets/Landing4.mp4")..initialize().then((_) {
+    _controller4 = VideoPlayerController.network("https://storkecentr.al/static/Landing4.mp4")..initialize().then((_) {
       setState(() {});
     });
-    _controller5 = VideoPlayerController.network("https://app.pacificesports.org/assets/Landing5.mp4")..initialize().then((_) {
+    _controller5 = VideoPlayerController.network("https://storkecentr.al/static/Landing5.mp4")..initialize().then((_) {
       setState(() {});
     });
-    _controller6 = VideoPlayerController.network("https://app.pacificesports.org/assets/Landing6.mp4")..initialize().then((_) {
+    _controller6 = VideoPlayerController.network("https://storkecentr.al/static/Landing6.mp4")..initialize().then((_) {
       setState(() {});
     });
   }

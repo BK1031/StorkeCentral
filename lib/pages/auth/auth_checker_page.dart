@@ -4,7 +4,9 @@ import 'dart:async';
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -36,13 +38,24 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   @override
   void initState() {
     super.initState();
-    checkServerStatus().then((value) => checkAuthState());
+    checkInitialDynamicLink().then((_) {
+      checkServerStatus().then((value) => checkAuthState());
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
     _fbAuthSubscription?.cancel();
+  }
+
+  Future<void> checkInitialDynamicLink() async {
+    if (!kIsWeb) {
+      final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
+      if (initialLink != null) {
+        launchDynamicLink = initialLink.link.toString();
+      }
+    }
   }
 
   Future<void> checkServerStatus() async {
