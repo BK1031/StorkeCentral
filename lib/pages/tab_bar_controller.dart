@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -266,16 +268,17 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       }
     } else {
       LocationPermission permission = await Geolocator.requestPermission();
-      if (Random().nextBool()) {
-        // ignore: use_build_context_synchronously
-        CoolAlert.show(
-          context: context,
-          type: CoolAlertType.warning,
-          title: "Location Disabled",
-          widget: const Text("Please considering enabling location access to unlock the full potential of StorkeCentral."),
-          confirmBtnColor: SB_AMBER,
-          confirmBtnText: "OK",
-        );
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        if (Random().nextBool()) {
+          CoolAlert.show(
+            context: context,
+            type: CoolAlertType.warning,
+            title: "Location Disabled",
+            widget: const Text("Please considering enabling location access to unlock the full potential of StorkeCentral."),
+            confirmBtnColor: SB_AMBER,
+            confirmBtnText: "OK",
+          );
+        }
       }
     }
 

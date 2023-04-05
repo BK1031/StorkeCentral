@@ -41,7 +41,7 @@ String TESTFLIGHT_URL = "https://beta.itunes.apple.com/v1/app/1594777645";
 bool offlineMode = false;
 bool anonMode = false;
 
-String launchDynamicLink = "/#/register?invite=STKCRL";
+String launchDynamicLink = "";
 
 User currentUser = User();
 List<Friend> friends = [];
