@@ -96,10 +96,12 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   void checkAppVersion() {
     FirebaseFirestore.instance.doc("meta/version").get().then((value) {
-      Version stable = Version(value.get("stable"));
+      stableVersion = Version(value.get("stable"));
+      log ("Stable version: ${stableVersion.toString()} (${stableVersion.getVersionCode()})");
       Version beta = Version(value.get("beta"));
-      if (appVersion.getVersionCode() < stable.getVersionCode()) {
-        log("App is behind stable version (${appVersion.toString()} < ${stable.toString()})");
+      log ("Beta version: ${beta.toString()} (${beta.getVersionCode()})");
+      if (appVersion.getVersionCode() < stableVersion.getVersionCode()) {
+        log("App is behind stable version (${appVersion.toString()} < ${stableVersion.toString()})");
         if (!kIsWeb) {
           CoolAlert.show(
               context: context,

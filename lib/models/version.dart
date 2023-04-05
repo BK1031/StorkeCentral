@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class Version {
   int major = 0;
   int minor = 0;
@@ -17,7 +19,7 @@ class Version {
   }
 
   int getVersionCode() {
-    return major*10^6 + minor*10^3 + patch;
+    return (major * pow(10, 6) + minor * pow(10, 3) + patch).toInt();
   }
 
   int getBuild() {
