@@ -1,9 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +30,7 @@ class BetaInvitePage extends StatefulWidget {
 class _BetaInvitePageState extends State<BetaInvitePage> {
 
   String inviteCode = "";
+  String inviteURL = "";
   DateTime expires = DateTime.now().add(const Duration(days: 7));
   int codeCap = 10;
   List<User> invitedUsers = [];
@@ -45,6 +50,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
         });
         FirebaseFirestore.instance.doc("beta/$inviteCode").get().then((value) {
           setState(() {
+            inviteURL = value.get("url");
             expires = value.get("expires").toDate();
             expires = expires.toLocal();
             codeCap = value.get("cap");
@@ -59,7 +65,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
         setState(() {
           inviteCode = generateInviteCode();
         });
-        uploadNewCode();
+        generateInviteLink().then((value) => uploadNewCode());
       }
     });
   }
@@ -78,6 +84,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
     FirebaseFirestore.instance.doc("beta/users").update({currentUser.id: inviteCode}).then((value) {
       FirebaseFirestore.instance.doc("beta/$inviteCode").set({
         "createdBy": currentUser.id,
+        "url": inviteURL,
         "expires": Timestamp.fromDate(DateTime.now().add(const Duration(days: 7))),
         "cap": codeCap,
         "uses": []
@@ -93,6 +100,29 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
     }
     print("Generated invite code: $code");
     return code.toUpperCase();
+  }
+
+  Future<void> generateInviteLink() async {
+    final dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse("https://storkecentr.al/#/register?invite=$inviteCode"),
+      uriPrefix: "https://launch.storkecentr.al",
+      androidParameters: const AndroidParameters(
+        packageName: "com.bk1031.storke_central"
+      ),
+      iosParameters: IOSParameters(
+        bundleId: "com.example.app.ios",
+        customScheme: "storkecentral",
+        appStoreId: APP_STORE_URL.split("id")[1]
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: "StorkeCentral – Public Beta",
+        description: "${currentUser.firstName} has invited you to join the StorkeCentral Public Beta!",
+        imageUrl: Uri.parse("https://storkecentr.al/static/storke-banner-navy.png")
+      )
+    );
+    final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+    log("Generated invite link: $inviteURL");
+    inviteURL = dynamicLink.shortUrl.toString();
   }
 
   @override
@@ -121,7 +151,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             ),
             Text(
               "Beta v${appVersion.toString()}",
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
             const Padding(padding: EdgeInsets.all(8)),
             const Text(
@@ -130,7 +160,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             const Text(
-              "You can generate an invite code below to share with your friends. If you need more invites, let us know in the Discord. ",
+              "You can share the code below with your friends to invite them to the beta. If you need more invites, let us know in the Discord. ",
               style: TextStyle(fontSize: 16),
             ),
             const Padding(padding: EdgeInsets.all(8)),
@@ -149,9 +179,31 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                     ),
                     ListTile(
                       title: Text(inviteCode != "" ? inviteCode : "XXX-XXX", style: TextStyle(fontSize: 26, letterSpacing: 4, color: inviteCode != "" ? null : Colors.grey), textAlign: TextAlign.center),
+                      subtitle: Text(inviteURL != "" ? inviteURL.replaceAll("https://", "") : "Generating invite url...", style: TextStyle(color: SB_NAVY, fontSize: 18), textAlign: TextAlign.center),
                       trailing: const Icon(Icons.copy),
                       onTap: () async {
-                        await Clipboard.setData(ClipboardData(text: inviteCode));
+                        await Clipboard.setData(ClipboardData(text: "Hey, here's an invite code for StorkeCentral, the cool new app I was talking about: $inviteCode\n\n$inviteURL"));
+                        AnimatedSnackBar(
+                          mobileSnackBarPosition: MobileSnackBarPosition.bottom,
+                          desktopSnackBarPosition: DesktopSnackBarPosition.bottomRight,
+                          builder: (context) {
+                            return Card(
+                              color: SB_GREEN,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: const [
+                                    Icon(Icons.check_rounded, color: Colors.white),
+                                    Padding(padding: EdgeInsets.all(4)),
+                                    Expanded(child: Text("Invite code copied to clipboard!", style: TextStyle(color: Colors.white),)),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ).show(context);
                       },
                     ),
                     Padding(
@@ -204,7 +256,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                                     height: 50,
                                     width: 50,
                                     fit: BoxFit.cover,
-                                    borderRadius: BorderRadius.all(Radius.circular(125)),
+                                    borderRadius: const BorderRadius.all(Radius.circular(125)),
                                     shape: BoxShape.rectangle,
                                   ),
                                 ),
@@ -215,7 +267,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                                     children: [
                                       Text(
                                         "${invitedUsers[index].firstName} ${invitedUsers[index].lastName}",
-                                        style: TextStyle(fontSize: 18),
+                                        style: const TextStyle(fontSize: 18),
                                       ),
                                       Text(
                                         "@${invitedUsers[index].userName}",

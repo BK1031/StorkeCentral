@@ -64,7 +64,7 @@ android {
         applicationId "com.bk1031.storke_central"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
-        minSdkVersion 33
+        minSdkVersion 31
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

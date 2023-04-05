@@ -1,6 +1,7 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -50,12 +51,17 @@ Future<void> main() async {
   UCSB_DINING_CAM_KEY = dotenv.env['UCSB_DINING_KEY']!;
   MAPBOX_PUBLIC_TOKEN = dotenv.env['MAPBOX_PUBLIC_TOKEN']!;
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
-  ONESIGNAL_APP_ID = dotenv.env['ONESIGNAL_APP_ID']!;
 
+  ONESIGNAL_APP_ID = dotenv.env['ONESIGNAL_APP_ID']!;
   log("StorkeCentral v${appVersion.toString()}");
   FirebaseApp app = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   log("Initialized default app $app");
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
+  final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
+  if (initialLink != null) {
+    launchDynamicLink = initialLink.link.toString();
+  }
 
   // Remove this method to stop OneSignal Debugging
   // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);

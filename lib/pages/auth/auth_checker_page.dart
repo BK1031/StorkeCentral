@@ -59,6 +59,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       if (user == null) {
         // Not logged in
         if (!offlineMode) {
+          if (launchDynamicLink.contains("/#/register")) {
+            Future.delayed(const Duration(milliseconds: 0), () {
+              router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
+              launchDynamicLink = "";
+            });
+            return;
+          }
           router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         }
         else {
@@ -83,6 +90,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
               await AuthService.getUser(user.uid);
               if (currentUser.id == "") {
                 // Failed to get user data from server, go to register page
+                if (launchDynamicLink.contains("/#/register")) {
+                  Future.delayed(const Duration(milliseconds: 0), () {
+                    router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
+                    launchDynamicLink = "";
+                  });
+                  return;
+                }
                 router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
                 return;
               }

@@ -8,6 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (AuthService.verifyUserSession(context, "/home")) {
       checkAppVersion();
       _determinePosition();
+      if (!kIsWeb) _registerFirebaseDynamicLinkListener();
       if (!kIsWeb) _registerOneSignalListeners();
       fetchBuildings();
       if (!anonMode && !offlineMode) {
@@ -146,6 +148,26 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         currentPosition = position;
       });
     }
+  }
+
+  void _registerFirebaseDynamicLinkListener() {
+    // Handle initial link if app is opened from a dynamic link
+    if (launchDynamicLink != "") {
+      Future.delayed(const Duration(milliseconds: 900), () {
+        router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
+        launchDynamicLink = "";
+      });
+    }
+    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+      launchDynamicLink = dynamicLinkData.link.toString();
+      log("Firebase Dynamic Link received: ${dynamicLinkData.link}");
+      Future.delayed(const Duration(milliseconds: 200), () {
+        router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
+        launchDynamicLink = "";
+      });
+    }).onError((error) {
+      log("Firebase Dynamic Link error: $error", LogLevel.error);
+    });
   }
 
   void _registerOneSignalListeners() {

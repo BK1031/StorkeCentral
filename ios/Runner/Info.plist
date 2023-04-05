@@ -32,17 +32,33 @@
 				<string>com.googleusercontent.apps.464569478608-3ll4urkmohn5qeg3j90h7fnuvlnthkgn</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.bk1031.storkeCentral</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>storkecentral</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FirebaseDynamicLinksCustomDomains</key>
+	<array>
+		<string>https://launch.storkecentr.al</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Granting us location access allows us to show you nearby dining halls and buildings, as well as provide navigation directions.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Granting us location access allows us to show you nearby dining halls and buildings, as well as provide navigation directions.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Granting us location access allows us to show you nearby dining halls and buildings, as well as provide navigation directions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Granting us location access allows us to show you nearby dining halls and buildings, as well as provide navigation directions.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
@@ -66,7 +82,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 </dict>
 </plist>

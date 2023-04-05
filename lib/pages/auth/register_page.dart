@@ -60,6 +60,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
   List<String> genderList = ["Male", "Female", "Other", "Prefer not to say"];
 
+  @override
+  initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (ModalRoute.of(context)!.settings.name!.contains("?invite=")) {
+        inviteCode = ModalRoute.of(context)!.settings.name!.split("?invite=")[1];
+        verifyInvite();
+      }
+    });
+  }
+
   Future<void> loginGoogle() async {
     // Google sign in
     GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ["email", "profile", "openid"]);
@@ -96,7 +107,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 firstNameController.text = registerUser.firstName;
                 lastNameController.text = registerUser.lastName;
                 emailController.text = registerUser.email;
-                _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                if (validInvite && DateTime.now().isBefore(expires) && invitedUsers.length < codeCap) {
+                  _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                } else {
+                  _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                }
               }
             }
           });
@@ -393,7 +408,88 @@ class _RegisterPageState extends State<RegisterPage> {
               },
               child: const Text("Continue as guest"),
             ),
-          )
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: validInvite ? 150 : 0,
+            child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
+                      child: Text(
+                        "Invited By",
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            child: ExtendedImage.network(
+                              invitedBy.profilePictureURL,
+                              height: 50,
+                              width: 50,
+                              fit: BoxFit.cover,
+                              borderRadius: const BorderRadius.all(Radius.circular(125)),
+                              shape: BoxShape.rectangle,
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${invitedBy.firstName} ${invitedBy.lastName}",
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                                Text(
+                                  "@${invitedBy.userName}",
+                                  style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                )
+                              ],
+                            ),
+                          ),
+                          Text(
+                            "${invitedUsers.length}/$codeCap",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: invitedUsers.length >= codeCap ? SB_RED : SB_GREEN),
+                          )
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: DateTime.now().isBefore(expires),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
+                          child: Text(
+                            "Invite code expires ${DateFormat("MMMMd").format(expires)} (in ${timeago.format(expires, locale: "en_short", allowFromNow: true)})",
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: DateTime.now().isAfter(expires),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
+                          child: Text(
+                            "Invite code expired ${DateFormat("MMMMd").format(expires)} (${timeago.format(expires, locale: "en_short", allowFromNow: true)} ago)",
+                            style: TextStyle(fontSize: 16, color: SB_RED),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                )
+            ),
+          ),
         ],
       ),
     );
