@@ -64,7 +64,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
       });
     }
     // Delay to allow map to load
-    Future.delayed(const Duration(milliseconds: 200)).then((value) => addBuildingsToMap());
+    Future.delayed(const Duration(milliseconds: 400)).then((value) => addBuildingsToMap());
   }
 
   void addBuildingsToMap() {

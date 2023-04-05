@@ -47,6 +47,14 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   void initState() {
     super.initState();
     getBuilding();
+    Future.delayed(Duration.zero, () {
+      if (ModalRoute.of(context)!.settings.name!.contains("?cycling") || ModalRoute.of(context)!.settings.name!.contains("?walking")) {
+        navType = ModalRoute.of(context)!.settings.name!.split("?")[1];
+        currPage = 2;
+        generateRoute();
+        _controller.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+      }
+    });
   }
 
   void getBuilding() {
@@ -76,7 +84,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   }
 
   void generateRoute() {
-    Future.delayed(const Duration(milliseconds: 900)).then((value) async {
+    Future.delayed(const Duration(milliseconds: 400)).then((value) async {
       mapController?.addSymbol(SymbolOptions(
         geometry: LatLng(selectedBuilding.latitude, selectedBuilding.longitude),
         iconImage: getBuildingTypeIcon(selectedBuilding.type),

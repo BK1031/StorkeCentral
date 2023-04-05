@@ -437,7 +437,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 color: SB_NAVY,
                                 onPressed: () {
                                   // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
-                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?navigate", transition: TransitionType.native);
+                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?walking", transition: TransitionType.native);
                                 },
                                 child: const Icon(Icons.directions_walk_rounded, color: Colors.white,),
                               ),
@@ -449,7 +449,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                 color: SB_NAVY,
                                 onPressed: () {
                                   // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
-                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?navigate", transition: TransitionType.native);
+                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?cycling", transition: TransitionType.native);
                                 },
                                 child: const Icon(Icons.directions_bike_rounded, color: Colors.white,),
                               ),

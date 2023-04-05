@@ -301,7 +301,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
     if (!kIsWeb) {
       // Don't change any onesignal shit on the web
-      requestNotifications();
+      await requestNotifications();
       OneSignal.shared.setExternalUserId(currentUser.id);
       OneSignal.shared.setEmail(email: currentUser.email);
       final oneSignal = await OneSignal.shared.getDeviceState();
