@@ -304,7 +304,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       requestNotifications();
       OneSignal.shared.setExternalUserId(currentUser.id);
       OneSignal.shared.setEmail(email: currentUser.email);
-      if (currentUser.phoneNumber != "") OneSignal.shared.setSMSNumber(smsNumber: currentUser.phoneNumber);
       final oneSignal = await OneSignal.shared.getDeviceState();
       currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
       currentUser.privacy.pushNotifications = oneSignal!.hasNotificationPermission ? "ENABLED" : "DISABLED";
@@ -316,6 +315,9 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void setUserStatus(String status) {
     currentUser.status = status;
     FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
+    AuthService.getAuthToken().then((_) {
+      http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+    });
   }
 
   Future<void> updateUserFriendsList() async {
