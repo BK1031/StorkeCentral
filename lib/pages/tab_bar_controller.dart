@@ -90,8 +90,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   @override
   void dispose() {
-    super.dispose();
     _positionStream?.cancel();
+    super.dispose();
   }
 
   void checkAppVersion() {

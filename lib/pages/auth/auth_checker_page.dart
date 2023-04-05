@@ -27,6 +27,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   StreamSubscription<User?>? _fbAuthSubscription;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     checkServerStatus().then((value) => checkAuthState());

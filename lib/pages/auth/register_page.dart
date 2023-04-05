@@ -35,6 +35,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
 
+  StreamSubscription? _dynamicLinkSubscription;
   Timer? searchOnStoppedTyping;
 
   final PageController _pageController = PageController();
@@ -62,6 +63,13 @@ class _RegisterPageState extends State<RegisterPage> {
   List<String> genderList = ["Male", "Female", "Other", "Prefer not to say"];
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   initState() {
     super.initState();
     _registerFirebaseDynamicLinkListener();
@@ -73,15 +81,23 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
+  @override
+  void dispose() {
+    searchOnStoppedTyping?.cancel();
+    _dynamicLinkSubscription?.cancel();
+    super.dispose();
+  }
+
   void _registerFirebaseDynamicLinkListener() {
     // Additional handler just for invite links since `initialLink` doesn't work reliably on iOS
-    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+    _dynamicLinkSubscription = FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
       log("[registration_page] Firebase Dynamic Link received: ${dynamicLinkData.link}");
       if (dynamicLinkData.link.toString().contains("?invite=")) {
         inviteCode = dynamicLinkData.link.toString().split("?invite=")[1];
         verifyInvite();
       }
-    }).onError((error) {
+    });
+    _dynamicLinkSubscription?.onError((error) {
       log("Firebase Dynamic Link error: $error", LogLevel.error);
     });
   }
