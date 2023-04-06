@@ -163,7 +163,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   @override
   Widget build(BuildContext context) {
-    if (anonMode) {
+    if (anonMode && !appUnderReview) {
       return Scaffold(
         body: Center(
           child: Padding(

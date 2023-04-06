@@ -58,6 +58,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    checkAppUnderReview();
     if (AuthService.verifyUserSession(context, "/home")) {
       checkAppVersion();
       _determinePosition();
@@ -92,6 +93,20 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void dispose() {
     _positionStream?.cancel();
     super.dispose();
+  }
+
+  void checkAppUnderReview() {
+    FirebaseFirestore.instance.doc("meta/app-review").get().then((value) {
+      setState(() {
+        appUnderReview = value.get("underReview");
+      });
+      if (appUnderReview) {
+        log("App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
+        setState(() {
+          AuthService.getUser(appReviewUserID);
+        });
+      }
+    });
   }
 
   void checkAppVersion() {

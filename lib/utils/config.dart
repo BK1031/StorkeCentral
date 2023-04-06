@@ -42,6 +42,9 @@ String TESTFLIGHT_URL = "https://beta.itunes.apple.com/v1/app/1594777645";
 bool offlineMode = false;
 bool anonMode = false;
 
+bool appUnderReview = false;
+String appReviewUserID = "LFQh1TicTLbVhX4YDPTIZ3ARxgu2";
+
 String launchDynamicLink = "";
 
 User currentUser = User();
