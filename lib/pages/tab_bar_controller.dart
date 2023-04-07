@@ -58,14 +58,13 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    checkAppUnderReview();
     if (AuthService.verifyUserSession(context, "/home")) {
       checkAppVersion();
       _determinePosition();
       if (!kIsWeb) _registerFirebaseDynamicLinkListener();
       if (!kIsWeb) _registerOneSignalListeners();
       fetchBuildings();
-      if (!anonMode && !offlineMode) {
+      if ((!anonMode || appUnderReview) && !offlineMode) {
         firebaseAnalytics();
         sendLoginEvent();
         updateUserFriendsList();
@@ -81,10 +80,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       AuthService.getUser(currentUser.id);
       _determinePosition();
       checkAppVersion();
-      if (!anonMode && !offlineMode) sendLoginEvent();
+      if ((!anonMode || appUnderReview) && !offlineMode) sendLoginEvent();
     } else {
       log("App has been backgrounded");
-      if (!anonMode && !offlineMode) setUserStatus("OFFLINE");
+      if ((!anonMode || appUnderReview) && !offlineMode) setUserStatus("OFFLINE");
       _positionStream?.cancel();
     }
   }
@@ -93,20 +92,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void dispose() {
     _positionStream?.cancel();
     super.dispose();
-  }
-
-  void checkAppUnderReview() {
-    FirebaseFirestore.instance.doc("meta/app-review").get().then((value) {
-      setState(() {
-        appUnderReview = value.get("underReview");
-      });
-      if (appUnderReview) {
-        log("App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
-        setState(() {
-          AuthService.getUser(appReviewUserID);
-        });
-      }
-    });
   }
 
   void checkAppVersion() {
@@ -220,26 +205,27 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   Future<void> requestNotifications() async {
     OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
-      log("Accepted permission: $accepted");
+      log("Accepted notification permissions: $accepted");
       if (mounted) {
         setState(() {
-          currentUser.privacy.pushNotifications =
-          accepted ? "ENABLED" : "DISABLED";
+          currentUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
         });
+        if (currentUser.privacy.pushNotifications == "DISABLED") showNotificationsDisabledAlert();
       }
-      if (!accepted) showNotificationsDisabledAlert();
     });
   }
 
   void showNotificationsDisabledAlert() {
-    CoolAlert.show(
+    if (Random().nextBool()) {
+      CoolAlert.show(
         context: context,
-        type: CoolAlertType.error,
-        title: "Permission Error",
-        widget: const Text("Please enable push notifications under StorkeCentral in the Settings app."),
-        confirmBtnColor: SB_RED,
-        confirmBtnText: "OK"
-    );
+        type: CoolAlertType.warning,
+        title: "Notifications Disabled",
+        widget: const Text("Please considering enabling push notifications to unlock the full potential of StorkeCentral."),
+        confirmBtnColor: SB_AMBER,
+        confirmBtnText: "OK",
+      );
+    }
   }
 
   Future<void> firebaseAnalytics() async {
@@ -413,7 +399,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         backgroundColor: Colors.transparent,
         color: Theme.of(context).cardColor,
         index: _currPage,
-        items: !anonMode ? [
+        items: !anonMode || appUnderReview ? [
           Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
@@ -438,7 +424,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             _currPage = index;
           });
         },
-        children: !anonMode ? const [
+        children: !anonMode || appUnderReview ? const [
           HomePage(),
           SchedulePage(),
           MapsPage(),

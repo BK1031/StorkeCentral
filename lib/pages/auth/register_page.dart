@@ -72,6 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   initState() {
     super.initState();
+    checkAppUnderReview();
     _registerFirebaseDynamicLinkListener();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (ModalRoute.of(context)!.settings.name!.contains("?invite=")) {
@@ -86,6 +87,17 @@ class _RegisterPageState extends State<RegisterPage> {
     searchOnStoppedTyping?.cancel();
     _dynamicLinkSubscription?.cancel();
     super.dispose();
+  }
+
+  void checkAppUnderReview() {
+    FirebaseFirestore.instance.doc("meta/app-review").get().then((value) {
+      setState(() {
+        appUnderReview = value.get("underReview");
+      });
+      if (appUnderReview) {
+        log("App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
+      }
+    });
   }
 
   void _registerFirebaseDynamicLinkListener() {
@@ -218,7 +230,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> loginAnon() async {
-    fb.FirebaseAuth.instance.signInAnonymously().then((value) {
+    fb.FirebaseAuth.instance.signInAnonymously().then((value) async {
       FirebaseAnalytics.instance.logSignUp(signUpMethod: "Anonymous");
       router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
     });
@@ -434,13 +446,28 @@ class _RegisterPageState extends State<RegisterPage> {
           const Padding(padding: EdgeInsets.all(8),),
           const Text("–– OR ––"),
           // Padding(padding: EdgeInsets.all(8),),
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: CupertinoButton(
-              onPressed: () {
-                loginAnon();
-              },
-              child: const Text("Continue as guest"),
+          Visibility(
+            visible: !appUnderReview,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: CupertinoButton(
+                onPressed: () {
+                  loginAnon();
+                },
+                child: const Text("Continue as guest"),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: appUnderReview,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: CupertinoButton(
+                onPressed: () {
+                  loginAnon();
+                },
+                child: const Text("Enter demo mode"),
+              ),
             ),
           ),
           AnimatedContainer(
