@@ -1,0 +1,57 @@
+package controller
+
+import (
+	"context"
+	"github.com/gin-gonic/gin"
+	"log"
+	"montecito/service"
+	"strings"
+)
+
+func InitializeRoutes(router *gin.Engine) {
+	router.GET("/montecito/ping", Ping)
+}
+
+func RequestLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		println("GATEWAY REQUEST ID: " + c.GetHeader("Request-ID"))
+		c.Next()
+	}
+}
+
+func AuthChecker() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var requestUserID string
+		// var requestUserRoles []string
+
+		ctx := context.Background()
+		client, err := service.FirebaseAdmin.Auth(ctx)
+		if err != nil {
+			log.Fatalf("error getting Auth client: %v\n", err)
+		}
+		if c.GetHeader("Authorization") != "" {
+			token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[1])
+			if err != nil {
+				println("error verifying ID token")
+				requestUserID = "null"
+			} else {
+				println("Decoded User ID: " + token.UID)
+				requestUserID = token.UID
+				// TODO: Get user roles from lacumbre
+				// roles := service.GetRolesForUser(requestUserID)
+				// for _, role := range roles {
+				//	requestUserRoles = append(requestUserRoles, role.Role)
+				// }
+			}
+		} else {
+			println("No user token provided")
+			requestUserID = "null"
+		}
+		println("STUB: " + requestUserID)
+		// The main authentication gateway per request path
+		// The requesting user's ID and roles are pulled and used below
+		// Any path can also be quickly halted if not ready for prod
+		c.Next()
+	}
+}
