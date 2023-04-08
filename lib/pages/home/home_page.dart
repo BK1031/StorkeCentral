@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:card_loading/card_loading.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -134,7 +135,50 @@ class _HomePageState extends State<HomePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
+                  headlineArticle.id == "" ? CardLoading(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    height: 175,
+                    margin: const EdgeInsets.all(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Card(
+                                child: SizedBox(
+                                  height: 20,
+                                  width: 30,
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(4)),
+                              Card(
+                                child: SizedBox(
+                                  height: 20,
+                                  width: 100,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Padding(padding: EdgeInsets.all(8)),
+                          const Card(
+                            child: SizedBox(
+                              height: 20,
+                              width: 500,
+                            ),
+                          ),
+                          const Card(
+                            child: SizedBox(
+                              height: 20,
+                              width: 200,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ) : Container(
                     height: 175,
                     padding: const EdgeInsets.all(8),
                     child: Card(
@@ -192,7 +236,47 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  (diningHallList.isEmpty) ? SizedBox(
+                    height: 150,
+                    child: ListView.builder(
+                      itemCount: 4,
+                      itemBuilder: (BuildContext context, int i) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                          child: SizedBox(
+                            width: 150,
+                            child: CardLoading(
+                              borderRadius: const BorderRadius.all(Radius.circular(8)),
+                              height: 150,
+                              margin: const EdgeInsets.all(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Card(
+                                      child: SizedBox(
+                                        height: 20,
+                                        width: 75,
+                                      ),
+                                    ),
+                                    Card(
+                                      child: SizedBox(
+                                        height: 20,
+                                        width: 150,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      scrollDirection: Axis.horizontal,
+                    ),
+                  ) : SizedBox(
                     height: 150,
                     child: ListView.builder(
                       itemCount: diningHallList.length,

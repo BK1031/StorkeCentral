@@ -48,6 +48,7 @@ dependencies:
   adaptive_theme: ^3.0.0
   shared_preferences: ^2.0.15
   percent_indicator: ^4.2.2
+  card_loading: ^0.3.0
   timeago: 3.3.0
   grouped_list: ^5.1.2
   progress_indicators: ^1.0.0
