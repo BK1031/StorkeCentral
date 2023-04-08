@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                   headlineArticle.id == "" ? CardLoading(
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                     height: 175,
-                    margin: const EdgeInsets.all(8),
+                    margin: const EdgeInsets.all(16),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       child: Column(
