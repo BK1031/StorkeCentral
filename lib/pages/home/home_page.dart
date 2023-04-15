@@ -113,6 +113,7 @@ class _HomePageState extends State<HomePage> {
     // DateTime now = DateTime.parse("2023-03-23 11:00:00.100");
     List<DiningHallMeal> meals = diningMealList.where((element) => element.diningHallID == diningHallID).toList();
     meals.sort((a, b) => a.open.compareTo(b.open));
+    if (meals.isEmpty) return "Closed Today";
     log("Current Time: $now - ${now.timeZoneName}");
     for (int j = 0; j < meals.length; j++) {
       log("${meals[j].name} from ${DateFormat("MM/dd h:mm a").format(meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(meals[j].close.toLocal())}");
@@ -123,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
     // TODO: Get next days breakfast
-    return "Closed Today";
+    return "Closed";
   }
 
   @override
