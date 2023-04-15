@@ -22,6 +22,7 @@ class User {
   User();
 
   User.fromJson(Map<String, dynamic> json) {
+
     id = json["id"] ?? "";
     userName = json["user_name"] ?? "";
     firstName = json["first_name"] ?? "";

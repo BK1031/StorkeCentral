@@ -44,11 +44,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void getUser() async {
+    // Check if user is already stored in friends list
+    // if (friends.any((element) => element.id.contains(userID))) {
+    //   setState(() {
+    //     user = friends.firstWhere((element) => element.id.contains(userID)).user;
+    //   });
+    //   return;
+    // }
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
-        user = User.fromJson(jsonDecode(response.body)["data"]);
+        user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
       });
       log("====== USER PROFILE INFO ======");
       log("FIRST NAME: ${user.firstName}");
@@ -263,6 +270,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             const Padding(padding: EdgeInsets.all(4)),
             Text(
+              // user.bio != "" ? utf8.decode(user.bio.runes.toList()) : "No bio",
               user.bio != "" ? user.bio : "No bio",
               style: const TextStyle(fontSize: 18),
             ),

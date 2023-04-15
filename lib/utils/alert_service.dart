@@ -1,0 +1,9 @@
+
+
+class AlertService {
+
+  static showSuccessAlert() {
+
+  }
+
+}
