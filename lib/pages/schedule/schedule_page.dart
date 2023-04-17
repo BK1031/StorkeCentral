@@ -66,7 +66,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           setState(() => loading = true);
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-            if (jsonDecode(value.body)["data"].length == 0) {
+            if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
               log("No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
@@ -78,7 +78,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               setState(() {
                 classesFound = true;
                 loading = false;
-                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+                userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               buildCalendar();
             }

@@ -60,7 +60,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
     var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
-        user = User.fromJson(jsonDecode(response.body)["data"]);
+        user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
       });
     }
     else {
@@ -79,7 +79,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
           setState(() => loading = true);
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-            if (jsonDecode(value.body)["data"].length == 0) {
+            if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
               log("No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
@@ -91,7 +91,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
               setState(() {
                 classesFound = true;
                 loading = false;
-                localUserScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+                localUserScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               buildCalendar();
             }

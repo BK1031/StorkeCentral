@@ -31,6 +31,13 @@ class _DiningHallPageState extends State<DiningHallPage> {
   _DiningHallPageState(this.diningHallID);
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getDining();
@@ -43,7 +50,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         await Future.delayed(const Duration(milliseconds: 100));
         await http.get(Uri.parse("$API_HOST/dining/$diningHallID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
-            selectedDiningHall = DiningHall.fromJson(jsonDecode(value.body)["data"]);
+            selectedDiningHall = DiningHall.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
           });
         });
         await getDiningMenus();
@@ -65,7 +72,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         await Future.delayed(const Duration(milliseconds: 100));
         await http.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
-            selectedDiningHall.meals = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList().where((element) => element.diningHallID == selectedDiningHall.id).toList();
+            selectedDiningHall.meals = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList().where((element) => element.diningHallID == selectedDiningHall.id).toList();
           });
         });
         setState(() => loading = false);

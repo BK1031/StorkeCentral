@@ -17,10 +17,17 @@ class _LoggerPageState extends State<LoggerPage> {
   ScrollController listScrollController = ScrollController();
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 200)).then((value) {
-      listScrollController.animateTo(listScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+      listScrollController.animateTo(listScrollController.position.maxScrollExtent + 100, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
     });
   }
 

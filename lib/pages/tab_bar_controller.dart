@@ -193,7 +193,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       await AuthService.getAuthToken();
       await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
-          notifications = jsonDecode(value.body)["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
+          notifications = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         });
       });
@@ -330,16 +330,19 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       log("Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
           requests.add(friend);
         } else if (friend.status == "ACCEPTED") {
           friends.add(friend);
         }
       }
-      friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
-      requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
+      setState(() {
+        friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+        requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
+      });
     } else {
       log(response.body, LogLevel.error);
       // TODO: show error snackbar
@@ -353,7 +356,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             setState(() {
-              buildings = jsonDecode(value.body)["data"].map<Building>((json) => Building.fromJson(json)).toList();
+              buildings = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<Building>((json) => Building.fromJson(json)).toList();
             });
             lastBuildingFetch = DateTime.now();
           });

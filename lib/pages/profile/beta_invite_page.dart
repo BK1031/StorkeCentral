@@ -36,6 +36,13 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   List<User> invitedUsers = [];
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getExistingCode();
@@ -75,7 +82,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
     var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
-        invitedUsers.add(User.fromJson(jsonDecode(response.body)["data"]));
+        invitedUsers.add(User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]));
       });
     }
   }

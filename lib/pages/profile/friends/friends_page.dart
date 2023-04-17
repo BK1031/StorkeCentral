@@ -31,6 +31,13 @@ class _FriendsPageState extends State<FriendsPage> {
   bool refreshing = false;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     updateUserFriendsList();
@@ -44,8 +51,9 @@ class _FriendsPageState extends State<FriendsPage> {
       log("Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
           requests.add(friend);
         } else if (friend.status == "ACCEPTED") {
@@ -68,7 +76,7 @@ class _FriendsPageState extends State<FriendsPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      user = User.fromJson(jsonDecode(response.body)["data"]);
+      user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
     } else {
       log("Failed to retrieve friend with id: $id", LogLevel.error);
       log(response.body, LogLevel.error);

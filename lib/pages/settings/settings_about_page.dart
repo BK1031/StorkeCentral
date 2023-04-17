@@ -25,6 +25,12 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
   String connectionSSID = "";
   String connectionIP = "";
 
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
 
   @override
   void initState() {

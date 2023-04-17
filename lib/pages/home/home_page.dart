@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
           await AuthService.getAuthToken();
           var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
           setState(() {
-            headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
+            headlineArticle = NewsArticle.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
           });
           lastHeadlineArticleFetch = DateTime.now();
         } else {
@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
         await Future.delayed(const Duration(milliseconds: 100));
         await http.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
-            diningHallList = jsonDecode(value.body)["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
+            diningHallList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
             for (int i = 0; i < diningHallList.length; i++) {
               diningHallList[i].distanceFromUser = Geolocator.distanceBetween(diningHallList[i].latitude, diningHallList[i].longitude, currentPosition!.latitude, currentPosition!.longitude);
             }
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
         await Future.delayed(const Duration(milliseconds: 100));
         await http.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
-            diningMealList = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
+            diningMealList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
           });
         });
       } catch(e) {

@@ -45,12 +45,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   void getUser() async {
     // Check if user is already stored in friends list
-    // if (friends.any((element) => element.id.contains(userID))) {
-    //   setState(() {
-    //     user = friends.firstWhere((element) => element.id.contains(userID)).user;
-    //   });
-    //   return;
-    // }
+    if (friends.any((element) => element.id.contains(userID))) {
+      setState(() {
+        user = friends.firstWhere((element) => element.id.contains(userID)).user;
+      });
+      return;
+    }
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
@@ -208,8 +208,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       log("Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
           requests.add(friend);
         } else if (friend.status == "ACCEPTED") {

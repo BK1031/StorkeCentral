@@ -32,6 +32,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
   List<String> loadingList = [];
   bool refreshing = false;
 
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
   _onChangedHandler(String input) {
     const duration = Duration(milliseconds: 800);
     if (searchOnStoppedTyping != null) {
@@ -46,7 +53,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       setState(() {
         if (response.statusCode == 200) {
-          searchedUser = User.fromJson(jsonDecode(response.body)["data"]);
+          searchedUser = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
         } else {
           searchedUser = User();
         }
@@ -142,8 +149,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
       log("Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
           requests.add(friend);
         } else if (friend.status == "ACCEPTED") {
@@ -167,8 +175,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
     if (response.statusCode == 200) {
       // TODO: make this an actual mutual friends endpoint (once i learn graph shit from cs130a)
       log("Retrieved suggested users");
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        User user = User.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        User user = User.fromJson(responseJson["data"][i]);
         if (user.id != currentUser.id && !friends.any((element) => element.user.id == user.id)) {
           setState(() {
             suggestedFriends.add(user);

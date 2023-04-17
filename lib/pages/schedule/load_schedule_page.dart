@@ -83,7 +83,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       await AuthService.getAuthToken();
       await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
-          userCourses = jsonDecode(value.body)["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
+          userCourses = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
           log("Fetched ${userCourses.length} courses from Gold");
           getCourseInformation(selectedQuarter.id);
         } else {

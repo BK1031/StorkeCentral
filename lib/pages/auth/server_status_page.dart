@@ -23,6 +23,13 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
   Timer? timer;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     getAllServiceStatuses();
     timer = Timer.periodic(const Duration(seconds: 5), (Timer t) => getAllServiceStatuses());
