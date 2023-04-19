@@ -32,7 +32,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   String inviteCode = "";
   String inviteURL = "";
   DateTime expires = DateTime.now().add(const Duration(days: 7));
-  int codeCap = 10;
+  int codeCap = 5;
   List<User> invitedUsers = [];
 
   @override
@@ -62,6 +62,15 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             expires = expires.toLocal();
             codeCap = value.get("cap");
           });
+          if (expires.isBefore(DateTime.now())) {
+            log("[beta_invite_page] Invite code has expired, generating new code...");
+            setState(() {
+              codeCap = 5;
+              inviteCode = generateInviteCode();
+              expires = DateTime.now().add(const Duration(days: 7));
+            });
+            generateInviteLink().then((value) => uploadNewCode());
+          }
           value.get("uses").forEach((element) {
             log("[beta_invite_page] Adding user $element to invited users list");
             addUserToInvitedList(element.toString());
@@ -167,7 +176,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             const Text(
-              "You can share the code below with your friends to invite them to the beta. If you need more invites, let us know in the Discord. ",
+              "You can share the code below with your friends to invite them to the beta. Come back here to get more invites each week!",
               style: TextStyle(fontSize: 16),
             ),
             const Padding(padding: EdgeInsets.all(8)),
