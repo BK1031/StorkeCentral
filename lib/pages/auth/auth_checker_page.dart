@@ -141,6 +141,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             // User is anonymous
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
             if (appUnderReview) {
+              anonMode = false;
               log("[auth_checker_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
               await AuthService.getUser(appReviewUserID);
             }

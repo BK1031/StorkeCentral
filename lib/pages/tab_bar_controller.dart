@@ -64,7 +64,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       if (!kIsWeb) _registerFirebaseDynamicLinkListener();
       if (!kIsWeb) _registerOneSignalListeners();
       fetchBuildings();
-      if ((!anonMode || appUnderReview) && !offlineMode) {
+      if (!anonMode && !offlineMode) {
         firebaseAnalytics();
         sendLoginEvent();
         updateUserFriendsList();
@@ -80,10 +80,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       AuthService.getUser(currentUser.id);
       _determinePosition();
       checkAppVersion();
-      if ((!anonMode || appUnderReview) && !offlineMode) sendLoginEvent();
+      if (!anonMode && !offlineMode) sendLoginEvent();
     } else {
       log("[tab_bar_controller] App has been backgrounded");
-      if ((!anonMode || appUnderReview) && !offlineMode) setUserStatus("OFFLINE");
+      if (!anonMode && !offlineMode) setUserStatus("OFFLINE");
       _positionStream?.cancel();
     }
   }
@@ -402,7 +402,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         backgroundColor: Colors.transparent,
         color: Theme.of(context).cardColor,
         index: _currPage,
-        items: !anonMode || appUnderReview ? [
+        items: !anonMode ? [
           Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
@@ -427,7 +427,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             _currPage = index;
           });
         },
-        children: !anonMode || appUnderReview ? const [
+        children: !anonMode ? const [
           HomePage(),
           SchedulePage(),
           MapsPage(),
