@@ -18,6 +18,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/login.dart';
@@ -361,6 +362,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             });
             lastBuildingFetch = DateTime.now();
           });
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
         } catch(err) {
           AlertService.showErrorSnackbar(context, "Failed to get buildings!");
           log("[tab_bar_controller] ${err.toString()}", LogLevel.error);

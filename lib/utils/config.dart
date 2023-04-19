@@ -43,7 +43,7 @@ bool offlineMode = false;
 bool anonMode = false;
 
 bool appUnderReview = false;
-String appReviewUserID = "LFQh1TicTLbVhX4YDPTIZ3ARxgu2";
+String appReviewUserID = "Xbq9Xf8kfjQzHsvTVds2E6kUD5F3";
 
 String launchDynamicLink = "";
 
