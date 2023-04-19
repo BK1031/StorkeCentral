@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -137,27 +137,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
       updateUserFriendsList();
       // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.success,
-          title: "Friend Request Accepted",
-          widget: Text("You are now friends with ${friend.user.firstName}!"),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_GREEN,
-          confirmBtnText: "OK"
-      );
+      AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
       log("[user_profile_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Friend Request Error",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      AlertService.showErrorSnackbar(context, "Failed to send friend request");
     }
     setState(() => loading = false);
   }
@@ -371,19 +355,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ],
                     ),
                     onPressed: () {
-                      CoolAlert.show(
-                        context: context,
-                        type: CoolAlertType.confirm,
-                        title: "Remove friend?",
-                        widget: Text("Are you sure you want to remove ${user.firstName} as a friend?"),
-                        backgroundColor: SB_NAVY,
-                        confirmBtnColor: SB_RED,
-                        confirmBtnText: "Yes",
-                        onConfirmBtnTap: () {
-                          removeFriend(user);
-                          router.pop(context);
-                        }
-                      );
+                      removeFriend(user);
                     },
                   ),
                 ),

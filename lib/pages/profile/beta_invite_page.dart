@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -14,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -199,27 +199,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                       trailing: const Icon(Icons.copy),
                       onTap: () async {
                         await Clipboard.setData(ClipboardData(text: "Hey, here's an invite code for StorkeCentral, the cool new app I was talking about: $inviteCode\n\n$inviteURL"));
-                        AnimatedSnackBar(
-                          mobileSnackBarPosition: MobileSnackBarPosition.bottom,
-                          desktopSnackBarPosition: DesktopSnackBarPosition.bottomRight,
-                          builder: (context) {
-                            return Card(
-                              color: SB_GREEN,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const [
-                                    Icon(Icons.check_rounded, color: Colors.white),
-                                    Padding(padding: EdgeInsets.all(4)),
-                                    Expanded(child: Text("Invite code copied to clipboard!", style: TextStyle(color: Colors.white),)),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ).show(context);
+                        AlertService.showInfoSnackbar(context, "Copied invite code to clipboard!");
                       },
                     ),
                     Padding(

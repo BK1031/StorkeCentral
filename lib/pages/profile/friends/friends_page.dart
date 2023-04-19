@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:badges/badges.dart' as badges;
-import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
@@ -102,27 +102,11 @@ class _FriendsPageState extends State<FriendsPage> {
       });
       updateUserFriendsList();
       // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.success,
-          title: "Friend Request Accepted",
-          widget: Text("You are now friends with ${friend.user.firstName}!"),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_GREEN,
-          confirmBtnText: "OK"
-      );
+      AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
       log("[friends_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Friend Request Error",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      AlertService.showErrorSnackbar(context, "Failed to send friend request");
     }
     setState(() {
       loadingList.remove(friend.id);
