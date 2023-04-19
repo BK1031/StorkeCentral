@@ -81,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         if (await canLaunchUrlString(url)) {
                         await launchUrlString(url);
                         } else {
-                        log("Could not launch $url", LogLevel.error);
+                        log("[settings_page] Could not launch $url", LogLevel.error);
                         }
                       },
                     ),
@@ -93,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         if (await canLaunchUrlString(url)) {
                           await launchUrlString(url);
                         } else {
-                          log("Could not launch $url", LogLevel.error);
+                          log("[settings_page] Could not launch $url", LogLevel.error);
                         }
                       },
                     ),

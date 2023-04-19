@@ -57,7 +57,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
         appUnderReview = value.get("underReview");
       });
       if (appUnderReview) {
-        log("App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
+        log("[auth_checker_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
       }
     });
   }
@@ -74,7 +74,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   Future<void> checkServerStatus() async {
     try {
       var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
-      log("Server Status: ${serverStatus.statusCode}");
+      log("[auth_checker_page] Server Status: ${serverStatus.statusCode}");
       if (serverStatus.statusCode != 200) {
         offlineMode = true;
       } else {
@@ -110,7 +110,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       } else {
         // User logged in
         anonMode = user.isAnonymous;
-        log("anonMode: $anonMode");
+        log("[auth_checker_page] anonMode: $anonMode");
         try {
           if (!anonMode) {
             // User is not anonymous
@@ -141,7 +141,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             // User is anonymous
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
             if (appUnderReview) {
-              log("App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
+              log("[auth_checker_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
               await AuthService.getUser(appReviewUserID);
             }
           }
@@ -154,7 +154,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
           }
         } catch (err) {
-          log(err);
+          log("[auth_checker_page] $err");
           // loadOfflineMode();
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
         }
@@ -171,7 +171,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> loadOfflineMode() async {
-    log("Failed to reach server, entering offline mode!");
+    log("[auth_checker_page] Failed to reach server, entering offline mode!");
     // TODO: Load user info from local storage
     offlineMode = true;
   }

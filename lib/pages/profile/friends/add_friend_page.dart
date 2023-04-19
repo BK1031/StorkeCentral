@@ -74,7 +74,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Friend request accepted!");
+      log("[add_friend_page] Friend request accepted!");
       setState(() {
         requests.removeWhere((element) => element.id == friend.id);
         friends.add(friend);
@@ -91,7 +91,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
           confirmBtnText: "OK"
       );
     } else {
-      log(response.body, LogLevel.error);
+      log("[add_friend_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,
@@ -120,7 +120,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Sent friend request");
+      log("[add_friend_page] Sent friend request");
       setState(() {
         requests.add(friend);
       });
@@ -128,13 +128,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
       if (searchedUser.id != "") {
         // Rebuild searched user widget
         getSearchedUser(user.id);
-        log("Rebuilt searched user widget");
+        log("[add_friend_page] Rebuilt searched user widget");
       } else {
         // Rebuild in suggested list
-        log("Rebuilt in suggested list");
+        log("[add_friend_page] Rebuilt in suggested list");
       }
     } else {
-      log(response.body, LogLevel.error);
+      log("[add_friend_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
     setState(() {
@@ -146,7 +146,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Successfully updated local friend list");
+      log("[add_friend_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
@@ -163,7 +163,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
         requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
-      log(response.body, LogLevel.error);
+      log("[add_friend_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
   }
@@ -174,7 +174,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       // TODO: make this an actual mutual friends endpoint (once i learn graph shit from cs130a)
-      log("Retrieved suggested users");
+      log("[add_friend_page] Retrieved suggested users");
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
       for (int i = 0; i < responseJson["data"].length; i++) {
         User user = User.fromJson(responseJson["data"][i]);
@@ -188,7 +188,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
         refreshing = false;
       });
     } else {
-      log(response.body, LogLevel.error);
+      log("[add_friend_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
   }

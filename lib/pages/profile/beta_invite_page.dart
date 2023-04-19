@@ -51,7 +51,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   void getExistingCode() {
     FirebaseFirestore.instance.doc("beta/users").get().then((value) {
       try {
-        log(value.get(currentUser.id));
+        log("[beta_invite_page] ${value.get(currentUser.id)}");
         setState(() {
           inviteCode = value.get(currentUser.id);
         });
@@ -63,7 +63,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             codeCap = value.get("cap");
           });
           value.get("uses").forEach((element) {
-            log("Adding user $element to invited users list");
+            log("[beta_invite_page] Adding user $element to invited users list");
             addUserToInvitedList(element.toString());
           });
         });
@@ -128,7 +128,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
       )
     );
     final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
-    log("Generated invite link: $inviteURL");
+    log("[beta_invite_page] Generated invite link: $inviteURL");
     inviteURL = dynamicLink.shortUrl.toString();
   }
 

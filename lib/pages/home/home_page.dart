@@ -51,14 +51,14 @@ class _HomePageState extends State<HomePage> {
           });
           lastHeadlineArticleFetch = DateTime.now();
         } else {
-          log("Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 60 minutes)");
+          log("[home_page] Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 60 minutes)");
         }
       } catch(e) {
-        log(e.toString(), LogLevel.error);
+        log("[home_page] ${e.toString()}", LogLevel.error);
         // TODO: show error snackbar
       }
     } else {
-      log("Offline mode, searching cache for news...");
+      log("[home_page] Offline mode, searching cache for news...");
     }
   }
 
@@ -80,11 +80,11 @@ class _HomePageState extends State<HomePage> {
           }
         });
       } catch(e) {
-        log(e.toString(), LogLevel.error);
+        log("[home_page] ${e.toString()}", LogLevel.error);
         // TODO: show error snackbar
       }
     } else {
-      log("Offline mode, searching cache for dining...");
+      log("[home_page] Offline mode, searching cache for dining...");
     }
   }
 
@@ -100,11 +100,11 @@ class _HomePageState extends State<HomePage> {
           });
         });
       } catch(e) {
-        log(e.toString(), LogLevel.error);
+        log("[home_page] ${e.toString()}", LogLevel.error);
         // TODO: show error snackbar
       }
     } else {
-      log("Offline mode, searching cache for dining...");
+      log("[home_page] Offline mode, searching cache for dining...");
     }
   }
 
@@ -114,9 +114,9 @@ class _HomePageState extends State<HomePage> {
     List<DiningHallMeal> meals = diningMealList.where((element) => element.diningHallID == diningHallID).toList();
     meals.sort((a, b) => a.open.compareTo(b.open));
     if (meals.isEmpty) return "Closed Today";
-    log("Current Time: $now - ${now.timeZoneName}");
+    // log("[home_page] Current Time: $now - ${now.timeZoneName}");
     for (int j = 0; j < meals.length; j++) {
-      log("${meals[j].name} from ${DateFormat("MM/dd h:mm a").format(meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(meals[j].close.toLocal())}");
+      // log("[home_page] ${meals[j].name} from ${DateFormat("MM/dd h:mm a").format(meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(meals[j].close.toLocal())}");
       if (now.isBefore(meals[j].open.toLocal())) {
         return "${meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(meals[j].open.toLocal())}";
       } else if (now.isAfter(meals[j].open.toLocal()) && now.isBefore(meals[j].close.toLocal())) {

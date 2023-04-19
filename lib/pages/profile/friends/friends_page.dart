@@ -48,7 +48,7 @@ class _FriendsPageState extends State<FriendsPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Successfully updated local friend list");
+      log("[friends_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
@@ -65,7 +65,7 @@ class _FriendsPageState extends State<FriendsPage> {
         requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
-      log(response.body, LogLevel.error);
+      log("[friends_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
     setState(() => refreshing = false);
@@ -78,11 +78,11 @@ class _FriendsPageState extends State<FriendsPage> {
     if (response.statusCode == 200) {
       user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
     } else {
-      log("Failed to retrieve friend with id: $id", LogLevel.error);
-      log(response.body, LogLevel.error);
+      log("[friends_page] Failed to retrieve friend with id: $id", LogLevel.error);
+      log("[friends_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
-    log("Retrieved user info for: ${user.toString()}");
+    log("[friends_page] Retrieved user info for: ${user.toString()}");
     return user;
   }
 
@@ -95,7 +95,7 @@ class _FriendsPageState extends State<FriendsPage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Friend request accepted!");
+      log("[friends_page] Friend request accepted!");
       setState(() {
         requests.removeWhere((element) => element.id == friend.id);
         friends.add(friend);
@@ -112,7 +112,7 @@ class _FriendsPageState extends State<FriendsPage> {
           confirmBtnText: "OK"
       );
     } else {
-      log(response.body, LogLevel.error);
+      log("[friends_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,

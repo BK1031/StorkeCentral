@@ -60,14 +60,14 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     if (!offlineMode) {
       try {
         // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
-        log("${userScheduleItems.length} existing userScheduleItems");
+        log("[schedule_page] ${userScheduleItems.length} existing userScheduleItems");
 
         if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
           setState(() => loading = true);
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
-              log("No schedule items found in db for this quarter.", LogLevel.warn);
+              log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
                 loading = false;
@@ -84,22 +84,22 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
             }
           });
         } else {
-          log("Schedule items already loaded for this quarter, skipping fetch.");
+          log("[schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
         }
       } catch(err) {
         // TODO: Show error snackbar
-        log(err.toString(), LogLevel.error);
+        log("[schedule_page] ${err.toString()}", LogLevel.error);
         setState(() => classesFound = true);
       }
     } else {
-      log("Offline mode, searching cache for schedule...");
+      log("[schedule_page] Offline mode, searching cache for schedule...");
     }
   }
 
   // Function that actually creates the class events
   // TODO: Add finals to calendar
   void buildCalendar() {
-    log("Building calendar...");
+    log("[schedule_page] Building calendar...");
     lastScheduleFetch = DateTime.now();
     clearCalendar();
     for (var item in userScheduleItems) {

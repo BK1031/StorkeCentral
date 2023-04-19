@@ -84,17 +84,17 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
           userCourses = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
-          log("Fetched ${userCourses.length} courses from Gold");
+          log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
           getCourseInformation(selectedQuarter.id);
         } else {
-          log("Invalid credentials, launching login page", LogLevel.warn);
+          log("[load_schedule_page] Invalid credentials, launching login page", LogLevel.warn);
           setState(() {
             state = 1;
           });
         }
       });
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
@@ -116,7 +116,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         if (value.statusCode == 200) {
           fetchGoldSchedule();
         } else {
-          log("Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
+          log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
           passwordController.clear();
           setState(() {
             state = 1;
@@ -133,7 +133,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         }
       });
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
@@ -143,7 +143,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   String generateEncryptionKey() {
     const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     Random _rnd = Random.secure();
-    log("Generated encryption key", LogLevel.info);
+    log("[load_schedule_page] Generated encryption key", LogLevel.info);
     return String.fromCharCodes(Iterable.generate(32, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
   }
 
@@ -160,12 +160,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           setState(() {
             goldCourses.add(goldCourse);
           });
-          log("Retrieved course info for ${goldCourse.toString()} (${course.courseID})");
+          log("[load_schedule_page] Retrieved course info for ${goldCourse.toString()} (${course.courseID})");
         });
       }
       createUserSchedule(quarter);
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
@@ -187,13 +187,13 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
 
   void createUserSchedule(String quarter) {
     for (GoldCourse course in goldCourses) {
-      log("Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      log("[load_schedule_page] Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
         if (section.enrollCode == course.enrollCode || section.section == "0100") {
-          log("[x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
+          log("[load_schedule_page] [x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
           goldSectionMap[section] = true;
         } else {
-          log("[ ] ${section.enrollCode}");
+          log("[load_schedule_page] [ ] ${section.enrollCode}");
           goldSectionMap[section] = false;
         }
       }
@@ -206,7 +206,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     // Generate userScheduleItems from goldCourses and goldSectionMap
     userScheduleItems.clear();
     for (GoldCourse course in goldCourses) {
-      log("Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      log("[load_schedule_page] Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
         if (goldSectionMap[section]!) {
           for (GoldCourseTime time in section.times) {
@@ -224,12 +224,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
               userScheduleItem.quarter = quarter;
               userScheduleItems.add(userScheduleItem);
             });
-            log("+ ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
+            log("[load_schedule_page] + ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
           }
         }
       }
     }
-    log("Generated ${userScheduleItems.length} schedule items");
+    log("[load_schedule_page] Generated ${userScheduleItems.length} schedule items");
     saveUserSchedule();
   }
 
@@ -239,13 +239,13 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         state = 5;
       });
 
-      log("Saving schedule to database...");
+      log("[load_schedule_page] Saving schedule to database...");
 
       await AuthService.getAuthToken();
       await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       await AuthService.getAuthToken();
       await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(userScheduleItems));
-      log("Saved schedule to database");
+      log("[load_schedule_page] Saved schedule to database");
       setState(() {
         state = 6;
         // Set lastScheduleFetch to force a refresh
@@ -255,7 +255,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         router.pop(context);
       });
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });

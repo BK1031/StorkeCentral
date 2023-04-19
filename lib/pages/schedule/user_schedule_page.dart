@@ -64,7 +64,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
       });
     }
     else {
-      log("Account not found!");
+      log("[user_schedule_page] Account not found!");
     }
   }
 
@@ -72,15 +72,15 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
     if (!offlineMode) {
       try {
         // Check if localUserScheduleItems is empty or if selectedQuarter is different from last item in localUserScheduleItems
-        log("${localUserScheduleItems.length} existing localUserScheduleItems");
+        log("[user_schedule_page] ${localUserScheduleItems.length} existing localUserScheduleItems");
         if (localUserScheduleItems.isNotEmpty) log("Last Q: ${localUserScheduleItems.last.quarter}");
-        log("Selected Q: ${selectedQuarter.id}");
+        log("[user_schedule_page] Selected Q: ${selectedQuarter.id}");
         if (localUserScheduleItems.isEmpty || localUserScheduleItems.last.quarter != selectedQuarter.id) {
           setState(() => loading = true);
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
-              log("No schedule items found in db for this quarter.", LogLevel.warn);
+              log("[user_schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
                 loading = false;
@@ -97,22 +97,22 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
             }
           });
         } else {
-          log("Schedule items already loaded for this quarter, skipping fetch.");
+          log("[user_schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
         }
       } catch(err) {
         // TODO: Show error snackbar
-        log(err.toString(), LogLevel.error);
+        log("[user_schedule_page] ${err.toString()}", LogLevel.error);
         setState(() => classesFound = true);
       }
     } else {
-      log("Offline mode, searching cache for schedule...");
+      log("[user_schedule_page] Offline mode, searching cache for schedule...");
     }
   }
 
   // Function that actually creates the class events
   // TODO: Add finals to calendar
   void buildCalendar() {
-    log("Building calendar...");
+    log("[user_schedule_page] Building calendar...");
     lastScheduleFetch = DateTime.now();
     clearCalendar();
     for (var item in localUserScheduleItems) {

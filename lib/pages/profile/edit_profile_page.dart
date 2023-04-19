@@ -63,7 +63,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     currentUser.pronouns = editPronouns;
     currentUser.phoneNumber = editPhone;
     currentUser.gender = editGender;
-    log(currentUser.toJson());
+    log("[edit_profile_page] ${currentUser.toJson()}");
     setState(() => loading = true);
     await AuthService.getAuthToken();
     await http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));

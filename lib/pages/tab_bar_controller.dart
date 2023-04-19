@@ -76,13 +76,13 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      log("App has been resumed");
+      log("[tab_bar_controller] App has been resumed");
       AuthService.getUser(currentUser.id);
       _determinePosition();
       checkAppVersion();
       if ((!anonMode || appUnderReview) && !offlineMode) sendLoginEvent();
     } else {
-      log("App has been backgrounded");
+      log("[tab_bar_controller] App has been backgrounded");
       if ((!anonMode || appUnderReview) && !offlineMode) setUserStatus("OFFLINE");
       _positionStream?.cancel();
     }
@@ -101,7 +101,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       Version beta = Version(value.get("beta"));
       log ("Beta version: ${beta.toString()} (${beta.getVersionCode()})");
       if (appVersion.getVersionCode() < stableVersion.getVersionCode()) {
-        log("App is behind stable version (${appVersion.toString()} < ${stableVersion.toString()})");
+        log("[tab_bar_controller] App is behind stable version (${appVersion.toString()} < ${stableVersion.toString()})");
         if (!kIsWeb) {
           CoolAlert.show(
               context: context,
@@ -122,7 +122,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           );
         }
       } else if (currentUser.roles.where((r) => r.role == "PRIVATE_BETA").isNotEmpty && appVersion.getVersionCode() < beta.getVersionCode()) {
-        log("App is behind beta version (${appVersion.toString()} < ${beta.toString()})");
+        log("[tab_bar_controller] App is behind beta version (${appVersion.toString()} < ${beta.toString()})");
         if (!kIsWeb) {
           CoolAlert.show(
               context: context,
@@ -139,7 +139,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           );
         }
       } else {
-        log("App is up to date (${appVersion.toString()})");
+        log("[tab_bar_controller] App is up to date (${appVersion.toString()})");
       }
     });
   }
@@ -164,26 +164,26 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     }
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
       launchDynamicLink = dynamicLinkData.link.toString();
-      log("Firebase Dynamic Link received: ${dynamicLinkData.link}");
+      log("[tab_bar_controller] Firebase Dynamic Link received: ${dynamicLinkData.link}");
       Future.delayed(const Duration(milliseconds: 200), () {
         router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
         launchDynamicLink = "";
       });
     }).onError((error) {
-      log("Firebase Dynamic Link error: $error", LogLevel.error);
+      log("[tab_bar_controller] Firebase Dynamic Link error: $error", LogLevel.error);
     });
   }
 
   void _registerOneSignalListeners() {
     OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
-      log("OneSignal notification received: ${event.notification.notificationId}");
+      log("[tab_bar_controller] OneSignal notification received: ${event.notification.notificationId}");
       fetchNotifications().then((value) {
-        log("You now have ${notifications.where((element) => !element.read).length} unread notifications");
+        log("[tab_bar_controller] You now have ${notifications.where((element) => !element.read).length} unread notifications");
       });
       event.complete(event.notification);
     });
     OneSignal.shared.setNotificationOpenedHandler((result) {
-      log("OneSignal notification opened: ${result.notification.notificationId}");
+      log("[tab_bar_controller] OneSignal notification opened: ${result.notification.notificationId}");
       router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
     });
   }
@@ -199,13 +199,13 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       });
     } catch(err) {
       // TODO: Show error snackbar
-      log(err.toString(), LogLevel.error);
+      log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
     }
   }
 
   Future<void> requestNotifications() async {
     OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
-      log("Accepted notification permissions: $accepted");
+      log("[tab_bar_controller] Accepted notification permissions: $accepted");
       if (mounted) {
         setState(() {
           currentUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
@@ -299,8 +299,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
     await AuthService.getAuthToken();
     var loginResponse = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/logins"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(login));
-    if (loginResponse.statusCode == 200) log("Sent login event: ${loginResponse.body}");
-    else log("Login event silently failed");
+    if (loginResponse.statusCode == 200) log("[tab_bar_controller] Sent login event: ${loginResponse.body}");
+    else log("[tab_bar_controller] Login event silently failed");
 
     if (!kIsWeb) {
       // Don't change any onesignal shit on the web
@@ -327,7 +327,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Successfully updated local friend list");
+      log("[tab_bar_controller] Successfully updated local friend list");
       friends.clear();
       requests.clear();
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
@@ -344,7 +344,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
-      log(response.body, LogLevel.error);
+      log("[tab_bar_controller] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
   }
@@ -362,13 +362,13 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           });
         } catch(err) {
           // TODO: Show error snackbar
-          log(err.toString(), LogLevel.error);
+          log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
         }
       } else {
-        log("Using cached building list, last fetch was ${DateTime.now().difference(lastBuildingFetch).inMinutes} minutes ago (minimum 1440 minutes)");
+        log("[tab_bar_controller] Using cached building list, last fetch was ${DateTime.now().difference(lastBuildingFetch).inMinutes} minutes ago (minimum 1440 minutes)");
       }
     } else {
-      log("Offline mode, searching cache for buildings...");
+      log("[tab_bar_controller] Offline mode, searching cache for buildings...");
     }
   }
 

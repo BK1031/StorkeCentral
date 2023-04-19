@@ -57,14 +57,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
       });
-      log("====== USER PROFILE INFO ======");
-      log("FIRST NAME: ${user.firstName}");
-      log("LAST NAME: ${user.lastName}");
-      log("EMAIL: ${user.email}");
-      log("====== =============== ======");
+      log("[user_profile_page] ====== USER PROFILE INFO ======");
+      log("[user_profile_page] FIRST NAME: ${user.firstName}");
+      log("[user_profile_page] LAST NAME: ${user.lastName}");
+      log("[user_profile_page] EMAIL: ${user.email}");
+      log("[user_profile_page] ====== =============== ======");
     }
     else {
-      log("Account not found!");
+      log("[user_profile_page] Account not found!");
     }
   }
   
@@ -79,12 +79,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } else if (requests.any((element) => element.fromUserID == userID)) {
       status = "PENDING";
     }
-    log("FRIENDSHIP STATUS: $status");
+    log("[user_profile_page] FRIENDSHIP STATUS: $status");
     return status;
   }
 
   bool showPronouns() {
-    log("PRONOUNS: ${user.privacy.pronouns}");
+    log("[user_profile_page] PRONOUNS: ${user.privacy.pronouns}");
     if (user.pronouns != "") {
       if (user.privacy.pronouns == "PUBLIC") {
         return true;
@@ -96,7 +96,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   bool showEmail() {
-    log("EMAIL: ${user.privacy.email}");
+    log("[user_profile_page] EMAIL: ${user.privacy.email}");
     if (user.email != "") {
       if (user.privacy.email == "PUBLIC") {
         return true;
@@ -108,7 +108,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   bool showPhoneNumber() {
-    log("PHONE NUMBER: ${user.privacy.phoneNumber}");
+    log("[user_profile_page] PHONE NUMBER: ${user.privacy.phoneNumber}");
     if (user.phoneNumber != "") {
       if (user.privacy.phoneNumber == "PUBLIC") {
         return true;
@@ -130,7 +130,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Friend request accepted!");
+      log("[user_profile_page] Friend request accepted!");
       setState(() {
         requests.removeWhere((element) => element.id == friend.id);
         friends.add(friend);
@@ -147,7 +147,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           confirmBtnText: "OK"
       );
     } else {
-      log(response.body, LogLevel.error);
+      log("[user_profile_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
       CoolAlert.show(
           context: context,
@@ -172,13 +172,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Sent friend request");
+      log("[user_profile_page] Sent friend request");
       setState(() {
         requests.add(friend);
       });
       updateUserFriendsList();
     } else {
-      log(response.body, LogLevel.error);
+      log("[user_profile_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
     setState(() => loading = false);
@@ -190,13 +190,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     await AuthService.getAuthToken();
     var response = await http.delete(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${friend.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Friend removed!");
+      log("[user_profile_page] Friend removed!");
       setState(() {
         friends.removeWhere((element) => element.id == friend.id);
       });
       updateUserFriendsList();
     } else {
-      log(response.body, LogLevel.error);
+      log("[user_profile_page] ${response.body}", LogLevel.error);
     }
     setState(() => loading = false);
   }
@@ -205,7 +205,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Successfully updated local friend list");
+      log("[user_profile_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
@@ -222,7 +222,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
-      log(response.body, LogLevel.error);
+      log("[user_profile_page] ${response.body}", LogLevel.error);
       // TODO: show error snackbar
     }
   }

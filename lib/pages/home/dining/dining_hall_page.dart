@@ -1,3 +1,5 @@
+// ignore_for_file: no_logic_in_create_state, must_be_immutable
+
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -56,11 +58,11 @@ class _DiningHallPageState extends State<DiningHallPage> {
         await getDiningMenus();
         selectedDiningHall.status = getDiningStatus(selectedDiningHall.id);
       } catch(e) {
-        log(e.toString(), LogLevel.error);
+        log("[dining_hall_page] ${e.toString()}", LogLevel.error);
         // TODO: show error snackbar
       }
     } else {
-      log("Offline mode, searching cache for dining...");
+      log("[dining_hall_page] Offline mode, searching cache for dining...");
     }
   }
 
@@ -77,11 +79,11 @@ class _DiningHallPageState extends State<DiningHallPage> {
         });
         setState(() => loading = false);
       } catch(e) {
-        log(e.toString(), LogLevel.error);
+        log("[dining_hall_page] ${e.toString()}", LogLevel.error);
         // TODO: show error snackbar
       }
     } else {
-      log("Offline mode, searching cache for dining...");
+      log("[dining_hall_page] Offline mode, searching cache for dining...");
     }
   }
 
@@ -89,9 +91,9 @@ class _DiningHallPageState extends State<DiningHallPage> {
     DateTime now = DateTime.now();
     // DateTime now = DateTime.parse("2023-03-23 11:00:00.100");
     selectedDiningHall.meals.sort((a, b) => a.open.compareTo(b.open));
-    log("Current Time: $now - ${now.timeZoneName}");
+    log("[dining_hall_page] Current Time: $now - ${now.timeZoneName}");
     for (int j = 0; j < selectedDiningHall.meals.length; j++) {
-      log("${selectedDiningHall.meals[j].name} from ${DateFormat("MM/dd h:mm a").format(selectedDiningHall.meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}");
+      log("[dining_hall_page] ${selectedDiningHall.meals[j].name} from ${DateFormat("MM/dd h:mm a").format(selectedDiningHall.meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}");
       if (now.isBefore(selectedDiningHall.meals[j].open.toLocal())) {
         Future.delayed(const Duration(milliseconds: 100), () {
           setState(() {

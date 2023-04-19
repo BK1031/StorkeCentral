@@ -64,7 +64,7 @@ class _LoggerPageState extends State<LoggerPage> {
             const Padding(padding: EdgeInsets.all(4)),
             CupertinoButton(
               color: darkCardColor,
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               child: Row(
                 children: [],
               ),

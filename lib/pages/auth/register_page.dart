@@ -95,7 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
         appUnderReview = value.get("underReview");
       });
       if (appUnderReview) {
-        log("App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
+        log("[registration_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
       }
     });
   }
@@ -112,18 +112,18 @@ class _RegisterPageState extends State<RegisterPage> {
             }
           });
       _dynamicLinkSubscription?.onError((error) {
-        log("Firebase Dynamic Link error: $error", LogLevel.error);
+        log("[registration_page] Firebase Dynamic Link error: $error", LogLevel.error);
       });
     }
   }
 
   Future<void> loginGoogle() async {
     // Google sign in
-    GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ["email", "profile", "openid"]);
+    GoogleSignIn googleSignIn = GoogleSignIn(scopes: ["email", "profile", "openid"]);
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser != null) {
-        log("Signed into Google as ${googleUser.displayName} (${googleUser.email})");
+        log("[registration_page] Signed into Google as ${googleUser.displayName} (${googleUser.email})");
         if (googleUser.email.contains("ucsb.edu")) {
           final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
           final credential = fb.GoogleAuthProvider.credential(
@@ -143,10 +143,10 @@ class _RegisterPageState extends State<RegisterPage> {
           }
           await checkIfUserExists().then((userExists) {
             if (userExists) {
-              log("User already has StorkeCentral account");
+              log("[registration_page] User already has StorkeCentral account");
               router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
             } else {
-              log("User does not have a StorkeCentral account");
+              log("[registration_page] User does not have a StorkeCentral account");
               if (kIsWeb) {
                 router.navigateTo(context, "/download", transition: TransitionType.fadeIn, replace: true, clearStack: true);
               } else {
@@ -175,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
     } catch (err) {
-      log(err);
+      log("[registration_page] $err", LogLevel.error);
       CoolAlert.show(
           context: context,
           type: CoolAlertType.error,
@@ -225,7 +225,7 @@ class _RegisterPageState extends State<RegisterPage> {
         "uses": FieldValue.arrayUnion([registerUser.id])
       });
     } catch (err) {
-      log(err, LogLevel.error);
+      log("[registration_page] $err", LogLevel.error);
     }
   }
 
@@ -267,7 +267,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> requestLocationAccess() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      log("Location services not enabled!");
+      log("[registration_page] Location services not enabled!");
       if (mounted) {
         setState(() {
           registerUser.privacy.location = "DISABLED";
@@ -276,7 +276,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } else {
       LocationPermission permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        log("Location permission denied");
+        log("[registration_page] Location permission denied");
         if (mounted) {
           setState(() {
             registerUser.privacy.location = "DISABLED";
@@ -284,7 +284,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
       if (permission == LocationPermission.deniedForever) {
-        log("Location permission denied forever");
+        log("[registration_page] Location permission denied forever");
         if (mounted) {
           setState(() {
             registerUser.privacy.location = "DISABLED_FOREVER";
@@ -293,7 +293,7 @@ class _RegisterPageState extends State<RegisterPage> {
         showLocationDisabledAlert();
       }
       if (permission == LocationPermission.whileInUse) {
-        log("Location permission enabled when in use");
+        log("[registration_page] Location permission enabled when in use");
         if (mounted) {
           setState(() {
             registerUser.privacy.location = "ENABLED_WHEN_IN_USE";
@@ -301,7 +301,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
       if (permission == LocationPermission.always) {
-        log("Location permission enabled always");
+        log("[registration_page] Location permission enabled always");
         if (mounted) {
           setState(() {
             registerUser.privacy.location = "ENABLED_ALWAYS";
@@ -324,7 +324,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> requestNotifications() async {
     OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
-      log("Accepted permission: $accepted");
+      log("[registration_page] Accepted permission: $accepted");
       if (mounted) {
         setState(() {
           registerUser.privacy.pushNotifications =
@@ -368,7 +368,7 @@ class _RegisterPageState extends State<RegisterPage> {
       } else {
         // Setting privacy object's userID so privacy will be set in the backend
         registerUser.privacy.userID = registerUser.id;
-        log(registerUser.toJson());
+        log("[registration_page] ${registerUser.toJson()}");
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
@@ -399,7 +399,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
     } catch (err) {
-      log(err);
+      log("[registration_page] $err", LogLevel.error);
       CoolAlert.show(
           context: context,
           type: CoolAlertType.error,
@@ -937,20 +937,20 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(fontSize: 18, color: AdaptiveTheme.of(context).theme.textTheme.bodyLarge!.color),
                     items: const [
                       DropdownMenuItem(
-                        child: Text("Male"),
                         value: "Male",
+                        child: Text("Male"),
                       ),
                       DropdownMenuItem(
-                        child: Text("Female"),
                         value: "Female",
+                        child: Text("Female"),
                       ),
                       DropdownMenuItem(
-                        child: Text("Other"),
                         value: "Other",
+                        child: Text("Other"),
                       ),
                       DropdownMenuItem(
-                        child: Text("Prefer not to say"),
                         value: "Prefer not to say",
+                        child: Text("Prefer not to say"),
                       ),
                     ],
                     borderRadius: BorderRadius.circular(8),
@@ -988,8 +988,8 @@ class _RegisterPageState extends State<RegisterPage> {
           Visibility(
             visible: registerUser.privacy.location.contains("DISABLED"),
             child: CupertinoButton(
-              child: const Text("Share Location"),
               onPressed: requestLocationAccess,
+              child: const Text("Share Location"),
             ),
           ),
           const Padding(padding: EdgeInsets.all(8)),
@@ -1014,8 +1014,8 @@ class _RegisterPageState extends State<RegisterPage> {
           Visibility(
             visible: registerUser.privacy.pushNotifications == "DISABLED",
             child: CupertinoButton(
-              child: const Text("Allow Notifications"),
-              onPressed: requestNotifications
+              onPressed: requestNotifications,
+              child: const Text("Allow Notifications")
             ),
           ),
           const Padding(padding: EdgeInsets.all(8)),

@@ -134,7 +134,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
         });
       });
     } catch (e) {
-      log(e.toString(), LogLevel.error);
+      log("[building_details_page] ${e.toString()}", LogLevel.error);
     }
   }
 
