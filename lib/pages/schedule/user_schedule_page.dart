@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -100,7 +101,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
           log("[user_schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
         }
       } catch(err) {
-        // TODO: Show error snackbar
+        AlertService.showErrorSnackbar(context, "Failed to get schedule!");
         log("[user_schedule_page] ${err.toString()}", LogLevel.error);
         setState(() => classesFound = true);
       }

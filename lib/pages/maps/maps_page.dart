@@ -98,7 +98,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
       distance = Geolocator.distanceBetween(currentPosition!.latitude, currentPosition!.longitude, lat, long);
       return distance;
     } catch(err) {
-      // TODO: Show error snackbar
+      // Silently fail
       log("[maps_page] ${err.toString()}", LogLevel.error);
     }
     return distance;

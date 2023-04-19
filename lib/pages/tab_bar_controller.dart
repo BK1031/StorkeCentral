@@ -27,6 +27,7 @@ import 'package:storke_central/pages/home/home_page.dart';
 import 'package:storke_central/pages/maps/maps_page.dart';
 import 'package:storke_central/pages/profile/profile_page.dart';
 import 'package:storke_central/pages/schedule/schedule_page.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -198,7 +199,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         });
       });
     } catch(err) {
-      // TODO: Show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to get notifications!");
       log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
     }
   }
@@ -345,7 +346,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       });
     } else {
       log("[tab_bar_controller] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
   }
 
@@ -361,7 +362,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             lastBuildingFetch = DateTime.now();
           });
         } catch(err) {
-          // TODO: Show error snackbar
+          AlertService.showErrorSnackbar(context, "Failed to get buildings!");
           log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
         }
       } else {

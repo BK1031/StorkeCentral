@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 
 import 'package:badges/badges.dart' as badges;
@@ -66,7 +68,7 @@ class _FriendsPageState extends State<FriendsPage> {
       });
     } else {
       log("[friends_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
     setState(() => refreshing = false);
   }
@@ -80,7 +82,7 @@ class _FriendsPageState extends State<FriendsPage> {
     } else {
       log("[friends_page] Failed to retrieve friend with id: $id", LogLevel.error);
       log("[friends_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to get friend profile!");
     }
     log("[friends_page] Retrieved user info for: ${user.toString()}");
     return user;

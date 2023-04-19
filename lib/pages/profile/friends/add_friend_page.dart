@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -119,7 +121,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       }
     } else {
       log("[add_friend_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to send friend request!");
     }
     setState(() {
       loadingList.remove(user.id);
@@ -148,7 +150,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       });
     } else {
       log("[add_friend_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
   }
 
@@ -173,7 +175,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       });
     } else {
       log("[add_friend_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to get suggested friends!");
     }
   }
 

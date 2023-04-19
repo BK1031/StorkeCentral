@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 
 import 'package:extended_image/extended_image.dart';
@@ -141,7 +143,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } else {
       log("[user_profile_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
-      AlertService.showErrorSnackbar(context, "Failed to send friend request");
+      AlertService.showErrorSnackbar(context, "Failed to accept friend request!");
     }
     setState(() => loading = false);
   }
@@ -163,7 +165,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       updateUserFriendsList();
     } else {
       log("[user_profile_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to send friend request!");
     }
     setState(() => loading = false);
   }
@@ -207,7 +209,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
     } else {
       log("[user_profile_page] ${response.body}", LogLevel.error);
-      // TODO: show error snackbar
+      AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
   }
   

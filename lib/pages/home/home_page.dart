@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -55,7 +56,7 @@ class _HomePageState extends State<HomePage> {
         }
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        // TODO: show error snackbar
+        AlertService.showErrorSnackbar(context, "Failed to fetch news headline!");
       }
     } else {
       log("[home_page] Offline mode, searching cache for news...");
@@ -81,7 +82,7 @@ class _HomePageState extends State<HomePage> {
         });
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        // TODO: show error snackbar
+        AlertService.showErrorSnackbar(context, "Failed to fetch dining halls!");
       }
     } else {
       log("[home_page] Offline mode, searching cache for dining...");
@@ -101,7 +102,7 @@ class _HomePageState extends State<HomePage> {
         });
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        // TODO: show error snackbar
+        AlertService.showErrorSnackbar(context, "Failed to fetch dining hours!");
       }
     } else {
       log("[home_page] Offline mode, searching cache for dining...");

@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/string_extension.dart';
@@ -59,7 +60,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         selectedDiningHall.status = getDiningStatus(selectedDiningHall.id);
       } catch(e) {
         log("[dining_hall_page] ${e.toString()}", LogLevel.error);
-        // TODO: show error snackbar
+        AlertService.showErrorSnackbar(context, "Failed to fetch dining hall!");
       }
     } else {
       log("[dining_hall_page] Offline mode, searching cache for dining...");
@@ -80,7 +81,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         setState(() => loading = false);
       } catch(e) {
         log("[dining_hall_page] ${e.toString()}", LogLevel.error);
-        // TODO: show error snackbar
+        AlertService.showErrorSnackbar(context, "Failed to fetch dining menu!");
       }
     } else {
       log("[dining_hall_page] Offline mode, searching cache for dining...");
