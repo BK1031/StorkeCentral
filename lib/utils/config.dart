@@ -3,6 +3,7 @@
 import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
@@ -19,6 +20,8 @@ import 'package:storke_central/utils/syncfusion_meeting.dart';
 
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
+
+late SharedPreferences prefs;
 
 Version appVersion = Version("2.4.8+1");
 Version stableVersion = Version("1.0.0+1");

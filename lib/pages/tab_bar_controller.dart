@@ -67,6 +67,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       if (!kIsWeb) _registerOneSignalListeners();
       fetchBuildings();
       if (!anonMode && !offlineMode) {
+        persistUser();
         firebaseAnalytics();
         sendLoginEvent();
         updateUserFriendsList();
@@ -94,6 +95,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   void dispose() {
     _positionStream?.cancel();
     super.dispose();
+  }
+
+  void persistUser() async {
+    prefs.setString("CURRENT_USER", jsonEncode(currentUser).toString());
+    log("[tab_bar_controller] Persisted user: ${currentUser.id}");
   }
 
   void checkAppVersion() {

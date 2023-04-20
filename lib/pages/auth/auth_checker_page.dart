@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -11,7 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:storke_central/models/user.dart' as sc;
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -164,7 +165,6 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> loadPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey("PREF_UNITS")) prefs.setString("PREF_UNITS", PREF_UNITS);
     if (!prefs.containsKey("BUILDINGS_LAST_FETCH")) prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
@@ -173,7 +173,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
 
   Future<void> loadOfflineMode() async {
     log("[auth_checker_page] Failed to reach server, entering offline mode!");
-    // TODO: Load user info from local storage
+    currentUser = sc.User.fromJson(jsonDecode(prefs.getString("CURRENT_USER")!));
     offlineMode = true;
   }
 

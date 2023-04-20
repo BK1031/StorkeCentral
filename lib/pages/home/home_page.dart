@@ -45,12 +45,14 @@ class _HomePageState extends State<HomePage> {
     if (!offlineMode) {
       try {
         if (headlineArticle.id == "" || DateTime.now().difference(lastHeadlineArticleFetch).inMinutes > 60) {
+          loadOfflineHeadlines();
           await AuthService.getAuthToken();
           var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
           setState(() {
             headlineArticle = NewsArticle.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
           });
           lastHeadlineArticleFetch = DateTime.now();
+          prefs.setString("HEADLINE_ARTICLE", jsonEncode(headlineArticle).toString());
         } else {
           log("[home_page] Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 60 minutes)");
         }
@@ -60,6 +62,15 @@ class _HomePageState extends State<HomePage> {
       }
     } else {
       log("[home_page] Offline mode, searching cache for news...");
+      loadOfflineHeadlines();
+    }
+  }
+
+  void loadOfflineHeadlines() {
+    if (prefs.containsKey("HEADLINE_ARTICLE")) {
+      setState(() {
+        headlineArticle = NewsArticle.fromJson(jsonDecode(prefs.getString("HEADLINE_ARTICLE")!));
+      });
     }
   }
 
@@ -73,6 +84,7 @@ class _HomePageState extends State<HomePage> {
             for (int i = 0; i < diningHallList.length; i++) {
               diningHallList[i].distanceFromUser = Geolocator.distanceBetween(diningHallList[i].latitude, diningHallList[i].longitude, currentPosition!.latitude, currentPosition!.longitude);
             }
+            diningHallList.sort((a, b) => a.distanceFromUser.compareTo(b.distanceFromUser));
           });
         });
         getDiningMenus().then((_) {

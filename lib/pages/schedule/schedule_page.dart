@@ -64,7 +64,13 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
         log("[schedule_page] ${userScheduleItems.length} existing userScheduleItems");
 
         if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
-          setState(() => loading = true);
+          if (quarter == currentQuarter.id) {
+            // We only want to persist/load the current quarter
+            loadOfflineSchedule();
+          } else {
+            // Only show the loading indicator if we're not loading from offline storage
+            setState(() => loading = true);
+          }
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
@@ -81,6 +87,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                 loading = false;
                 userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
+              if (quarter == currentQuarter.id) {
+                prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
+              }
               buildCalendar();
             }
           });
@@ -94,6 +103,17 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       }
     } else {
       log("[schedule_page] Offline mode, searching cache for schedule...");
+      loadOfflineSchedule();
+    }
+  }
+
+  loadOfflineSchedule() {
+    if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
+      setState(() {
+        userScheduleItems = prefs.getStringList("USER_SCHEDULE_ITEMS")!.map((e) => UserScheduleItem.fromJson(jsonDecode(e))).toList();
+      });
+      log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
+      buildCalendar();
     }
   }
 
