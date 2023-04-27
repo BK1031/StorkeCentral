@@ -23,7 +23,7 @@ final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.4.8+1");
+Version appVersion = Version("2.4.9+1");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";

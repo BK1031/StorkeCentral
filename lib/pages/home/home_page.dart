@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:card_loading/card_loading.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -11,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -39,12 +41,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     getNewsHeadline();
     getDining();
+    getNextClass(userScheduleItems);
   }
 
   Future<void> getNewsHeadline() async {
     if (!offlineMode) {
       try {
         if (headlineArticle.id == "" || DateTime.now().difference(lastHeadlineArticleFetch).inMinutes > 60) {
+          Trace trace = FirebasePerformance.instance.newTrace("getNewsHeadline()");
+          await trace.start();
           loadOfflineHeadlines();
           await AuthService.getAuthToken();
           var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -53,6 +58,7 @@ class _HomePageState extends State<HomePage> {
           });
           lastHeadlineArticleFetch = DateTime.now();
           prefs.setString("HEADLINE_ARTICLE", jsonEncode(headlineArticle).toString());
+          trace.stop();
         } else {
           log("[home_page] Using cached headline article, last fetch was ${DateTime.now().difference(lastHeadlineArticleFetch).inMinutes} minutes ago (minimum 60 minutes)");
         }
@@ -66,17 +72,22 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void loadOfflineHeadlines() {
+  Future<void> loadOfflineHeadlines() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineHeadlines()");
+    await trace.start();
     if (prefs.containsKey("HEADLINE_ARTICLE")) {
       setState(() {
         headlineArticle = NewsArticle.fromJson(jsonDecode(prefs.getString("HEADLINE_ARTICLE")!));
       });
     }
+    trace.stop();
   }
 
   Future<void> getDining() async {
     if (!offlineMode) {
       try {
+        Trace trace = FirebasePerformance.instance.newTrace("getDining()");
+        await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
         await http.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
@@ -92,6 +103,7 @@ class _HomePageState extends State<HomePage> {
             diningHallList[i].status = getDiningStatus(diningHallList[i].id);
           }
         });
+        trace.stop();
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
         AlertService.showErrorSnackbar(context, "Failed to fetch dining halls!");
@@ -106,12 +118,15 @@ class _HomePageState extends State<HomePage> {
     // DateTime queryDate = DateTime.parse("2023-03-23 08:00:00.000");
     if (!offlineMode) {
       try {
+        Trace trace = FirebasePerformance.instance.newTrace("getDiningMenus()");
+        await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
         await http.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             diningMealList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
           });
         });
+        trace.stop();
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
         AlertService.showErrorSnackbar(context, "Failed to fetch dining hours!");
@@ -138,6 +153,47 @@ class _HomePageState extends State<HomePage> {
     }
     // TODO: Get next days breakfast
     return "Closed";
+  }
+
+  // Helper function to convert the days string that we get from GOLD to
+  // a list of ints to represent the days of the week
+  List<int> dayStringToInt(String dayString) {
+    List<int> dayInts = [];
+    for (int i = 0; i < dayString.length; i++) {
+      if (dayString[i] == "M") {
+        dayInts.add(1);
+      } else if (dayString[i] == "T") {
+        dayInts.add(2);
+      } else if (dayString[i] == "W") {
+        dayInts.add(3);
+      } else if (dayString[i] == "R") {
+        dayInts.add(4);
+      } else if (dayString[i] == "F") {
+        dayInts.add(5);
+      } else if (dayString[i] == "S") {
+        dayInts.add(6);
+      } else if (dayString[i] == "U") {
+        dayInts.add(7);
+      }
+    }
+    return dayInts;
+  }
+
+  Future<void> getNextClass(List<UserScheduleItem> scheduleItems) async {
+    // DateTime now = DateTime.now();
+    DateTime now = DateTime.parse("2023-04-25 11:00:00.100");
+    log("[home_page] Current day: ${now.weekday}");
+    if (userScheduleItems.isNotEmpty) {
+      scheduleItems.removeWhere((element) => !dayStringToInt(element.days).contains(now.weekday));
+      log("[home_page] ${scheduleItems.length} classes today");
+      userScheduleItems.sort((a, b) => a.startTime.compareTo(b.startTime));
+      for (int i = 0; i < userScheduleItems.length; i++) {
+        if (now.add(Duration(hours: int.parse(userScheduleItems[i].startTime.split(":")[0]), minutes: int.parse(userScheduleItems[i].startTime.split(":")[1]))).isAfter(DateTime.now())) {
+          print(userScheduleItems[i].title);
+          break;
+        }
+      }
+    }
   }
 
   @override
@@ -347,6 +403,94 @@ class _HomePageState extends State<HomePage> {
                                                       child: Material(
                                                         color: Colors.transparent,
                                                         child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white))
+                                                      )
+                                                  ),
+                                                ),
+                                                Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)
+                                              ],
+                                            ),
+                                            Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      scrollDirection: Axis.horizontal,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.calendar_view_day_rounded),
+                        Padding(padding: EdgeInsets.all(4)),
+                        Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 150,
+                    child: ListView.builder(
+                      itemCount: diningHallList.length,
+                      itemBuilder: (BuildContext context, int i) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                          child: SizedBox(
+                            width: 150,
+                            child: Card(
+                              child: GestureDetector(
+                                onTap: () {
+                                  selectedDiningHall = diningHallList[i];
+                                  router.navigateTo(context, "/dining/${diningHallList[i].id}", transition: TransitionType.native);
+                                },
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                  child: Stack(
+                                    children: [
+                                      Hero(
+                                        tag: "${diningHallList[i].id}-image",
+                                        child: Image.asset(
+                                          "images/${diningHallList[i].id}.jpeg",
+                                          fit: BoxFit.cover,
+                                          height: 150,
+                                          width: 150,
+                                        ),
+                                      ),
+                                      Container(
+                                        height: 350.0,
+                                        decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                                begin: FractionalOffset.topCenter,
+                                                end: FractionalOffset.bottomCenter,
+                                                colors: [
+                                                  // Colors.grey.withOpacity(1.0),
+                                                  Colors.grey.withOpacity(0.0),
+                                                  Colors.black,
+                                                ],
+                                                stops: const [0, 1]
+                                            )
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Hero(
+                                                      tag: "${diningHallList[i].id}-title",
+                                                      child: Material(
+                                                          color: Colors.transparent,
+                                                          child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white))
                                                       )
                                                   ),
                                                 ),

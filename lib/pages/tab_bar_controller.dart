@@ -11,6 +11,7 @@ import 'package:cool_alert/cool_alert.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -98,8 +99,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   void persistUser() async {
+    Trace trace = FirebasePerformance.instance.newTrace("persistUser()");
+    await trace.start();
     prefs.setString("CURRENT_USER", jsonEncode(currentUser).toString());
     log("[tab_bar_controller] Persisted user: ${currentUser.id}");
+    trace.stop();
   }
 
   void checkAppVersion() {
@@ -197,6 +201,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   Future<void> fetchNotifications() async {
+    Trace trace = FirebasePerformance.instance.newTrace("fetchNotifications()");
+    await trace.start();
     try {
       await AuthService.getAuthToken();
       await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
@@ -209,6 +215,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       AlertService.showErrorSnackbar(context, "Failed to get notifications!");
       log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
     }
+    trace.stop();
   }
 
   Future<void> requestNotifications() async {
@@ -242,6 +249,9 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   Future<void> sendLoginEvent() async {
+    Trace trace = FirebasePerformance.instance.newTrace("sendLoginEvent()");
+    await trace.start();
+
     Login login = Login();
     login.userID = currentUser.id;
 
@@ -321,6 +331,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     }
 
     setUserStatus("ONLINE");
+    trace.stop();
   }
 
   void setUserStatus(String status) {
@@ -332,6 +343,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
@@ -355,12 +368,15 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       log("[tab_bar_controller] ${response.body}", LogLevel.error);
       AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
+    trace.stop();
   }
 
   void fetchBuildings() async {
     if (!offlineMode) {
       if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 1440) {
         try {
+          Trace trace = FirebasePerformance.instance.newTrace("fetchBuildings()");
+          await trace.start();
           await AuthService.getAuthToken();
           await http.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             setState(() {
@@ -370,6 +386,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           });
           SharedPreferences prefs = await SharedPreferences.getInstance();
           prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
+          trace.stop();
         } catch(err) {
           AlertService.showErrorSnackbar(context, "Failed to get buildings!");
           log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
