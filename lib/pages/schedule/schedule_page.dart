@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:calendar_view/calendar_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -62,8 +63,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       try {
         // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
         log("[schedule_page] ${userScheduleItems.length} existing userScheduleItems");
-
         if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
+          Trace trace = FirebasePerformance.instance.newTrace("getUserSchedule()");
+          await trace.start();
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
@@ -93,6 +95,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               buildCalendar();
             }
           });
+          trace.stop();
         } else {
           log("[schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
         }
@@ -107,7 +110,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     }
   }
 
-  loadOfflineSchedule() {
+  loadOfflineSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineSchedule()");
+    await trace.start();
     if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
       setState(() {
         userScheduleItems = prefs.getStringList("USER_SCHEDULE_ITEMS")!.map((e) => UserScheduleItem.fromJson(jsonDecode(e))).toList();
@@ -115,11 +120,14 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
       buildCalendar();
     }
+    trace.stop();
   }
 
   // Function that actually creates the class events
   // TODO: Add finals to calendar
-  void buildCalendar() {
+  Future<void> buildCalendar() async {
+    Trace trace = FirebasePerformance.instance.newTrace("buildCalendar()");
+    await trace.start();
     log("[schedule_page] Building calendar...");
     lastScheduleFetch = DateTime.now();
     clearCalendar();
@@ -142,6 +150,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
         color++;
       }
     }
+    trace.stop();
   }
 
   void clearCalendar() {
