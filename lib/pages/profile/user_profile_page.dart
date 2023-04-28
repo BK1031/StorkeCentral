@@ -1,8 +1,9 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, duplicate_ignore
 
 import 'dart:convert';
 
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -46,12 +47,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void getUser() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getUser()");
+    await trace.start();
     // Check if user is already stored in friends list
     if (friends.any((element) => element.id.contains(userID))) {
       setState(() {
         user = friends.firstWhere((element) => element.id.contains(userID)).user;
       });
-      return;
     }
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -68,6 +70,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     else {
       log("[user_profile_page] Account not found!");
     }
+    trace.stop();
   }
   
   String getFriendshipStatus() {
@@ -126,6 +129,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> acceptFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() => loading = true);
@@ -138,17 +143,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
         friends.add(friend);
       });
       updateUserFriendsList();
-      // ignore: use_build_context_synchronously
       AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
       log("[user_profile_page] ${response.body}", LogLevel.error);
-      // ignore: use_build_context_synchronously
       AlertService.showErrorSnackbar(context, "Failed to accept friend request!");
     }
     setState(() => loading = false);
+    trace.stop();
   }
 
   Future<void> requestFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("requestFriend()");
+    await trace.start();
     Friend friend = Friend();
     friend.id = "${currentUser.id}-${user.id}";
     friend.fromUserID = currentUser.id;
@@ -168,9 +174,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
       AlertService.showErrorSnackbar(context, "Failed to send friend request!");
     }
     setState(() => loading = false);
+    trace.stop();
   }
 
   Future<void> removeFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("removeFriend()");
+    await trace.start();
     Friend friend = friends.where((element) => element.id.contains(user.id)).first;
     setState(() => loading = true);
     await AuthService.getAuthToken();
@@ -185,9 +194,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
       log("[user_profile_page] ${response.body}", LogLevel.error);
     }
     setState(() => loading = false);
+    trace.stop();
   }
 
   Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
@@ -211,6 +223,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       log("[user_profile_page] ${response.body}", LogLevel.error);
       AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
+    trace.stop();
   }
   
   @override

@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   Future<void> getSearchedUser(String id) async {
     if (id != "") {
+      Trace trace = FirebasePerformance.instance.newTrace("getSearchedUser()");
+      await trace.start();
       await AuthService.getAuthToken();
       var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       setState(() {
@@ -60,6 +63,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
           searchedUser = User();
         }
       });
+      trace.stop();
     } else {
       setState(() {
         searchedUser = User();
@@ -68,6 +72,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
   }
 
   Future<void> acceptFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() {
@@ -92,9 +98,12 @@ class _AddFriendPageState extends State<AddFriendPage> {
     setState(() {
       loadingList.remove(user.id);
     });
+    trace.stop();
   }
 
   Future<void> requestFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("requestFriend()");
+    await trace.start();
     Friend friend = Friend();
     friend.id = "${currentUser.id}-${user.id}";
     friend.fromUserID = currentUser.id;
@@ -126,9 +135,12 @@ class _AddFriendPageState extends State<AddFriendPage> {
     setState(() {
       loadingList.remove(user.id);
     });
+    trace.stop();
   }
 
   Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
@@ -152,9 +164,12 @@ class _AddFriendPageState extends State<AddFriendPage> {
       log("[add_friend_page] ${response.body}", LogLevel.error);
       AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
+    trace.stop();
   }
 
   Future<void> getSuggestedFriends() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getSuggestedFriends()");
+    await trace.start();
     setState(() => refreshing = true);
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -177,6 +192,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       log("[add_friend_page] ${response.body}", LogLevel.error);
       AlertService.showErrorSnackbar(context, "Failed to get suggested friends!");
     }
+    trace.stop();
   }
 
   @override

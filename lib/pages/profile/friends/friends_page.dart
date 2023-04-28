@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:badges/badges.dart' as badges;
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,8 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
     setState(() => refreshing = true);
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -71,9 +74,12 @@ class _FriendsPageState extends State<FriendsPage> {
       AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
     setState(() => refreshing = false);
+    trace.stop();
   }
 
   Future<User> getFriend(String id) async {
+    Trace trace = FirebasePerformance.instance.newTrace("getFriend()");
+    await trace.start();
     User user = User();
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -85,10 +91,13 @@ class _FriendsPageState extends State<FriendsPage> {
       AlertService.showErrorSnackbar(context, "Failed to get friend profile!");
     }
     log("[friends_page] Retrieved user info for: ${user.toString()}");
+    trace.stop();
     return user;
   }
 
   Future<void> acceptFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() {
@@ -113,6 +122,7 @@ class _FriendsPageState extends State<FriendsPage> {
     setState(() {
       loadingList.remove(friend.id);
     });
+    trace.stop();
   }
 
   @override

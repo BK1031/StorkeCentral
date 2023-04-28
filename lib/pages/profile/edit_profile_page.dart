@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -59,6 +60,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> saveUser() async {
+    Trace trace = FirebasePerformance.instance.newTrace("saveUser()");
+    await trace.start();
     currentUser.bio = editBio;
     currentUser.pronouns = editPronouns;
     currentUser.phoneNumber = editPhone;
@@ -68,6 +71,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     await AuthService.getAuthToken();
     await http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     setState(() => loading = false);
+    trace.stop();
   }
 
   @override
