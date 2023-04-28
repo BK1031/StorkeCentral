@@ -1,8 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -76,6 +79,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   }
 
   Future<void> fetchGoldSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("fetchGoldSchedule()");
+    await trace.start();
     try {
       setState(() {
         state = 0;
@@ -99,9 +104,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         state = 0;
       });
     }
+    trace.stop();
   }
 
   Future<void> saveCredentials() async {
+    Trace trace = FirebasePerformance.instance.newTrace("saveCredentials()");
+    await trace.start();
     setState(() {
       state = 0;
     });
@@ -138,6 +146,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         state = 0;
       });
     }
+    trace.stop();
   }
 
   String generateEncryptionKey() {
@@ -148,6 +157,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   }
 
   Future<void> getCourseInformation(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("getCourseInformation()");
+    await trace.start();
     try {
       setState(() {
         state = 2;
@@ -183,9 +194,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         }
       );
     }
+    trace.stop();
   }
 
-  void createUserSchedule(String quarter) {
+  Future<void> createUserSchedule(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("createUserSchedule()");
+    await trace.start();
     for (GoldCourse course in goldCourses) {
       log("[load_schedule_page] Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
@@ -199,9 +213,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       }
     }
     setState(() => state = 3);
+    trace.stop();
   }
 
-  void generateUserSchedule(String quarter) {
+  Future<void> generateUserSchedule(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("generateUserSchedule()");
+    await trace.start();
     setState(() => state = 4);
     // Generate userScheduleItems from goldCourses and goldSectionMap
     userScheduleItems.clear();
@@ -230,10 +247,13 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       }
     }
     log("[load_schedule_page] Generated ${userScheduleItems.length} schedule items");
+    trace.stop();
     saveUserSchedule();
   }
 
   Future<void> saveUserSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("saveUserSchedule()");
+    await trace.start();
     try {
       setState(() {
         state = 5;
@@ -273,6 +293,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           }
       );
     }
+    trace.stop();
   }
 
   @override
