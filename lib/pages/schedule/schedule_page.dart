@@ -98,6 +98,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           trace.stop();
         } else {
           log("[schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
+          buildCalendar();
         }
       } catch(err) {
         AlertService.showErrorSnackbar(context, "Failed to get schedule!");

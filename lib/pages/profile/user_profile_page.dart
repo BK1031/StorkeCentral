@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -404,7 +405,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   title: const Text("View Schedule"),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded),
                   onTap: () {
-                    router.navigateTo(context, "/schedule/user/${user.id}");
+                    router.navigateTo(context, "/schedule/user/${user.id}", transition: TransitionType.native);
                   },
                 )
               ),

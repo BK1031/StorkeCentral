@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:calendar_view/calendar_view.dart';
 import 'package:card_loading/card_loading.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
@@ -12,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/models/up_next_schedule_item.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
@@ -41,7 +43,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     getNewsHeadline();
     getDining();
-    getNextClass(userScheduleItems);
+    loadOfflineSchedule();
+    Future.delayed(const Duration(milliseconds: 500), () => getUpNextFriends());
   }
 
   Future<void> getNewsHeadline() async {
@@ -179,21 +182,86 @@ class _HomePageState extends State<HomePage> {
     return dayInts;
   }
 
-  Future<void> getNextClass(List<UserScheduleItem> scheduleItems) async {
+  String to12HourTime(String time) {
+    int hour = int.parse(time.split(":")[0]);
+    int minute = int.parse(time.split(":")[1]);
+    String ampm = "AM";
+    if (hour == 12) ampm = "PM";
+    if (hour > 12) {
+      hour -= 12;
+      ampm = "PM";
+    }
+    return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
+  }
+
+  loadOfflineSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineSchedule()");
+    await trace.start();
+    if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
+      setState(() {
+        userScheduleItems = prefs.getStringList("USER_SCHEDULE_ITEMS")!.map((e) => UserScheduleItem.fromJson(jsonDecode(e))).toList();
+      });
+      log("[home_page] Loaded ${userScheduleItems.length} schedule items from cache.");
+    }
+    trace.stop();
+  }
+
+  Future<void> getUpNextFriends() async {
+    upNextSchedules.clear();
+    UpNextScheduleItem myUpNext = await getNextClass(userScheduleItems);
+    setState(() {
+      upNextSchedules.add(myUpNext);
+    });
+    for (int i = 0; i < friends.length; i++) {
+      getUserSchedule(friends[i].user.id).then((items) async {
+        print("Getting up next for ${friends[i].user.id}");
+        UpNextScheduleItem scheduleItem = await getNextClass(items);
+        if (scheduleItem.status != "") {
+          print(scheduleItem.status);
+          print(scheduleItem.user.id);
+          print(scheduleItem.scheduleItem.title);
+          print(scheduleItem.scheduleItem.endTime);
+          // setState(() {
+          //   upNextSchedules.add(scheduleItem);
+          // });
+        }
+      });
+    }
+  }
+
+  Future<List<UserScheduleItem>> getUserSchedule(String userID) async {
+    List<UserScheduleItem> scheduleItems = [];
+    await AuthService.getAuthToken();
+    await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
+        scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+      }
+    });
+    return scheduleItems;
+  }
+
+  Future<UpNextScheduleItem> getNextClass(List<UserScheduleItem> scheduleItems) async {
     // DateTime now = DateTime.now();
-    DateTime now = DateTime.parse("2023-04-25 11:00:00.100");
-    log("[home_page] Current day: ${now.weekday}");
-    if (userScheduleItems.isNotEmpty) {
+    DateTime now = DateTime.parse("2023-04-27 18:00:00.100");
+    UpNextScheduleItem returnItem = UpNextScheduleItem();
+    if (scheduleItems.isNotEmpty) {
+      scheduleItems[0].userID == currentUser.id ? returnItem.user = currentUser : returnItem.user = friends.firstWhere((element) => element.user.id == scheduleItems[0].userID).user;
       scheduleItems.removeWhere((element) => !dayStringToInt(element.days).contains(now.weekday));
-      log("[home_page] ${scheduleItems.length} classes today");
-      userScheduleItems.sort((a, b) => a.startTime.compareTo(b.startTime));
-      for (int i = 0; i < userScheduleItems.length; i++) {
-        if (now.add(Duration(hours: int.parse(userScheduleItems[i].startTime.split(":")[0]), minutes: int.parse(userScheduleItems[i].startTime.split(":")[1]))).isAfter(DateTime.now())) {
-          print(userScheduleItems[i].title);
-          break;
+      scheduleItems.sort((a, b) => a.startTime.compareTo(b.startTime));
+      for (int i = 0; i < scheduleItems.length; i++) {
+        if (now.withoutTime.add(Duration(hours: int.parse(scheduleItems[i].endTime.split(":")[0]), minutes: int.parse(scheduleItems[i].endTime.split(":")[1]))).isAfter(now)) {
+          returnItem.scheduleItem = scheduleItems[i];
+          if (now.withoutTime.add(Duration(hours: int.parse(scheduleItems[i].startTime.split(":")[0]), minutes: int.parse(scheduleItems[i].startTime.split(":")[1]))).isAfter(now)) {
+            returnItem.status = "at";
+          } else {
+            returnItem.status = "until";
+          }
+          return returnItem;
         }
       }
+      returnItem.status = "done";
     }
+    return returnItem;
   }
 
   @override
@@ -356,7 +424,8 @@ class _HomePageState extends State<HomePage> {
                           child: SizedBox(
                             width: 150,
                             child: Card(
-                              child: GestureDetector(
+                              child: InkWell(
+                                borderRadius: const BorderRadius.all(Radius.circular(8)),
                                 onTap: () {
                                   selectedDiningHall = diningHallList[i];
                                   router.navigateTo(context, "/dining/${diningHallList[i].id}", transition: TransitionType.native);
@@ -435,69 +504,67 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(
-                    height: 150,
+                    height: 100,
                     child: ListView.builder(
-                      itemCount: diningHallList.length,
+                      itemCount: upNextSchedules.length,
                       itemBuilder: (BuildContext context, int i) {
                         return Padding(
                           padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
                           child: SizedBox(
-                            width: 150,
+                            width: 175,
                             child: Card(
-                              child: GestureDetector(
+                              child: InkWell(
+                                borderRadius: const BorderRadius.all(Radius.circular(8)),
                                 onTap: () {
-                                  selectedDiningHall = diningHallList[i];
-                                  router.navigateTo(context, "/dining/${diningHallList[i].id}", transition: TransitionType.native);
+                                  if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
+                                    router.navigateTo(context, "/schedule/view/${upNextSchedules[i].scheduleItem.title}", transition: TransitionType.native);
+                                  } else {
+                                    router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
+                                  }
                                 },
                                 child: ClipRRect(
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   child: Stack(
                                     children: [
-                                      Hero(
-                                        tag: "${diningHallList[i].id}-image",
-                                        child: Image.asset(
-                                          "images/${diningHallList[i].id}.jpeg",
-                                          fit: BoxFit.cover,
-                                          height: 150,
-                                          width: 150,
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 350.0,
-                                        decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                                begin: FractionalOffset.topCenter,
-                                                end: FractionalOffset.bottomCenter,
-                                                colors: [
-                                                  // Colors.grey.withOpacity(1.0),
-                                                  Colors.grey.withOpacity(0.0),
-                                                  Colors.black,
-                                                ],
-                                                stops: const [0, 1]
-                                            )
-                                        ),
-                                      ),
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.end,
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
                                               children: [
-                                                Expanded(
-                                                  child: Hero(
-                                                      tag: "${diningHallList[i].id}-title",
-                                                      child: Material(
-                                                          color: Colors.transparent,
-                                                          child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white))
-                                                      )
+                                                ClipRRect(
+                                                  borderRadius: const BorderRadius.all(Radius.circular(64)),
+                                                  child: ExtendedImage.network(
+                                                    upNextSchedules[i].user.profilePictureURL,
+                                                    height: 30,
                                                   ),
                                                 ),
-                                                Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)
+                                                const Padding(padding: EdgeInsets.all(4)),
+                                                Text(
+                                                  upNextSchedules[i].user.id == currentUser.id ?
+                                                  "Me" : upNextSchedules[i].user.firstName,
+                                                  style: const TextStyle(fontSize: 18),
+                                                )
                                               ],
                                             ),
-                                            Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
+                                            const Padding(padding: EdgeInsets.all(4)),
+                                            upNextSchedules[i].status != "done" ?
+                                            Text(
+                                              upNextSchedules[i].scheduleItem.title,
+                                            ) : const Text(
+                                                "Done for the day! 🎉",
+                                                style: TextStyle(color: Colors.green)
+                                            ),
+                                            Visibility(
+                                              visible: upNextSchedules[i].status != "done",
+                                              child: Text(
+                                                upNextSchedules[i].status == "until" ?
+                                                "Class until ${to12HourTime(upNextSchedules[i].scheduleItem.endTime)}" : "Class at ${to12HourTime(upNextSchedules[i].scheduleItem.startTime)}",
+                                                style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                                              ),
+                                            )
                                           ],
                                         ),
                                       ),

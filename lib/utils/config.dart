@@ -12,6 +12,7 @@ import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/notification.dart' as sc;
 import 'package:storke_central/models/quarter.dart';
+import 'package:storke_central/models/up_next_schedule_item.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
@@ -23,7 +24,7 @@ final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.4.9+1");
+Version appVersion = Version("2.4.10+1");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
@@ -70,6 +71,8 @@ List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
 List<Meeting> calendarMeetings = [];
 DateTime lastScheduleFetch = DateTime.now();
+
+List<UpNextScheduleItem> upNextSchedules = [];
 
 List<Building> buildings = [];
 DateTime lastBuildingFetch = DateTime.now();
