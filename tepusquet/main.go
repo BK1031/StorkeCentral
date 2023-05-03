@@ -25,6 +25,8 @@ func main() {
 	service.InitializeFirebase()
 	service.ConnectDiscord()
 	service.RegisterRincon()
+	controller.RegisterUpNextCronJob()
+	controller.RegisterNotificationsCronJob()
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }
