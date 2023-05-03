@@ -1,6 +1,6 @@
 module miranda
 
-go 1.19
+go 1.20
 
 require (
 	firebase.google.com/go/v4 v4.10.0
