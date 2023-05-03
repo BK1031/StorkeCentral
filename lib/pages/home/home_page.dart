@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:calendar_view/calendar_view.dart';
 import 'package:card_loading/card_loading.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
@@ -14,7 +13,6 @@ import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/up_next_schedule_item.dart';
-import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -43,8 +41,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     getNewsHeadline();
     getDining();
-    loadOfflineSchedule();
-    Future.delayed(const Duration(milliseconds: 500), () => getUpNextFriends());
+    Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
   }
 
   Future<void> getNewsHeadline() async {
@@ -158,30 +155,6 @@ class _HomePageState extends State<HomePage> {
     return "Closed";
   }
 
-  // Helper function to convert the days string that we get from GOLD to
-  // a list of ints to represent the days of the week
-  List<int> dayStringToInt(String dayString) {
-    List<int> dayInts = [];
-    for (int i = 0; i < dayString.length; i++) {
-      if (dayString[i] == "M") {
-        dayInts.add(1);
-      } else if (dayString[i] == "T") {
-        dayInts.add(2);
-      } else if (dayString[i] == "W") {
-        dayInts.add(3);
-      } else if (dayString[i] == "R") {
-        dayInts.add(4);
-      } else if (dayString[i] == "F") {
-        dayInts.add(5);
-      } else if (dayString[i] == "S") {
-        dayInts.add(6);
-      } else if (dayString[i] == "U") {
-        dayInts.add(7);
-      }
-    }
-    return dayInts;
-  }
-
   String to12HourTime(String time) {
     int hour = int.parse(time.split(":")[0]);
     int minute = int.parse(time.split(":")[1]);
@@ -194,64 +167,75 @@ class _HomePageState extends State<HomePage> {
     return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
   }
 
-  loadOfflineSchedule() async {
-    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineSchedule()");
-    await trace.start();
-    if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
-      setState(() {
-        userScheduleItems = prefs.getStringList("USER_SCHEDULE_ITEMS")!.map((e) => UserScheduleItem.fromJson(jsonDecode(e))).toList();
-      });
-      log("[home_page] Loaded ${userScheduleItems.length} schedule items from cache.");
+  Future<void> getUpNextFriends() async {
+    if (!offlineMode) {
+      if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 15) {
+        upNextSchedules.clear();
+        // Handle current users up next items
+        getUserUpNext(currentUser.id).then((items) async {
+          UpNextScheduleItem scheduleItem = await getNextClass(items);
+          if (scheduleItem.status != "") {
+            setState(() {
+              upNextSchedules.add(scheduleItem);
+            });
+          }
+        });
+        // Handle friends up next items
+        for (int i = 0; i < friends.length * 2/3; i++) {
+          getUserUpNext(friends[i].user.id).then((items) async {
+            print("Getting up next for ${friends[i].user.id}");
+            UpNextScheduleItem scheduleItem = await getNextClass(items);
+            if (scheduleItem.status != "") {
+              setState(() {
+                upNextSchedules.add(scheduleItem);
+              });
+            }
+          });
+        }
+        lastUpNextFetch = DateTime.now();
+      } else {
+        log("[home_page] Using cached up next schedules, last fetch was ${DateTime.now().difference(lastUpNextFetch).inMinutes} minutes ago (minimum 15 minutes)");
+      }
+    } else {
+      log("[home_page] Offline mode, not displaying up next schedules");
     }
-    trace.stop();
   }
 
-  Future<void> getUpNextFriends() async {
-    upNextSchedules.clear();
-    UpNextScheduleItem myUpNext = await getNextClass(userScheduleItems);
-    setState(() {
-      upNextSchedules.add(myUpNext);
-    });
-    for (int i = 0; i < friends.length; i++) {
-      getUserSchedule(friends[i].user.id).then((items) async {
-        print("Getting up next for ${friends[i].user.id}");
-        UpNextScheduleItem scheduleItem = await getNextClass(items);
-        if (scheduleItem.status != "") {
-          print(scheduleItem.status);
-          print(scheduleItem.user.id);
-          print(scheduleItem.scheduleItem.title);
-          print(scheduleItem.scheduleItem.endTime);
-          // setState(() {
-          //   upNextSchedules.add(scheduleItem);
-          // });
+  Future<List<UpNextScheduleItem>> getUserUpNext(String userID) async {
+    Trace trace = FirebasePerformance.instance.newTrace("getUserUpNext()");
+    await trace.start();
+    List<UpNextScheduleItem> scheduleItems = [];
+    try {
+      await AuthService.getAuthToken();
+      await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}/next"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
+          scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UpNextScheduleItem>((json) => UpNextScheduleItem.fromJson(json)).toList();
         }
       });
-    }
-  }
-
-  Future<List<UserScheduleItem>> getUserSchedule(String userID) async {
-    List<UserScheduleItem> scheduleItems = [];
-    await AuthService.getAuthToken();
-    await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-      if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
-        scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+      for (var element in scheduleItems) {
+        if (userID == currentUser.id) {
+          element.user = currentUser;
+        } else {
+          element.user = friends.firstWhere((friend) => friend.user.id == userID).user;
+        }
       }
-    });
+    } catch(e) {
+      log("[home_page] ${e.toString()}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
+    }
+    trace.stop();
     return scheduleItems;
   }
 
-  Future<UpNextScheduleItem> getNextClass(List<UserScheduleItem> scheduleItems) async {
-    // DateTime now = DateTime.now();
-    DateTime now = DateTime.parse("2023-04-27 18:00:00.100");
+  Future<UpNextScheduleItem> getNextClass(List<UpNextScheduleItem> scheduleItems) async {
     UpNextScheduleItem returnItem = UpNextScheduleItem();
     if (scheduleItems.isNotEmpty) {
-      scheduleItems[0].userID == currentUser.id ? returnItem.user = currentUser : returnItem.user = friends.firstWhere((element) => element.user.id == scheduleItems[0].userID).user;
-      scheduleItems.removeWhere((element) => !dayStringToInt(element.days).contains(now.weekday));
+      scheduleItems[0].user.id == currentUser.id ? returnItem.user = currentUser : returnItem.user = friends.firstWhere((element) => element.user.id == scheduleItems[0].user.id).user;
       scheduleItems.sort((a, b) => a.startTime.compareTo(b.startTime));
       for (int i = 0; i < scheduleItems.length; i++) {
-        if (now.withoutTime.add(Duration(hours: int.parse(scheduleItems[i].endTime.split(":")[0]), minutes: int.parse(scheduleItems[i].endTime.split(":")[1]))).isAfter(now)) {
-          returnItem.scheduleItem = scheduleItems[i];
-          if (now.withoutTime.add(Duration(hours: int.parse(scheduleItems[i].startTime.split(":")[0]), minutes: int.parse(scheduleItems[i].startTime.split(":")[1]))).isAfter(now)) {
+        if (scheduleItems[i].endTime.isAfter(DateTime.now())) {
+          returnItem = scheduleItems[i];
+          if (scheduleItems[i].startTime.isAfter(DateTime.now())) {
             returnItem.status = "at";
           } else {
             returnItem.status = "until";
@@ -517,7 +501,7 @@ class _HomePageState extends State<HomePage> {
                                 borderRadius: const BorderRadius.all(Radius.circular(8)),
                                 onTap: () {
                                   if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
-                                    router.navigateTo(context, "/schedule/view/${upNextSchedules[i].scheduleItem.title}", transition: TransitionType.native);
+                                    router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
                                   } else {
                                     router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
                                   }
@@ -552,7 +536,7 @@ class _HomePageState extends State<HomePage> {
                                             const Padding(padding: EdgeInsets.all(4)),
                                             upNextSchedules[i].status != "done" ?
                                             Text(
-                                              upNextSchedules[i].scheduleItem.title,
+                                              upNextSchedules[i].title,
                                             ) : const Text(
                                                 "Done for the day! 🎉",
                                                 style: TextStyle(color: Colors.green)
@@ -561,7 +545,7 @@ class _HomePageState extends State<HomePage> {
                                               visible: upNextSchedules[i].status != "done",
                                               child: Text(
                                                 upNextSchedules[i].status == "until" ?
-                                                "Class until ${to12HourTime(upNextSchedules[i].scheduleItem.endTime)}" : "Class at ${to12HourTime(upNextSchedules[i].scheduleItem.startTime)}",
+                                                "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
                                                 style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
                                               ),
                                             )

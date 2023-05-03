@@ -7,11 +7,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart' as sc;
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -137,6 +139,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
                 return;
               }
               FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
+              await updateUserFriendsList();
             }
           } else {
             // User is anonymous
@@ -175,6 +178,34 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     log("[auth_checker_page] Failed to reach server, entering offline mode!");
     currentUser = sc.User.fromJson(jsonDecode(prefs.getString("CURRENT_USER")!));
     offlineMode = true;
+  }
+
+  Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
+    await AuthService.getAuthToken();
+    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    if (response.statusCode == 200) {
+      log("[auth_checker_page] Successfully updated local friend list");
+      friends.clear();
+      requests.clear();
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
+        if (friend.status == "REQUESTED") {
+          requests.add(friend);
+        } else if (friend.status == "ACCEPTED") {
+          friends.add(friend);
+        }
+      }
+      setState(() {
+        friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+        requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
+      });
+    } else {
+      log("[auth_checker_page] ${response.body}", LogLevel.error);
+    }
+    trace.stop();
   }
 
   @override

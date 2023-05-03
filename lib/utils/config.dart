@@ -73,6 +73,7 @@ List<Meeting> calendarMeetings = [];
 DateTime lastScheduleFetch = DateTime.now();
 
 List<UpNextScheduleItem> upNextSchedules = [];
+DateTime lastUpNextFetch = DateTime.now();
 
 List<Building> buildings = [];
 DateTime lastBuildingFetch = DateTime.now();
