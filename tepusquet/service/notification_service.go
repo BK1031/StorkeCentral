@@ -12,16 +12,20 @@ import (
 
 func CheckUpNextNotificationsForAllUsers() {
 	var users []string
-	result := DB.Select("DISTINCT user_id").Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
+	result := DB.Select("DISTINCT user_id").Where("quarter = ?", config.CurrentQuarter).Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
 	if result.Error != nil {
 	}
 	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Checking notifications for "+strconv.Itoa(len(users))+" users with schedules this quarter")
+	notificationCount := 0
 	for _, id := range users {
-		CheckUpNextNotificationsAllUserForQuarter(id, config.CurrentQuarter)
+		if CheckUpNextNotificationsAllUserForQuarter(id, config.CurrentQuarter) {
+			notificationCount++
+		}
 	}
+	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Sent "+strconv.Itoa(notificationCount)+" notifications")
 }
 
-func CheckUpNextNotificationsAllUserForQuarter(userID string, quarter string) {
+func CheckUpNextNotificationsAllUserForQuarter(userID string, quarter string) bool {
 	schedule := GetUpNextForUserForQuarter(userID, quarter)
 	sort.Slice(schedule, func(i, j int) bool {
 		return schedule[i].StartTime.Before(schedule[j].StartTime)
@@ -49,13 +53,16 @@ func CheckUpNextNotificationsAllUserForQuarter(userID string, quarter string) {
 				}
 			}
 			println(userID + " next class is " + s.Title + " at " + s.StartTime.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
-			return
+			_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+			return true
 		} else if s.StartTime.Before(time.Now()) && s.EndTime.After(time.Now()) {
 			println(userID + " is in class " + s.Title + " until " + s.EndTime.Format("3:04PM"))
-			return
+			_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" is in class "+s.Title+" until "+s.EndTime.Format("3:04PM"))
+			return false
 		}
 	}
 	println(userID + " has no more classes today!")
+	return false
 }
 
 func GetNotificationSettingForUser(userID string) int {

@@ -31,7 +31,7 @@ func RemoveUpNextForUserForQuarter(userID string, quarter string) {
 
 func FetchUpNextForAllUsers() {
 	var users []string
-	result := DB.Select("DISTINCT user_id").Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
+	result := DB.Select("DISTINCT user_id").Where("quarter = ?", config.CurrentQuarter).Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
 	if result.Error != nil {
 	}
 	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Found "+strconv.Itoa(len(users))+" users with schedules this quarter")
