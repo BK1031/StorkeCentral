@@ -26,6 +26,7 @@ func CheckUpNextNotificationsForAllUsers() {
 }
 
 func CheckUpNextNotificationsAllUserForQuarter(userID string, quarter string) bool {
+	sentNotif := false
 	schedule := GetUpNextForUserForQuarter(userID, quarter)
 	sort.Slice(schedule, func(i, j int) bool {
 		return schedule[i].StartTime.Before(schedule[j].StartTime)
@@ -50,19 +51,20 @@ func CheckUpNextNotificationsAllUserForQuarter(userID string, quarter string) bo
 						"read":        false,
 					})
 					SendMirandaNotification(mirandaBody)
+					sentNotif = true
 				}
 			}
 			println(userID + " next class is " + s.Title + " at " + s.StartTime.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
 			_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-			return true
+			return sentNotif
 		} else if s.StartTime.Before(time.Now()) && s.EndTime.After(time.Now()) {
 			println(userID + " is in class " + s.Title + " until " + s.EndTime.Format("3:04PM"))
 			_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" is in class "+s.Title+" until "+s.EndTime.Format("3:04PM"))
-			return false
+			return sentNotif
 		}
 	}
 	println(userID + " has no more classes today!")
-	return false
+	return sentNotif
 }
 
 func GetNotificationSettingForUser(userID string) int {

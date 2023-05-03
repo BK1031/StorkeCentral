@@ -2,7 +2,7 @@ package config
 
 import "os"
 
-var Version = "1.5.1"
+var Version = "1.5.2"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
