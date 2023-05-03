@@ -1,4 +1,4 @@
-FROM golang:1.17.7-alpine3.15 as builder
+FROM golang:1.20-alpine3.17 as builder
 
 ENV GOOS=linux
 
@@ -19,10 +19,13 @@ RUN go build -o /lacumbre
 ##
 ## Deploy
 ##
-FROM alpine:3.15
+FROM alpine:3.17
 
 WORKDIR /
 
 COPY --from=builder /lacumbre /lacumbre
+
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=America/Los_Angeles
 
 ENTRYPOINT ["/lacumbre"]
