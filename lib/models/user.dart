@@ -22,7 +22,6 @@ class User {
   User();
 
   User.fromJson(Map<String, dynamic> json) {
-
     id = json["id"] ?? "";
     userName = json["user_name"] ?? "";
     firstName = json["first_name"] ?? "";
@@ -36,6 +35,7 @@ class User {
     gender = json["gender"] ?? "";
     status = json["status"] ?? "";
     for (int i = 0; i < json["roles"].length; i++) {
+      print(json["roles"][i]);
       roles.add(Role.fromJson(json["roles"][i]));
     }
     privacy = Privacy.fromJson(json["privacy"]);

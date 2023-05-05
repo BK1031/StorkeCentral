@@ -106,7 +106,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     await trace.start();
     prefs.setString("CURRENT_USER", jsonEncode(currentUser).toString());
     log("[tab_bar_controller] Persisted user: ${currentUser.id}");
-    print(prefs.getString("CURRENT_USER"));
     trace.stop();
   }
 

@@ -15,7 +15,7 @@ class Role {
     return {
       "user_id": userID,
       "role": role,
-      "createdAt": createdAt.toIso8601String()
+      "created_at": createdAt.toIso8601String()
     };
   }
 }
