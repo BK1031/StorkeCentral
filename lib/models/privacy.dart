@@ -8,6 +8,7 @@ class Privacy {
   String status = "PUBLIC";
   String pushNotifications = "DISABLED";
   String pushNotificationToken = "";
+  String scheduleReminders = "";
   DateTime updatedAt = DateTime.now().toUtc();
   DateTime createdAt = DateTime.now().toUtc();
 
@@ -15,14 +16,15 @@ class Privacy {
 
   Privacy.fromJson(Map<String, dynamic> json) {
     userID = json["user_id"] ?? "";
-    email = json["email"] ?? "";
-    phoneNumber = json["phone_number"] ?? "";
-    pronouns = json["pronouns"] ?? "";
-    gender = json["gender"] ?? "";
-    location = json["location"] ?? "";
-    status = json["status"] ?? "";
-    pushNotifications = json["push_notifications"] ?? "";
+    email = json["email"] ?? "PUBLIC";
+    phoneNumber = json["phone_number"] ?? "FRIENDS";
+    pronouns = json["pronouns"] ?? "PRIVATE";
+    gender = json["gender"] ?? "PRIVATE";
+    location = json["location"] ?? "DISABLED";
+    status = json["status"] ?? "PUBLIC";
+    pushNotifications = json["push_notifications"] ?? "DISABLED";
     pushNotificationToken = json["push_notification_token"] ?? "";
+    scheduleReminders = json["schedule_reminders"] ?? "";
     updatedAt = DateTime.tryParse(json["updated_at"]) ?? DateTime.now().toUtc();
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
@@ -38,6 +40,7 @@ class Privacy {
       "status": status,
       "push_notifications": pushNotifications,
       "push_notification_token": pushNotificationToken,
+      "schedule_reminders": scheduleReminders,
       "updated_at": updatedAt.toIso8601String(),
       "created_at": createdAt.toIso8601String()
     };

@@ -66,10 +66,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       _determinePosition();
       if (!kIsWeb) _registerFirebaseDynamicLinkListener();
       if (!kIsWeb) _registerOneSignalListeners();
+      firebaseAnalytics();
       fetchBuildings();
       if (!anonMode && !offlineMode) {
         persistUser();
-        firebaseAnalytics();
         sendLoginEvent();
         updateUserFriendsList();
         fetchNotifications();
@@ -99,10 +99,14 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   void persistUser() async {
+    // Get updated user from server before persisting
+    await AuthService.getUser(currentUser.id);
+    // Trace only for persisting
     Trace trace = FirebasePerformance.instance.newTrace("persistUser()");
     await trace.start();
     prefs.setString("CURRENT_USER", jsonEncode(currentUser).toString());
     log("[tab_bar_controller] Persisted user: ${currentUser.id}");
+    print(prefs.getString("CURRENT_USER"));
     trace.stop();
   }
 
@@ -352,6 +356,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       friends.clear();
       requests.clear();
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      // Persist friends list
+      List<dynamic> friendsDynamic = responseJson["data"].map((e) => jsonEncode(e).toString()).toList();
+      prefs.setStringList("CURRENT_USER_FRIENDS", friendsDynamic.map((e) => e.toString()).toList());
+
       for (int i = 0; i < responseJson["data"].length; i++) {
         Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {

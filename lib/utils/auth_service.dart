@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/user.dart';
@@ -12,6 +13,8 @@ class AuthService {
   /// only call this function when fb auth state has been verified!
   /// sets the [currentUser] to retrieved user with [id] from db
   static Future<void> getUser(String id) async {
+    Trace trace = FirebasePerformance.instance.newTrace("getUser()");
+    await trace.start();
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
@@ -27,17 +30,22 @@ class AuthService {
       log("StorkeCentral account not found!");
       // signOut();
     }
+    trace.stop();
   }
 
   static Future<void> signOut() async {
     await fb.FirebaseAuth.instance.signOut();
     currentUser = User();
+    await prefs.clear();
   }
 
   static Future<void> getAuthToken() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getAuthToken()");
+    await trace.start();
     SC_AUTH_TOKEN = await fb.FirebaseAuth.instance.currentUser!.getIdToken(true);
     log("Retrieved auth token: ...${SC_AUTH_TOKEN.substring(SC_AUTH_TOKEN.length - 20)}");
     // await Future.delayed(const Duration(milliseconds: 100));
+    trace.stop();
   }
 
   static bool verifyUserSession(context, String path) {

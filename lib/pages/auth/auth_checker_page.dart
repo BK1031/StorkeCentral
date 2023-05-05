@@ -75,6 +75,8 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> checkServerStatus() async {
+    Trace trace = FirebasePerformance.instance.newTrace("checkServerStatus()");
+    await trace.start();
     try {
       var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
       log("[auth_checker_page] Server Status: ${serverStatus.statusCode}");
@@ -87,9 +89,12 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       offlineMode = true;
     }
     if (mounted) setState(() {percent = 0.45;});
+    trace.stop();
   }
 
   Future<void> checkAuthState() async {
+    Trace trace = FirebasePerformance.instance.newTrace("checkAuthState()");
+    await trace.start();
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) setState(() {percent = 1;});
     });
@@ -102,12 +107,16 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
               router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
               launchDynamicLink = "";
             });
+            trace.stop();
             return;
           }
           router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          trace.stop();
+          return;
         }
         else {
           router.navigateTo(context, "/server-status", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          trace.stop();
           return;
         }
       } else {
@@ -122,31 +131,42 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
               await loadPreferences();
               await loadOfflineMode();
               router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+              trace.stop();
               return;
             } else {
               // Server is online, get user data
-              await AuthService.getUser(user.uid);
-              if (currentUser.id == "") {
-                // Failed to get user data from server, go to register page
-                if (launchDynamicLink.contains("/#/register")) {
-                  Future.delayed(const Duration(milliseconds: 0), () {
-                    router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
-                    launchDynamicLink = "";
-                  });
+              bool userCached = await loadOfflineUser();
+              if (!userCached) {
+                // User data not cached, get from server
+                await AuthService.getUser(user.uid);
+                if (currentUser.id == "") {
+                  // Failed to get user data from server, go to register page
+                  if (launchDynamicLink.contains("/#/register")) {
+                    Future.delayed(const Duration(milliseconds: 0), () {
+                      router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
+                      launchDynamicLink = "";
+                    });
+                    trace.stop();
+                    return;
+                  }
+                  router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+                  trace.stop();
                   return;
                 }
-                router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
-                return;
               }
               FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
-              await updateUserFriendsList();
+              bool friendsCached = await loadOfflineFriendsList();
+              if (!friendsCached) {
+                // Friends list not cached, get from server
+                await updateUserFriendsList();
+              }
             }
           } else {
             // User is anonymous
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
             if (appUnderReview) {
               anonMode = false;
-              log("[auth_checker_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
+              log("[auth_checker_page] App is currently under review, logging in as $appReviewUserID, certain features may be disabled in this mode.", LogLevel.warn);
               await AuthService.getUser(appReviewUserID);
             }
           }
@@ -155,19 +175,27 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             String route = ModalRoute.of(context)!.settings.name!.split("?route=")[1];
             String routeDecoded = Uri.decodeComponent(route);
             router.navigateTo(context, routeDecoded, transition: TransitionType.fadeIn, replace: true, clearStack: true);
+            trace.stop();
+            return;
           } else {
             router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+            trace.stop();
+            return;
           }
         } catch (err) {
-          log("[auth_checker_page] $err");
+          log("[auth_checker_page] $err", LogLevel.error);
           // loadOfflineMode();
           router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          trace.stop();
+          return;
         }
       }
     });
   }
 
   Future<void> loadPreferences() async {
+    // Load general app preferences
+    // Should be things that would be relevant whether user is logged in or not
     if (!prefs.containsKey("PREF_UNITS")) prefs.setString("PREF_UNITS", PREF_UNITS);
     if (!prefs.containsKey("BUILDINGS_LAST_FETCH")) prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
@@ -175,9 +203,74 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   }
 
   Future<void> loadOfflineMode() async {
+    // Load specifc user information that was cached
+    // App will never enter offline mode if user was not logged in before!
     log("[auth_checker_page] Failed to reach server, entering offline mode!");
-    currentUser = sc.User.fromJson(jsonDecode(prefs.getString("CURRENT_USER")!));
+    loadOfflineUser();
+    loadOfflineFriendsList();
     offlineMode = true;
+  }
+
+  Future<bool> loadOfflineUser() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineUser()");
+    await trace.start();
+    bool success = false;
+    try {
+      if (prefs.containsKey("CURRENT_USER")) {
+        print(prefs.getString("CURRENT_USER"));
+        String bruh = """
+        {"id":"LFQh1TicTLbVhX4YDPTIZ3ARxgu2","user_name":"bk1031","first_name":"Bharat","last_name":"Kathi","preferred_name":"","pronouns":"he/him","email":"bkathi@ucsb.edu","phone_number":"(510) 945-9684","profile_picture_url":"https://firebasestorage.googleapis.com/v0/b/storke-central.appspot.com/o/users%2FLFQh1TicTLbVhX4YDPTIZ3ARxgu2%2Fprofile.png?alt=media&token=1ca4cf46-072c-4971-bcb7-26130bc484bc","bio":"I like to make stuff.","gender":"Male","status":"ONLINE","roles":[{"user_id":"LFQh1TicTLbVhX4YDPTIZ3ARxgu2","role":"ADMIN","createdAt":"2023-02-25T17:25:45.845Z"},{"user_id":"LFQh1TicTLbVhX4YDPTIZ3ARxgu2","role":"PRIVATE_BETA","createdAt":"2023-04-03T13:23:47.303Z"}],"privacy":{"user_id":"LFQh1TicTLbVhX4YDPTIZ3ARxgu2","email":"PUBLIC","phone_number":"FRIENDS","pronouns":"PUBLIC","gender":"PRIVATE","location":"ENABLED_WHEN_IN_USE","status":"PUBLIC","push_notifications":"ENABLED","push_notification_token":"7f1c4386-f49f-4a65-b41b-da11bc40a291","schedule_reminders":"ALERT_15","updated_at":"2023-05-05T00:19:59.485764Z","created_at":"2023-02-26T01:18:46.246Z"},"updated_at":"2023-05-05T00:19:59.473691Z","created_at":"2023-02-26T01:18:46.246Z"}
+        """;
+        setState(() {
+          // currentUser = sc.User.fromJson(jsonDecode(prefs.getString("CURRENT_USER")!));
+          currentUser = sc.User.fromJson(jsonDecode(bruh));
+        });
+        log("[auth_checker_page] Successfully loaded offline user");
+        success = true;
+      } else {
+        log("[auth_checker_page] No offline user cached");
+        success = false;
+      }
+    } catch (err) {
+      log("[auth_checker_page] Failed to load offline user: $err", LogLevel.error);
+      success = false;
+    }
+    trace.stop();
+    return success;
+  }
+
+  Future<bool> loadOfflineFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineFriendsList()");
+    await trace.start();
+    bool success = false;
+    try {
+      if (prefs.containsKey("CURRENT_USER_FRIENDS")) {
+        List<Friend> offlineFriendsList = prefs.getStringList("CURRENT_USER_FRIENDS")!.map((e) => Friend.fromJson(jsonDecode(e))).toList();
+        friends.clear();
+        requests.clear();
+        for (int i = 0; i < offlineFriendsList.length; i++) {
+          if (offlineFriendsList[i].status == "REQUESTED") {
+            requests.add(offlineFriendsList[i]);
+          } else if (offlineFriendsList[i].status == "ACCEPTED") {
+            friends.add(offlineFriendsList[i]);
+          }
+        }
+        setState(() {
+          friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+          requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
+        });
+        log("[auth_checker_page] Successfully loaded offline friends list");
+        success = true;
+      } else {
+        log("[auth_checker_page] No offline friends list cached");
+        success = false;
+      }
+    } catch (err) {
+      log("[auth_checker_page] Failed to load offline friends list: $err", LogLevel.error);
+      success = false;
+    }
+    trace.stop();
+    return success;
   }
 
   Future<void> updateUserFriendsList() async {

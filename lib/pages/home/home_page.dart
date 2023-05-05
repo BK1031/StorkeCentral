@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -153,18 +155,6 @@ class _HomePageState extends State<HomePage> {
     }
     // TODO: Get next days breakfast
     return "Closed";
-  }
-
-  String to12HourTime(String time) {
-    int hour = int.parse(time.split(":")[0]);
-    int minute = int.parse(time.split(":")[1]);
-    String ampm = "AM";
-    if (hour == 12) ampm = "PM";
-    if (hour > 12) {
-      hour -= 12;
-      ampm = "PM";
-    }
-    return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
   }
 
   Future<void> getUpNextFriends() async {
