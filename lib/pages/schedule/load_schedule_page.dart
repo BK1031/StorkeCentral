@@ -86,7 +86,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         state = 0;
       });
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
           userCourses = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
           log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
@@ -165,7 +165,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       });
       goldCourses.clear();
       for (UserCourse course in userCourses) {
-        await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/${course.courseID}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
+        await httpClient.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/${course.courseID}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
           GoldCourse goldCourse = GoldCourse.fromJson(jsonDecode(value.body));
           goldCourse.enrollCode = course.courseID;
           setState(() {

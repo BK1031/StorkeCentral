@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
@@ -51,7 +50,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
     if (!offlineMode) {
       try {
         await Future.delayed(const Duration(milliseconds: 100));
-        await http.get(Uri.parse("$API_HOST/dining/$diningHallID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/$diningHallID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             selectedDiningHall = DiningHall.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
           });
@@ -73,7 +72,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
     if (!offlineMode) {
       try {
         await Future.delayed(const Duration(milliseconds: 100));
-        await http.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             selectedDiningHall.meals = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList().where((element) => element.diningHallID == selectedDiningHall.id).toList();
           });

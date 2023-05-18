@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
-import 'package:http/http.dart' as http;
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -16,7 +15,7 @@ class AuthService {
     Trace trace = FirebasePerformance.instance.newTrace("getUser()");
     await trace.start();
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       currentUser = User.fromJson(jsonDecode(response.body)["data"]);
       log("====== USER DEBUG INFO ======");

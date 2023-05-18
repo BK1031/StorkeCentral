@@ -11,7 +11,6 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart' as sc;
@@ -78,7 +77,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     Trace trace = FirebasePerformance.instance.newTrace("checkServerStatus()");
     await trace.start();
     try {
-      var serverStatus = await http.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
+      var serverStatus = await httpClient.get(Uri.parse("$API_HOST/montecito/ping"), headers: {"SC-API-KEY": SC_API_KEY});
       log("[auth_checker_page] Server Status: ${serverStatus.statusCode}");
       if (serverStatus.statusCode != 200) {
         offlineMode = true;
@@ -272,7 +271,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
     await trace.start();
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("[auth_checker_page] Successfully updated local friend list");
       friends.clear();

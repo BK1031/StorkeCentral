@@ -6,7 +6,6 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
@@ -74,7 +73,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
             setState(() => loading = true);
           }
           await AuthService.getAuthToken();
-          await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
               log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {

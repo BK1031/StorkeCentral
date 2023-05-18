@@ -10,7 +10,6 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/utils/alert_service.dart';
@@ -88,7 +87,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
 
   Future<void> addUserToInvitedList(String userID) async {
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
         invitedUsers.add(User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]));

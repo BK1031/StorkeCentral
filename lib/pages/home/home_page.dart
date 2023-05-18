@@ -9,7 +9,6 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
@@ -54,7 +53,7 @@ class _HomePageState extends State<HomePage> {
           await trace.start();
           loadOfflineHeadlines();
           await AuthService.getAuthToken();
-          var response = await http.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+          var response = await httpClient.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
           setState(() {
             headlineArticle = NewsArticle.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
           });
@@ -91,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         Trace trace = FirebasePerformance.instance.newTrace("getDining()");
         await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
-        await http.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             diningHallList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
             for (int i = 0; i < diningHallList.length; i++) {
@@ -123,7 +122,7 @@ class _HomePageState extends State<HomePage> {
         Trace trace = FirebasePerformance.instance.newTrace("getDiningMenus()");
         await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
-        await http.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             diningMealList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
           });
@@ -159,7 +158,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> getUpNextFriends() async {
     if (!offlineMode) {
-      if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 15) {
+      if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 5) {
         upNextSchedules.clear();
         // Handle current users up next items
         getUserUpNext(currentUser.id).then((items) async {
@@ -171,7 +170,8 @@ class _HomePageState extends State<HomePage> {
           }
         });
         // Handle friends up next items
-        for (int i = 0; i < friends.length * 2/3; i++) {
+        // If the user has more than 7 friends, only get up next for 2/3 of them
+        for (int i = 0; (friends.length > 7) ? i < friends.length * 2/3 : i < friends.length; i++) {
           getUserUpNext(friends[i].user.id).then((items) async {
             print("Getting up next for ${friends[i].user.id}");
             UpNextScheduleItem scheduleItem = await getNextClass(items);
@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage> {
     List<UpNextScheduleItem> scheduleItems = [];
     try {
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}/next"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}/next"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
           scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UpNextScheduleItem>((json) => UpNextScheduleItem.fromJson(json)).toList();
         }
@@ -211,7 +211,7 @@ class _HomePageState extends State<HomePage> {
       }
     } catch(e) {
       log("[home_page] ${e.toString()}", LogLevel.error);
-      AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
+      // AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
     }
     trace.stop();
     return scheduleItems;
@@ -467,17 +467,74 @@ class _HomePageState extends State<HomePage> {
                       scrollDirection: Axis.horizontal,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.calendar_view_day_rounded),
-                        Padding(padding: EdgeInsets.all(4)),
-                        Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                      ],
+                  Visibility(
+                    visible: friends.isNotEmpty,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.calendar_view_day_rounded),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        ],
+                      ),
                     ),
                   ),
-                  SizedBox(
+                  (upNextSchedules.isEmpty) ? SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      itemCount: 4,
+                      itemBuilder: (BuildContext context, int i) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                          child: SizedBox(
+                            width: 175,
+                            child: CardLoading(
+                              borderRadius: const BorderRadius.all(Radius.circular(8)),
+                              height: 150,
+                              margin: const EdgeInsets.all(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: const [
+                                        Card(
+                                          shape: CircleBorder(),
+                                          child: SizedBox(
+                                            height: 25,
+                                            width: 25,
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(4)),
+                                        Card(
+                                          child: SizedBox(
+                                            height: 20,
+                                            width: 75,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Padding(padding: EdgeInsets.all(2)),
+                                    const Card(
+                                      child: SizedBox(
+                                        height: 20,
+                                        width: 75,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      scrollDirection: Axis.horizontal,
+                    ),
+                  ) : SizedBox(
                     height: 100,
                     child: ListView.builder(
                       itemCount: upNextSchedules.length,

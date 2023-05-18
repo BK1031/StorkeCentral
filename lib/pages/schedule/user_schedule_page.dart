@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:calendar_view/calendar_view.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
@@ -58,7 +57,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
 
   void getUser() async {
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
         user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
@@ -79,7 +78,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
         if (localUserScheduleItems.isEmpty || localUserScheduleItems.last.quarter != selectedQuarter.id) {
           setState(() => loading = true);
           await AuthService.getAuthToken();
-          await http.get(Uri.parse("$API_HOST/users/schedule/$userID/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          await httpClient.get(Uri.parse("$API_HOST/users/schedule/$userID/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
               log("[user_schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {

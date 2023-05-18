@@ -4,7 +4,6 @@ import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/notification.dart' as sc;
 import 'package:storke_central/utils/alert_service.dart';
@@ -43,7 +42,7 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       setState(() => loading = true);
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
           notifications = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -63,7 +62,7 @@ class _NotificationPageState extends State<NotificationPage> {
     });
     try {
       await AuthService.getAuthToken();
-      await http.post(Uri.parse("$API_HOST/notifications"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(notification));
+      await httpClient.post(Uri.parse("$API_HOST/notifications"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(notification));
     } catch(err) {
       AlertService.showErrorSnackbar(context, "Failed to mark notification as read");
       log("[notifications_page] ${err.toString()}", LogLevel.error);

@@ -57,7 +57,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
     }
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
         user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
@@ -202,7 +202,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
     await trace.start();
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("[user_profile_page] Successfully updated local friend list");
       friends.clear();

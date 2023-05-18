@@ -5,7 +5,6 @@ import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -69,7 +68,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     log("[edit_profile_page] ${currentUser.toJson()}");
     setState(() => loading = true);
     await AuthService.getAuthToken();
-    await http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
+    await httpClient.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     setState(() => loading = false);
     trace.stop();
   }

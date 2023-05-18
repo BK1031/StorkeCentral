@@ -208,7 +208,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     await trace.start();
     try {
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
           notifications = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -349,7 +349,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
     await trace.start();
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("[tab_bar_controller] Successfully updated local friend list");
       friends.clear();
@@ -385,7 +385,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           Trace trace = FirebasePerformance.instance.newTrace("fetchBuildings()");
           await trace.start();
           await AuthService.getAuthToken();
-          await http.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          await httpClient.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             setState(() {
               buildings = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<Building>((json) => Building.fromJson(json)).toList();
             });

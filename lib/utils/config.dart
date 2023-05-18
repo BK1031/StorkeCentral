@@ -3,6 +3,7 @@
 import 'package:fluro/fluro.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/dining_hall.dart';
@@ -21,6 +22,8 @@ import 'package:storke_central/utils/syncfusion_meeting.dart';
 
 final router = FluroRouter();
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
+
+var httpClient = http.Client();
 
 late SharedPreferences prefs;
 

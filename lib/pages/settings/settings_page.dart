@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -30,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> savePreferences() async {
     await AuthService.getAuthToken();
-    await http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser)).then((value) => setState(() {}));
+    await httpClient.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser)).then((value) => setState(() {}));
   }
 
   Future<void> setUnitsPreference(String value) async {
@@ -144,6 +143,31 @@ class _SettingsPageState extends State<SettingsPage> {
                         savePreferences();
                         setState(() {});
                       },
+                    ),
+                    ListTile(
+                      title: const Text("Schedule Reminders"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.scheduleReminders,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            currentUser.privacy.scheduleReminders = newValue!;
+                          });
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["DISABLED", "ALERT_15", "ALERT_10", "ALERT_5"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text({
+                              "DISABLED": "Off",
+                              "ALERT_15": "15 Minutes Before",
+                              "ALERT_10": "10 Minutes Before",
+                              "ALERT_5": "5 Minutes Before",
+                            }[value]!),
+                          );
+                        }).toList(),
+                      ),
                     ),
                     ListTile(
                       title: const Text("Distance Units"),
