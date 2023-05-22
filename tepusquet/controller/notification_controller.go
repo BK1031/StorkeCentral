@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/robfig/cron/v3"
 	"strconv"
 	"tepusquet/config"
 	"tepusquet/service"
@@ -13,6 +12,7 @@ func RegisterNotificationsCronJob() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Notifications CRON Job")
 		println("Starting Notifications CRON Job...")
 		service.CheckUpNextNotificationsForAllUsers()
+		service.CheckPasstimeNotificationsForAllUsersForQuarter(config.CurrentQuarter)
 		println("Finished Notifications CRON Job!")
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Finished sending schedules notifications!")
 	})

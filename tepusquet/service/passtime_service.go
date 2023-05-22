@@ -2,6 +2,12 @@ package service
 
 import "tepusquet/model"
 
+func GetAllPasstimesForQuarter(quarter string) []model.UserPasstime {
+	var passtimes []model.UserPasstime
+	DB.Where("quarter = ?", quarter).Find(&passtimes)
+	return passtimes
+}
+
 func GetPasstimeForUserForQuarter(userID string, quarter string) model.UserPasstime {
 	var passtime model.UserPasstime
 	result := DB.Where("user_id = ? AND quarter = ?", userID, quarter).Find(&passtime)
