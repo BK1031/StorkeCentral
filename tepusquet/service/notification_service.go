@@ -5,12 +5,14 @@ import (
 	"github.com/google/uuid"
 	"sort"
 	"strconv"
+	"sync"
 	"tepusquet/config"
 	"tepusquet/model"
 	"time"
 )
 
-func CheckUpNextNotificationsForAllUsers() {
+func CheckUpNextNotificationsForAllUsers(wg *sync.WaitGroup) {
+	defer wg.Done()
 	var users []string
 	result := DB.Select("DISTINCT user_id").Where("quarter = ?", config.CurrentQuarter).Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
 	if result.Error != nil {
@@ -67,7 +69,8 @@ func CheckUpNextNotificationsForUserForQuarter(userID string, quarter string) bo
 	return sentNotif
 }
 
-func CheckPasstimeNotificationsForAllUsersForQuarter(quarter string) {
+func CheckPasstimeNotificationsForAllUsersForQuarter(quarter string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	notificationCount := 0
 	passtimes := GetAllPasstimesForQuarter(quarter)
 	for _, p := range passtimes {

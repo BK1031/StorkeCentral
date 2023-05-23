@@ -2,11 +2,12 @@ package config
 
 import "os"
 
-var Version = "1.6.1"
+var Version = "1.6.2"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
 var CurrentQuarter = os.Getenv("CURRENT_QUARTER")
+var CurrentPassQuarter = os.Getenv("CURRENT_PASS_QUARTER")
 
 var PostgresHost = os.Getenv("POSTGRES_HOST")
 var PostgresUser = os.Getenv("POSTGRES_USER")
