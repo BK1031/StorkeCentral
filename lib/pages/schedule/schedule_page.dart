@@ -68,6 +68,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
+            getPasstime();
           } else {
             // Only show the loading indicator if we're not loading from offline storage
             setState(() => loading = true);
@@ -110,7 +111,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     }
   }
 
-  loadOfflineSchedule() async {
+  void loadOfflineSchedule() async {
     Trace trace = FirebasePerformance.instance.newTrace("loadOfflineSchedule()");
     await trace.start();
     if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
@@ -120,6 +121,33 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
       buildCalendar();
     }
+    trace.stop();
+  }
+
+  Future<void> getPasstime() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getPasstime()");
+    await trace.start();
+    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
+        log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
+        setState(() {
+          classesFound = false;
+          loading = false;
+        });
+        clearCalendar();
+        userScheduleItems.clear();
+      } else {
+        setState(() {
+          classesFound = true;
+          loading = false;
+          userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+        });
+        if (quarter == currentQuarter.id) {
+          prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
+        }
+        buildCalendar();
+      }
+    });
     trace.stop();
   }
 

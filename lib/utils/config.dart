@@ -96,7 +96,32 @@ Quarter currentQuarter = spring23;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [fall22, winter23, spring23];
 
+// Quarter for the next passtime
+String currentPassQuarter = "20234";
+
 // Quarters
+
+Quarter fall23 = Quarter.fromJson({
+  "id": "20234",
+  "name": "Fall 2023",
+  "firstDayOfClasses": "2023-09-28 00:00:00.000",
+  "lastDayOfClasses": "2023-12-08 23:59:00.000",
+  "firstDayOfFinals": "2023-12-09 00:00:00.000",
+  "lastDayOfFinals": "2023-12-15 00:00:00.000",
+  "weeks": [
+    "2023-09-24 00:00:00.000",
+    "2023-10-01 00:00:00.000",
+    "2023-10-08 00:00:00.000",
+    "2023-10-15 00:00:00.000",
+    "2023-10-22 00:00:00.000",
+    "2023-10-29 00:00:00.000",
+    "2023-11-05 00:00:00.000",
+    "2023-11-12 00:00:00.000",
+    "2023-11-19 00:00:00.000",
+    "2023-11-26 00:00:00.000",
+    "2023-12-03 00:00:00.000",
+  ]
+});
 
 Quarter spring23 = Quarter.fromJson({
   "id": "20232",
