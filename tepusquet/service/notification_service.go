@@ -145,7 +145,9 @@ func CheckPasstimeNotificationsForAllUsersForQuarter(quarter string, wg *sync.Wa
 			}
 		}
 	}
-	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Sent "+strconv.Itoa(notificationCount)+" passtime notifications")
+	if notificationCount != 0 {
+		_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Sent "+strconv.Itoa(notificationCount)+" passtime notifications")
+	}
 }
 
 func GetNotificationSettingForUser(userID string) int {
