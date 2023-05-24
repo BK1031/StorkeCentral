@@ -651,137 +651,122 @@ class _HomePageState extends State<HomePage> {
                   ),
                   (waitzBuildings.isEmpty) ? Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: CardLoading(
-                      margin: const EdgeInsets.all(8),
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      height: 150,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Card(
-                                  child: SizedBox(
-                                    height: 30,
-                                    width: 200,
-                                  ),
-                                ),
-                                Card(
-                                  child: SizedBox(
-                                    height: 30,
-                                    width: 40,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              children: [0,1,2].map((e) => Padding(
-                                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: const [
-                                            Card(
-                                              child: SizedBox(
-                                                height: 20,
-                                                width: 150,
-                                              ),
-                                            ),
-                                            Card(
-                                              child: SizedBox(
-                                                height: 15,
-                                                width: 100,
-                                              ),
-                                            ),
-                                          ],
+                    child: Column(
+                      children: [0,1,2].map((e) => CardLoading(
+                        margin: const EdgeInsets.all(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        height: 150,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    children: const [
+                                      Card(
+                                        child: SizedBox(
+                                          height: 25,
+                                          width: 200,
                                         ),
-                                        const Card(
-                                          child: SizedBox(
-                                            height: 25,
-                                            width: 40,
-                                          ),
+                                      ),
+                                      Card(
+                                        child: SizedBox(
+                                          height: 15,
+                                          width: 200,
                                         ),
-                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                  const Card(
+                                    child: SizedBox(
+                                      height: 30,
+                                      width: 40,
                                     ),
-                                  ],
-                                ),
-                              )).toList()
-                            )
-                          ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      )).toList()
                     ),
                   ) : Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        children: waitzBuildings.map((b) => ExpansionTile(
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
+                          tilePadding: const EdgeInsets.all(8),
+                          childrenPadding: const EdgeInsets.all(8),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    b.name,
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  const Padding(padding: EdgeInsets.all(2)),
+                                  Text(
+                                    "Capacity: ${b.people} / ${b.capacity}",
+                                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                b.summary,
+                                style: TextStyle(fontSize: 18, color: b.summary.contains("Very Busy") ? SB_RED : b.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
+                              )
+                            ],
+                          ),
+                          children: b.floors.map((e) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Column(
                               children: [
-                                Text(
-                                  waitzBuildings[2].name,
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  waitzBuildings[2].summary,
-                                  style: TextStyle(fontSize: 18, color: waitzBuildings[2].summary.contains("Very Busy") ? SB_RED : waitzBuildings[0].summary.contains("Not Busy") ? Colors.green : SB_AMBER),
-                                )
-                              ],
-                            ),
-                            Column(
-                              children: waitzBuildings[2].floors.map((e) => Padding(
-                                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                child: Column(
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              e.name,
-                                              style: const TextStyle(fontSize: 16),
-                                            ),
-                                            Text(
-                                              "Capacity: ${e.capacity}",
-                                              style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                            ),
-                                          ],
+                                        Text(
+                                          e.name,
+                                          style: const TextStyle(fontSize: 16),
                                         ),
                                         Text(
-                                          "${e.busyness}%",
-                                          style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
-                                        )
+                                          "Capacity: ${e.people} / ${e.capacity}",
+                                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                        ),
                                       ],
                                     ),
-                                    const Padding(padding: EdgeInsets.all(2)),
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                      child: LinearProgressIndicator(
-                                        color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
-                                        value: e.busyness / 100,
-                                      ),
+                                    Text(
+                                      "${e.busyness}%",
+                                      style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
                                     )
                                   ],
                                 ),
-                              )).toList(),
-                            )
-                          ],
-                        ),
+                                const Padding(padding: EdgeInsets.all(2)),
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                  child: LinearProgressIndicator(
+                                    color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
+                                    value: e.busyness / 100,
+                                  ),
+                                )
+                              ],
+                            ),
+                          )).toList(),
+                        )).toList()
                       ),
                     ),
                   )
