@@ -17,7 +17,7 @@ func GetPasstimeForUserForQuarter(userID string, quarter string) model.UserPasst
 }
 
 func CreatePasstimeForUser(passtime model.UserPasstime) error {
-	if DB.Where("user_id = ? AND quarter = ?", passtime.UserID, passtime.Quarter).Find(&passtime).RowsAffected == 0 {
+	if DB.Where("user_id = ? AND quarter = ?", passtime.UserID, passtime.Quarter).Updates(&passtime).RowsAffected == 0 {
 		println("New passtime for user " + passtime.UserID + " for quarter " + passtime.Quarter)
 		if result := DB.Create(&passtime); result.Error != nil {
 			return result.Error

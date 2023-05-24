@@ -27,6 +27,9 @@ func FetchPasstimeForUserForQuarter(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "You have entered an invalid UCSB NetID/Password combination, please re-enter and try again."})
 		return
 	}
-	service.CreatePasstimeForUser(passtime)
+	err := service.CreatePasstimeForUser(passtime)
+	if err != nil {
+		return
+	}
 	c.JSON(http.StatusOK, service.GetPasstimeForUserForQuarter(c.Param("userID"), c.Param("quarter")))
 }
