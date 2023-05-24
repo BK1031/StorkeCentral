@@ -131,16 +131,38 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   Future<void> getPasstime() async {
     Trace trace = FirebasePerformance.instance.newTrace("getPasstime()");
     await trace.start();
-    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
       if (value.statusCode == 200) {
         // Successfully got passtime
         setState(() {
           userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
         });
+        if (DateTime.now().difference(userPasstime.createdAt).inDays > 7) {
+          log("[schedule_page] Passtime is older than 7 days, fetching new passtime...");
+          fetchPasstime();
+        }
       } else if (value.statusCode == 404) {
         // Passtime not found, fetch it
+        fetchPasstime();
       } else {
         log("[schedule_page] Failed to get passtime: ${value.body}", LogLevel.error);
+      }
+    });
+    trace.stop();
+  }
+
+  Future<void> fetchPasstime() async {
+    Trace trace = FirebasePerformance.instance.newTrace("fetchPasstime()");
+    await trace.start();
+    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}/fetch"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
+      if (value.statusCode == 200) {
+        // Successfully got passtime
+        setState(() {
+          userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
+        });
+      } else {
+        AlertService.showErrorSnackbar(context, "Failed to fetch passtime!");
+        log("[schedule_page] Failed to fetch passtime: ${value.body}", LogLevel.error);
       }
     });
     trace.stop();
@@ -309,7 +331,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                           children: [
                                             Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
                                             Text(
-                                                "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first)}",
+                                                "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first.toLocal())}",
                                                 style: const TextStyle(fontSize: 14)
                                             )
                                           ],
