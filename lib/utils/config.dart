@@ -16,6 +16,7 @@ import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/up_next_schedule_item.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
+import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
 import 'package:storke_central/utils/syncfusion_meeting.dart';
@@ -73,6 +74,7 @@ List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
 List<Meeting> calendarMeetings = [];
+UserPasstime userPasstime = UserPasstime();
 DateTime lastScheduleFetch = DateTime.now();
 
 List<UpNextScheduleItem> upNextSchedules = [];
@@ -94,10 +96,9 @@ Map<String, double> UNITS_CONVERSION = {
 // Quarter Information
 Quarter currentQuarter = spring23;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [fall22, winter23, spring23];
-
+List<Quarter> availableQuarters = [fall22, winter23, spring23, fall23];
 // Quarter for the next passtime
-String currentPassQuarter = "20234";
+Quarter currentPassQuarter = fall23;
 
 // Quarters
 

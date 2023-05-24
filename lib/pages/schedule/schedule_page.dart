@@ -6,7 +6,9 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:storke_central/models/quarter.dart';
+import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
@@ -30,6 +32,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   bool classesFound = true;
   bool loading = false;
   final CalendarController _controller = CalendarController();
+
+  bool passtimeExpanded = false;
 
   @override
   bool get wantKeepAlive => false;
@@ -68,7 +72,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
-            getPasstime();
           } else {
             // Only show the loading indicator if we're not loading from offline storage
             setState(() => loading = true);
@@ -90,6 +93,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                 userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               if (quarter == currentQuarter.id) {
+                getPasstime();
                 prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
               }
               buildCalendar();
@@ -127,28 +131,33 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   Future<void> getPasstime() async {
     Trace trace = FirebasePerformance.instance.newTrace("getPasstime()");
     await trace.start();
-    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-      if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
-        log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
+    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      if (value.statusCode == 200) {
+        // Successfully got passtime
         setState(() {
-          classesFound = false;
-          loading = false;
+          userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
         });
-        clearCalendar();
-        userScheduleItems.clear();
+      } else if (value.statusCode == 404) {
+        // Passtime not found, fetch it
       } else {
-        setState(() {
-          classesFound = true;
-          loading = false;
-          userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
-        });
-        if (quarter == currentQuarter.id) {
-          prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
-        }
-        buildCalendar();
+        log("[schedule_page] Failed to get passtime: ${value.body}", LogLevel.error);
       }
     });
     trace.stop();
+  }
+
+  // Returns the next passtime start time based on the current date
+  // Will always return pass 3 is current date is after pass 1 and 2
+  Map<String, DateTime> getNextPasstime(UserPasstime passtime) {
+    Map<String, DateTime> returnMap = {};
+    if (passtime.passOneStart.isAfter(DateTime.now())) {
+      returnMap["Pass 1"] = passtime.passOneStart;
+    } else if (passtime.passTwoStart.isAfter(DateTime.now())) {
+      returnMap["Pass 2"] = passtime.passTwoStart;
+    } else {
+      returnMap["Pass 3"] = passtime.passThreeStart;
+    }
+    return returnMap;
   }
 
   // Function that actually creates the class events
@@ -264,12 +273,114 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       );
     } else {
       return Scaffold(
-          floatingActionButton: FloatingActionButton(
-            child: const Icon(Icons.refresh),
-            onPressed: () {
-              router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
-            },
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Visibility(
+                    visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeEnd.isAfter(DateTime.now()) && userPasstime.userID != "",
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Card(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                passtimeExpanded = !passtimeExpanded;
+                              });
+                            },
+                            child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                padding: const EdgeInsets.all(8),
+                                height: passtimeExpanded ? 150 : 55,
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first)}",
+                                                style: const TextStyle(fontSize: 14)
+                                            )
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                          child: Icon(
+                                            passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
+                                            color: passtimeExpanded ? SB_NAVY : Colors.grey,
+                                            size: 35,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: passtimeExpanded ? [
+                                        const Padding(padding: EdgeInsets.all(4),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text("Pass 1:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${DateFormat("M/d h:mm a").format(userPasstime.passOneStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passOneEnd.toLocal())}",
+                                                style: const TextStyle(fontSize: 16)
+                                            )
+                                          ],
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(4),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text("Pass 2:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${DateFormat("M/d h:mm a").format(userPasstime.passTwoStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passTwoEnd.toLocal())}",
+                                                style: const TextStyle(fontSize: 16)
+                                            )
+                                          ],
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(4),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text("Pass 3:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${DateFormat("M/d h:mm a").format(userPasstime.passThreeStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passThreeEnd.toLocal())}",
+                                                style: const TextStyle(fontSize: 16)
+                                            )
+                                          ],
+                                        )
+                                      ] : [],
+                                    )
+                                  ],
+                                )
+                            ),
+                          ),
+                        )
+                      ],
+                    )
+                  ),
+                ),
+                const Padding(padding: EdgeInsets.all(4),),
+                FloatingActionButton(
+                  child: const Icon(Icons.refresh),
+                  onPressed: () {
+                    router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+                  },
+                ),
+              ],
+            ),
           ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
           body: Stack(
             children: [
               Column(
@@ -485,7 +596,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                     color: Colors.white,
                   ),
                 ),
-              )
+              ),
             ],
           )
       );
