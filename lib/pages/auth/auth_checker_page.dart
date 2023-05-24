@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -41,7 +40,6 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   @override
   void initState() {
     super.initState();
-    checkAppUnderReview();
     checkInitialDynamicLink().then((_) {
       checkServerStatus().then((value) => checkAuthState());
     });
@@ -51,17 +49,6 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   void dispose() {
     super.dispose();
     _fbAuthSubscription?.cancel();
-  }
-
-  void checkAppUnderReview() {
-    FirebaseFirestore.instance.doc("meta/app-review").get().then((value) {
-      setState(() {
-        appUnderReview = value.get("underReview");
-      });
-      if (appUnderReview) {
-        log("[auth_checker_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
-      }
-    });
   }
 
   Future<void> checkInitialDynamicLink() async {
@@ -163,9 +150,9 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
           } else {
             // User is anonymous
             FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
-            if (appUnderReview) {
+            if (demoMode) {
               anonMode = false;
-              log("[auth_checker_page] App is currently under review, logging in as $appReviewUserID, certain features may be disabled in this mode.", LogLevel.warn);
+              log("[auth_checker_page] App is currently in demo mode, logging in as $appReviewUserID, certain features may be disabled in this mode.", LogLevel.warn);
               await AuthService.getUser(appReviewUserID);
             }
           }

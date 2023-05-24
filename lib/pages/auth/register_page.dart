@@ -462,7 +462,50 @@ class _RegisterPageState extends State<RegisterPage> {
               width: MediaQuery.of(context).size.width,
               child: CupertinoButton(
                 onPressed: () {
-                  loginAnon();
+                  String code = "";
+                  showDialog(context: context, builder: (context) => Container(
+                    padding: const EdgeInsets.only(left: 32.0, right: 32.0, top: 128.0, bottom: 128.0),
+                    child: Card(
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text("Enter Demo Code", style: TextStyle(fontSize: 18)),
+                            TextField(
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: "XXX XXX",
+                              ),
+                              textCapitalization: TextCapitalization.characters,
+                              autocorrect: false,
+                              style: const TextStyle(fontSize: 25),
+                              textAlign: TextAlign.center,
+                              onChanged: (input) {
+                                setState(() {
+                                  code = input;
+                                });
+                              },
+                            ),
+                            const Padding(padding: EdgeInsets.all(8),),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: CupertinoButton(
+                                color: SB_NAVY,
+                                onPressed: () {
+                                  if (code == "STORKE") {
+                                    demoMode = true;
+                                    loginAnon();
+                                  }
+                                },
+                                child: const Text("Enter Demo Mode"),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ));
                 },
                 child: const Text("Enter demo mode"),
               ),

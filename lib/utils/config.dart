@@ -29,7 +29,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.4.10+1");
+Version appVersion = Version("2.4.10+2");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
@@ -50,6 +50,7 @@ String TESTFLIGHT_URL = "https://beta.itunes.apple.com/v1/app/1594777645";
 
 bool offlineMode = false;
 bool anonMode = false;
+bool demoMode = false;
 
 bool appUnderReview = false;
 String appReviewUserID = "Xbq9Xf8kfjQzHsvTVds2E6kUD5F3";
