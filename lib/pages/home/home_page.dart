@@ -14,6 +14,7 @@ import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/up_next_schedule_item.dart';
+import 'package:storke_central/models/waitz_building.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -42,7 +43,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     getNewsHeadline();
     getDining();
-    Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
+    getWaitz();
+    // Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
   }
 
   Future<void> getNewsHeadline() async {
@@ -236,6 +238,30 @@ class _HomePageState extends State<HomePage> {
       returnItem.status = "done";
     }
     return returnItem;
+  }
+
+  Future<void> getWaitz() async {
+    if (!offlineMode) {
+      try {
+        if (waitzBuildings.isEmpty || DateTime.now().difference(lastWaitzFetch).inMinutes > 60) {
+          Trace trace = FirebasePerformance.instance.newTrace("getWaitz()");
+          await trace.start();
+          var response = await httpClient.get(Uri.parse("https://waitz.io/live/ucsb"));
+          setState(() {
+            waitzBuildings = jsonDecode(response.body)["data"].map<WaitzBuilding>((json) => WaitzBuilding.fromJson(json)).toList();
+          });
+          lastWaitzFetch = DateTime.now();
+          trace.stop();
+        } else {
+          log("[home_page] Using cached waitz data, last fetch was ${DateTime.now().difference(lastWaitzFetch).inMinutes} minutes ago (minimum 60 minutes)");
+        }
+      } catch(e) {
+        log("[home_page] ${e.toString()}", LogLevel.error);
+        AlertService.showErrorSnackbar(context, "Failed to fetch waitz data!");
+      }
+    } else {
+      log("[home_page] Offline mode, no waitz data to display!", LogLevel.warn);
+    }
   }
 
   @override
@@ -480,123 +506,51 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  (upNextSchedules.isEmpty) ? SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      itemCount: 4,
-                      itemBuilder: (BuildContext context, int i) {
-                        return Padding(
-                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                          child: SizedBox(
-                            width: 175,
-                            child: CardLoading(
-                              borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              height: 150,
-                              margin: const EdgeInsets.all(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: const [
-                                        Card(
-                                          shape: CircleBorder(),
-                                          child: SizedBox(
-                                            height: 25,
-                                            width: 25,
-                                          ),
-                                        ),
-                                        Padding(padding: EdgeInsets.all(4)),
-                                        Card(
-                                          child: SizedBox(
-                                            height: 20,
-                                            width: 75,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Padding(padding: EdgeInsets.all(2)),
-                                    const Card(
-                                      child: SizedBox(
-                                        height: 20,
-                                        width: 75,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      scrollDirection: Axis.horizontal,
-                    ),
-                  ) : SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      itemCount: upNextSchedules.length,
-                      itemBuilder: (BuildContext context, int i) {
-                        return Padding(
-                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                          child: SizedBox(
-                            width: 175,
-                            child: Card(
-                              child: InkWell(
+                  Visibility(
+                    visible: friends.isNotEmpty,
+                    child: (upNextSchedules.isEmpty) ? SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        itemCount: 4,
+                        itemBuilder: (BuildContext context, int i) {
+                          return Padding(
+                            padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                            child: SizedBox(
+                              width: 175,
+                              child: CardLoading(
                                 borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                onTap: () {
-                                  if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
-                                    router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
-                                  } else {
-                                    router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
-                                  }
-                                },
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                  child: Stack(
+                                height: 150,
+                                margin: const EdgeInsets.all(8),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius: const BorderRadius.all(Radius.circular(64)),
-                                                  child: ExtendedImage.network(
-                                                    upNextSchedules[i].user.profilePictureURL,
-                                                    height: 30,
-                                                  ),
-                                                ),
-                                                const Padding(padding: EdgeInsets.all(4)),
-                                                Text(
-                                                  upNextSchedules[i].user.id == currentUser.id ?
-                                                  "Me" : upNextSchedules[i].user.firstName,
-                                                  style: const TextStyle(fontSize: 18),
-                                                )
-                                              ],
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: const [
+                                          Card(
+                                            shape: CircleBorder(),
+                                            child: SizedBox(
+                                              height: 25,
+                                              width: 25,
                                             ),
-                                            const Padding(padding: EdgeInsets.all(4)),
-                                            upNextSchedules[i].status != "done" ?
-                                            Text(
-                                              upNextSchedules[i].title,
-                                            ) : const Text(
-                                                "Done for the day! 🎉",
-                                                style: TextStyle(color: Colors.green)
+                                          ),
+                                          Padding(padding: EdgeInsets.all(4)),
+                                          Card(
+                                            child: SizedBox(
+                                              height: 20,
+                                              width: 75,
                                             ),
-                                            Visibility(
-                                              visible: upNextSchedules[i].status != "done",
-                                              child: Text(
-                                                upNextSchedules[i].status == "until" ?
-                                                "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
-                                                style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
-                                              ),
-                                            )
-                                          ],
+                                          ),
+                                        ],
+                                      ),
+                                      const Padding(padding: EdgeInsets.all(2)),
+                                      const Card(
+                                        child: SizedBox(
+                                          height: 20,
+                                          width: 75,
                                         ),
                                       ),
                                     ],
@@ -604,10 +558,161 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                      scrollDirection: Axis.horizontal,
+                          );
+                        },
+                        scrollDirection: Axis.horizontal,
+                      ),
+                    ) : SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        itemCount: upNextSchedules.length,
+                        itemBuilder: (BuildContext context, int i) {
+                          return Padding(
+                            padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                            child: SizedBox(
+                              width: 175,
+                              child: Card(
+                                child: InkWell(
+                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                  onTap: () {
+                                    if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
+                                      router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
+                                    } else {
+                                      router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
+                                    }
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  ClipRRect(
+                                                    borderRadius: const BorderRadius.all(Radius.circular(64)),
+                                                    child: ExtendedImage.network(
+                                                      upNextSchedules[i].user.profilePictureURL,
+                                                      height: 30,
+                                                    ),
+                                                  ),
+                                                  const Padding(padding: EdgeInsets.all(4)),
+                                                  Text(
+                                                    upNextSchedules[i].user.id == currentUser.id ?
+                                                    "Me" : upNextSchedules[i].user.firstName,
+                                                    style: const TextStyle(fontSize: 18),
+                                                  )
+                                                ],
+                                              ),
+                                              const Padding(padding: EdgeInsets.all(4)),
+                                              upNextSchedules[i].status != "done" ?
+                                              Text(
+                                                upNextSchedules[i].title,
+                                              ) : const Text(
+                                                  "Done for the day! 🎉",
+                                                  style: TextStyle(color: Colors.green)
+                                              ),
+                                              Visibility(
+                                                visible: upNextSchedules[i].status != "done",
+                                                child: Text(
+                                                  upNextSchedules[i].status == "until" ?
+                                                  "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
+                                                  style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        scrollDirection: Axis.horizontal,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.menu_book_rounded),
+                        Padding(padding: EdgeInsets.all(4)),
+                        Text("Library", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  waitzBuildings[2].name,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  waitzBuildings[2].summary,
+                                  style: TextStyle(fontSize: 18, color: waitzBuildings[2].summary.contains("Very Busy") ? SB_RED : waitzBuildings[0].summary.contains("Not Busy") ? Colors.green : SB_AMBER),
+                                )
+                              ],
+                            ),
+                            Column(
+                              children: waitzBuildings[2].floors.map((e) => Padding(
+                                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              e.name,
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                            Text(
+                                              "Capacity: ${e.capacity}",
+                                              style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          "${e.busyness}%",
+                                          style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
+                                        )
+                                      ],
+                                    ),
+                                    const Padding(padding: EdgeInsets.all(2)),
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                      child: LinearProgressIndicator(
+                                        color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
+                                        value: e.busyness / 100,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              )).toList(),
+                            )
+                          ],
+                        ),
+                      ),
                     ),
                   )
                 ],

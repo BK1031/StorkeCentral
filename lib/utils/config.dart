@@ -19,6 +19,7 @@ import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
+import 'package:storke_central/models/waitz_building.dart';
 import 'package:storke_central/utils/syncfusion_meeting.dart';
 
 final router = FluroRouter();
@@ -79,6 +80,9 @@ DateTime lastScheduleFetch = DateTime.now();
 
 List<UpNextScheduleItem> upNextSchedules = [];
 DateTime lastUpNextFetch = DateTime.now();
+
+List<WaitzBuilding> waitzBuildings = [];
+DateTime lastWaitzFetch = DateTime.now();
 
 List<Building> buildings = [];
 DateTime lastBuildingFetch = DateTime.now();
