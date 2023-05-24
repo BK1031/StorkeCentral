@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -68,7 +69,11 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
               inviteCode = generateInviteCode();
               expires = DateTime.now().add(const Duration(days: 7));
             });
-            generateInviteLink().then((value) => uploadNewCode());
+            if (!kIsWeb) {
+              generateInviteLink().then((value) => uploadNewCode());
+            } else {
+              AlertService.showInfoSnackbar(context, "Unfortunately, we cannot generate an invite code for you on the web. Please try again in our mobile app.");
+            }
           }
           value.get("uses").forEach((element) {
             log("[beta_invite_page] Adding user $element to invited users list");
@@ -78,9 +83,15 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
       } catch (err) {
         // No existing code
         setState(() {
+          codeCap = 5;
           inviteCode = generateInviteCode();
+          expires = DateTime.now().add(const Duration(days: 7));
         });
-        generateInviteLink().then((value) => uploadNewCode());
+        if (!kIsWeb) {
+          generateInviteLink().then((value) => uploadNewCode());
+        } else {
+          AlertService.showInfoSnackbar(context, "Unfortunately, we cannot generate an invite code for you on the web. Please try again in our mobile app.");
+        }
       }
     });
   }
