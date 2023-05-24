@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     getNewsHeadline();
     getDining();
     getWaitz();
-    // Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
+    Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
   }
 
   Future<void> getNewsHeadline() async {
@@ -649,7 +649,77 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  Padding(
+                  (waitzBuildings.isEmpty) ? Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: CardLoading(
+                      margin: const EdgeInsets.all(8),
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      height: 150,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Card(
+                                  child: SizedBox(
+                                    height: 30,
+                                    width: 200,
+                                  ),
+                                ),
+                                Card(
+                                  child: SizedBox(
+                                    height: 30,
+                                    width: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [0,1,2].map((e) => Padding(
+                                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: const [
+                                            Card(
+                                              child: SizedBox(
+                                                height: 20,
+                                                width: 150,
+                                              ),
+                                            ),
+                                            Card(
+                                              child: SizedBox(
+                                                height: 15,
+                                                width: 100,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const Card(
+                                          child: SizedBox(
+                                            height: 25,
+                                            width: 40,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )).toList()
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ) : Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: Card(
                       child: Padding(
