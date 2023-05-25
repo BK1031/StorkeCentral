@@ -723,7 +723,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               Text(
                                 b.summary,
-                                style: TextStyle(fontSize: 18, color: b.summary.contains("Very Busy") ? SB_RED : b.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
+                                style: TextStyle(fontSize: 18, color: b.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : b.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
                               )
                             ],
                           ),
@@ -751,7 +751,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     Text(
                                       "${e.busyness}%",
-                                      style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
+                                      style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
                                     )
                                   ],
                                 ),
@@ -759,7 +759,7 @@ class _HomePageState extends State<HomePage> {
                                 ClipRRect(
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   child: LinearProgressIndicator(
-                                    color: e.summary.contains("Very Busy") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
+                                    color: e.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
                                     value: e.busyness / 100,
                                   ),
                                 )

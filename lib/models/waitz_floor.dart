@@ -8,7 +8,6 @@ class WaitzFloor {
   bool isAvailable = false;
   String hourSummary = "";
   bool isOpen = false;
-  double percentage = 0.0;
   String summary = "";
 
   WaitzFloor();
@@ -22,7 +21,6 @@ class WaitzFloor {
     isAvailable = json["isAvailable"] ?? false;
     hourSummary = json["hourSummary"] ?? "";
     isOpen = json["isOpen"] ?? false;
-    percentage = json["percentage"] ?? 0.0;
     summary = json["subLocHtml"]["summary"] ?? "";
   }
 

@@ -72,6 +72,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
+            getPasstime();
           } else {
             // Only show the loading indicator if we're not loading from offline storage
             setState(() => loading = true);
@@ -93,7 +94,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                 userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               if (quarter == currentQuarter.id) {
-                getPasstime();
                 prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
               }
               buildCalendar();

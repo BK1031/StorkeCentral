@@ -11,7 +11,6 @@ class WaitzBuilding {
   String hourSummary = "";
   bool isOpen = false;
   String bestLabel = "";
-  double percentage = 0.0;
   String summary = "";
 
   List<WaitzFloor> floors = [];
@@ -27,7 +26,6 @@ class WaitzBuilding {
     hourSummary = json["hourSummary"] ?? "";
     isOpen = json["isOpen"] ?? false;
     bestLabel = json["bestLabel"] ?? "";
-    percentage = json["percentage"] ?? 0.0;
     summary = json["locHtml"]["summary"] ?? "";
     try {
       for (int i = 0; i < json["subLocs"].length; i++) {
