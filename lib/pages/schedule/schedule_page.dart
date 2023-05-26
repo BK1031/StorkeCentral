@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:calendar_view/calendar_view.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
@@ -284,7 +283,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                     ],
                   ),
                   onPressed: () {
-                    FirebaseAuth.instance.signOut();
+                    AuthService.signOut();
                     router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
                   },
                 ),

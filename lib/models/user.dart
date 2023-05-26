@@ -35,7 +35,6 @@ class User {
     gender = json["gender"] ?? "";
     status = json["status"] ?? "";
     for (int i = 0; i < json["roles"].length; i++) {
-      print(json["roles"][i]);
       roles.add(Role.fromJson(json["roles"][i]));
     }
     privacy = Privacy.fromJson(json["privacy"]);

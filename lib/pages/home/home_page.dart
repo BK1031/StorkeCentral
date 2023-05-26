@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     getNewsHeadline();
     getDining();
     getWaitz();
-    Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
+    // Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
   }
 
   Future<void> getNewsHeadline() async {
@@ -249,6 +249,7 @@ class _HomePageState extends State<HomePage> {
           var response = await httpClient.get(Uri.parse("https://waitz.io/live/ucsb"));
           setState(() {
             waitzBuildings = jsonDecode(response.body)["data"].map<WaitzBuilding>((json) => WaitzBuilding.fromJson(json)).toList();
+            waitzBuildings.sort((a, b) => b.name.compareTo(a.name));
           });
           lastWaitzFetch = DateTime.now();
           trace.stop();

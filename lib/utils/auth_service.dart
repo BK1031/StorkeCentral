@@ -35,6 +35,10 @@ class AuthService {
   static Future<void> signOut() async {
     await fb.FirebaseAuth.instance.signOut();
     currentUser = User();
+    demoMode = false;
+    appUnderReview = false;
+    anonMode = false;
+    offlineMode = false;
     await prefs.clear();
   }
 
