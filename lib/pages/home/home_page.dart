@@ -201,40 +201,39 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<UpNextScheduleItem>> getUserUpNext(String userID) async {
+    List<UpNextScheduleItem> scheduleItems = [];
     // First check if users upnext is saved for today
     if (prefs.containsKey("UP_NEXT_$userID")) {
-      List<UpNextScheduleItem> scheduleItems = prefs.getStringList("UP_NEXT_$userID")!.map((e) => UpNextScheduleItem.fromJson(jsonDecode(e))).toList();
+      scheduleItems = prefs.getStringList("UP_NEXT_$userID")!.map((e) => UpNextScheduleItem.fromJson(jsonDecode(e))).toList();
       if (scheduleItems.isNotEmpty && scheduleItems.first.startTime.day == DateTime.now().day) {
         log("[home_page] Using cached up next schedules for user $userID");
-        print(scheduleItems.first.user.profilePictureURL);
-        // return scheduleItems;
+      }
+    } else {
+      // Up next for user not stored locally or is out of date, fetch from API
+      Trace trace = FirebasePerformance.instance.newTrace("getUserUpNext()");
+      await trace.start();
+      try {
+        await AuthService.getAuthToken();
+        await httpClient.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}/next"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
+            scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UpNextScheduleItem>((json) => UpNextScheduleItem.fromJson(json)).toList();
+          }
+        });
+        prefs.setStringList("UP_NEXT_$userID", scheduleItems.map((e) => jsonEncode(e).toString()).toList());
+      } catch(e) {
+        log("[home_page] ${e.toString()}", LogLevel.error);
+        // AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
+      }
+      trace.stop();
+    }
+    // Add user object to schedule items
+    for (var element in scheduleItems) {
+      if (userID == currentUser.id) {
+        element.user = currentUser;
+      } else {
+        element.user = friends.firstWhere((friend) => friend.user.id == userID).user;
       }
     }
-    // Up next for user not stored locally or is out of date, fetch from API
-    Trace trace = FirebasePerformance.instance.newTrace("getUserUpNext()");
-    await trace.start();
-    List<UpNextScheduleItem> scheduleItems = [];
-    try {
-      await AuthService.getAuthToken();
-      await httpClient.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}/next"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-        if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
-          scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UpNextScheduleItem>((json) => UpNextScheduleItem.fromJson(json)).toList();
-        }
-      });
-      for (var element in scheduleItems) {
-        if (userID == currentUser.id) {
-          element.user = currentUser;
-        } else {
-          element.user = friends.firstWhere((friend) => friend.user.id == userID).user;
-        }
-        print(element.user.profilePictureURL);
-      }
-    } catch(e) {
-      log("[home_page] ${e.toString()}", LogLevel.error);
-      // AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
-    }
-    trace.stop();
-    prefs.setStringList("UP_NEXT_$userID", scheduleItems.map((e) => jsonEncode(e).toString()).toList());
     return scheduleItems;
   }
 
