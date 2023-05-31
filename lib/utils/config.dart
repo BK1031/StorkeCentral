@@ -79,6 +79,7 @@ List<Meeting> calendarMeetings = [];
 UserPasstime userPasstime = UserPasstime();
 DateTime lastScheduleFetch = DateTime.now();
 
+List<String> upNextUserIDs = [];
 List<UpNextScheduleItem> upNextSchedules = [];
 DateTime lastUpNextFetch = DateTime.now();
 

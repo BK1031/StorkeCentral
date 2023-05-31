@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:card_loading/card_loading.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
@@ -44,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     getNewsHeadline();
     getDining();
     getWaitz();
-    // Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
+    Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
   }
 
   Future<void> getNewsHeadline() async {
@@ -160,11 +161,19 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> getUpNextFriends() async {
     if (!offlineMode) {
-      if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 5) {
+      if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 15) {
         upNextSchedules.clear();
+        // Get up next user ids for current user
+        await FirebaseFirestore.instance.doc("users/${currentUser.id}").collection("up-next").get().then((value) async {
+          for (var element in value.docs) {
+            setState(() {
+              upNextUserIDs.add(element.id);
+            });
+          }
+        });
         // Handle current users up next items
-        getUserUpNext(currentUser.id).then((items) async {
-          UpNextScheduleItem scheduleItem = await getNextClass(items);
+        await getUserUpNext(currentUser.id).then((items) async {
+          UpNextScheduleItem scheduleItem = getNextClass(items);
           if (scheduleItem.status != "") {
             setState(() {
               upNextSchedules.add(scheduleItem);
@@ -172,11 +181,9 @@ class _HomePageState extends State<HomePage> {
           }
         });
         // Handle friends up next items
-        // If the user has more than 7 friends, only get up next for 2/3 of them
-        for (int i = 0; (friends.length > 7) ? i < friends.length * 2/3 : i < friends.length; i++) {
-          getUserUpNext(friends[i].user.id).then((items) async {
-            print("Getting up next for ${friends[i].user.id}");
-            UpNextScheduleItem scheduleItem = await getNextClass(items);
+        for (var id in upNextUserIDs) {
+          getUserUpNext(id).then((items) async {
+            UpNextScheduleItem scheduleItem = getNextClass(items);
             if (scheduleItem.status != "") {
               setState(() {
                 upNextSchedules.add(scheduleItem);
@@ -194,6 +201,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<UpNextScheduleItem>> getUserUpNext(String userID) async {
+    // First check if users upnext is saved for today
+    if (prefs.containsKey("UP_NEXT_$userID")) {
+      List<UpNextScheduleItem> scheduleItems = prefs.getStringList("UP_NEXT_$userID")!.map((e) => UpNextScheduleItem.fromJson(jsonDecode(e))).toList();
+      if (scheduleItems.isNotEmpty && scheduleItems.first.startTime.day == DateTime.now().day) {
+        log("[home_page] Using cached up next schedules for user $userID");
+        print(scheduleItems.first.user.profilePictureURL);
+        // return scheduleItems;
+      }
+    }
+    // Up next for user not stored locally or is out of date, fetch from API
     Trace trace = FirebasePerformance.instance.newTrace("getUserUpNext()");
     await trace.start();
     List<UpNextScheduleItem> scheduleItems = [];
@@ -210,16 +227,18 @@ class _HomePageState extends State<HomePage> {
         } else {
           element.user = friends.firstWhere((friend) => friend.user.id == userID).user;
         }
+        print(element.user.profilePictureURL);
       }
     } catch(e) {
       log("[home_page] ${e.toString()}", LogLevel.error);
       // AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
     }
     trace.stop();
+    prefs.setStringList("UP_NEXT_$userID", scheduleItems.map((e) => jsonEncode(e).toString()).toList());
     return scheduleItems;
   }
 
-  Future<UpNextScheduleItem> getNextClass(List<UpNextScheduleItem> scheduleItems) async {
+  UpNextScheduleItem getNextClass(List<UpNextScheduleItem> scheduleItems) {
     UpNextScheduleItem returnItem = UpNextScheduleItem();
     if (scheduleItems.isNotEmpty) {
       scheduleItems[0].user.id == currentUser.id ? returnItem.user = currentUser : returnItem.user = friends.firstWhere((element) => element.user.id == scheduleItems[0].user.id).user;
@@ -238,6 +257,10 @@ class _HomePageState extends State<HomePage> {
       returnItem.status = "done";
     }
     return returnItem;
+  }
+
+  void showAddUpNextDialog() {
+
   }
 
   Future<void> getWaitz() async {
@@ -509,7 +532,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Visibility(
                     visible: friends.isNotEmpty,
-                    child: (upNextSchedules.isEmpty) ? SizedBox(
+                    child: (upNextUserIDs.isNotEmpty && upNextSchedules.isEmpty) ? SizedBox(
                       height: 100,
                       child: ListView.builder(
                         itemCount: 4,
@@ -563,78 +586,126 @@ class _HomePageState extends State<HomePage> {
                         },
                         scrollDirection: Axis.horizontal,
                       ),
+                    ) : (upNextUserIDs.isEmpty && upNextSchedules.isEmpty) ? SizedBox(
+                      height: 100,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0, right: 8),
+                        child: InkWell(
+                          borderRadius: const BorderRadius.all(Radius.circular(8)),
+                          onTap: () {
+                            showAddUpNextDialog();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8.0, right: 8),
+                            child: Row(
+                              children: [
+                                Image.asset("images/icons/new.png", height: 75, color: Colors.grey.withOpacity(0.6),),
+                                const Padding(padding: EdgeInsets.all(8)),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Text(
+                                        "Click to add friends to your Up Next view.",
+                                        style: TextStyle(fontSize: 18),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ) : SizedBox(
                       height: 100,
                       child: ListView.builder(
-                        itemCount: upNextSchedules.length,
+                        itemCount: upNextSchedules.length + 1,
                         itemBuilder: (BuildContext context, int i) {
-                          return Padding(
-                            padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                            child: SizedBox(
-                              width: 175,
-                              child: Card(
+                          if (i == upNextSchedules.length) {
+                            return Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SizedBox(
+                                width: 100,
                                 child: InkWell(
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   onTap: () {
-                                    if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
-                                      router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
-                                    } else {
-                                      router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
-                                    }
+                                    showAddUpNextDialog();
                                   },
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                    child: Stack(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius: const BorderRadius.all(Radius.circular(64)),
-                                                    child: ExtendedImage.network(
-                                                      upNextSchedules[i].user.profilePictureURL,
-                                                      height: 30,
-                                                    ),
-                                                  ),
-                                                  const Padding(padding: EdgeInsets.all(4)),
-                                                  Text(
-                                                    upNextSchedules[i].user.id == currentUser.id ?
-                                                    "Me" : upNextSchedules[i].user.firstName,
-                                                    style: const TextStyle(fontSize: 18),
-                                                  )
-                                                ],
-                                              ),
-                                              const Padding(padding: EdgeInsets.all(4)),
-                                              upNextSchedules[i].status != "done" ?
-                                              Text(
-                                                upNextSchedules[i].title,
-                                              ) : const Text(
-                                                  "Done for the day! 🎉",
-                                                  style: TextStyle(color: Colors.green)
-                                              ),
-                                              Visibility(
-                                                visible: upNextSchedules[i].status != "done",
-                                                child: Text(
-                                                  upNextSchedules[i].status == "until" ?
-                                                  "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
-                                                  style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Center(
+                                      child: Image.asset(
+                                        "images/icons/new.png",
+                                        color: Colors.grey.withOpacity(0.6),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
+                            );
+                          } else {
+                            return Padding(
+                              padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                              child: SizedBox(
+                                width: 175,
+                                child: Card(
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    onTap: () {
+                                      if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
+                                        router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
+                                      } else {
+                                        router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: const BorderRadius.all(Radius.circular(64)),
+                                                child: ExtendedImage.network(
+                                                  upNextSchedules[i].user.profilePictureURL,
+                                                  height: 30,
+                                                ),
+                                              ),
+                                              const Padding(padding: EdgeInsets.all(4)),
+                                              Text(
+                                                upNextSchedules[i].user.id == currentUser.id ?
+                                                "Me" : upNextSchedules[i].user.firstName,
+                                                style: const TextStyle(fontSize: 18),
+                                              )
+                                            ],
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4)),
+                                          upNextSchedules[i].status != "done" ?
+                                          Text(
+                                            upNextSchedules[i].title,
+                                          ) : const Text(
+                                              "Done for the day! 🎉",
+                                              style: TextStyle(color: Colors.green)
+                                          ),
+                                          Visibility(
+                                            visible: upNextSchedules[i].status != "done",
+                                            child: Text(
+                                              upNextSchedules[i].status == "until" ?
+                                              "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
+                                              style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
                         },
                         scrollDirection: Axis.horizontal,
                       ),

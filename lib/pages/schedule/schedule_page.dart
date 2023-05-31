@@ -111,6 +111,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     } else {
       log("[schedule_page] Offline mode, searching cache for schedule...");
       loadOfflineSchedule();
+      AlertService.showSuccessSnackbar(context, "Loaded offline schedule!");
     }
   }
 
