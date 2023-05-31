@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/up_next_schedule_item.dart';
 import 'package:storke_central/models/waitz_building.dart';
+import 'package:storke_central/pages/home/add_up_next_dialog.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -163,6 +165,7 @@ class _HomePageState extends State<HomePage> {
     if (!offlineMode) {
       if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 15) {
         upNextSchedules.clear();
+        upNextUserIDs.clear();
         // Get up next user ids for current user
         await FirebaseFirestore.instance.doc("users/${currentUser.id}").collection("up-next").get().then((value) async {
           for (var element in value.docs) {
@@ -259,7 +262,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   void showAddUpNextDialog() {
-
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: const Text(
+            "Add Friends to Up Next",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+          ),
+          content: const AddUpNextDialog(),
+          contentPadding: const EdgeInsets.only(right: 8),
+          titlePadding: const EdgeInsets.only(left: 16, top: 16, right: 16),
+          actions: [
+            SizedBox(
+              width: double.maxFinite,
+              child: CupertinoButton(
+                onPressed: () {
+                  lastUpNextFetch = DateTime.now().subtract(const Duration(minutes: 100));
+                  getUpNextFriends();
+                  router.pop(context);
+                },
+                child: const Text("Done"),
+                color: SB_NAVY,
+              ),
+            )
+          ],
+        );
+    });
   }
 
   Future<void> getWaitz() async {
@@ -623,7 +654,7 @@ class _HomePageState extends State<HomePage> {
                         itemBuilder: (BuildContext context, int i) {
                           if (i == upNextSchedules.length) {
                             return Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SizedBox(
                                 width: 100,
                                 child: InkWell(
