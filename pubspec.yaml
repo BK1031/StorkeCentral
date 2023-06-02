@@ -70,6 +70,7 @@ dependencies:
   syncfusion_flutter_calendar: ^20.2.50
   mapbox_gl: 0.16.0
   fuzzywuzzy: 0.1.6
+  visibility_detector: ^0.4.0+2
   weather_icons: ^3.0.0
 
 dev_dependencies:
