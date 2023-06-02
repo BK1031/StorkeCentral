@@ -51,6 +51,7 @@ Future<void> main() async {
   UCSB_DINING_CAM_KEY = dotenv.env['UCSB_DINING_KEY']!;
   MAPBOX_PUBLIC_TOKEN = dotenv.env['MAPBOX_PUBLIC_TOKEN']!;
   MAPBOX_ACCESS_TOKEN = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
+  WEATHER_API_KEY = dotenv.env['WEATHER_API_KEY']!;
   ONESIGNAL_APP_ID = dotenv.env['ONESIGNAL_APP_ID']!;
 
   prefs = await SharedPreferences.getInstance();

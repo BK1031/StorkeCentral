@@ -17,6 +17,7 @@ import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/up_next_schedule_item.dart';
 import 'package:storke_central/models/waitz_building.dart';
+import 'package:storke_central/models/weather.dart';
 import 'package:storke_central/pages/home/add_up_next_dialog.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
@@ -24,6 +25,7 @@ import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:weather_icons/weather_icons.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -45,6 +47,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     getNewsHeadline();
+    getWeather();
     getDining();
     getWaitz();
     Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
@@ -87,6 +90,37 @@ class _HomePageState extends State<HomePage> {
       });
     }
     trace.stop();
+  }
+
+  Future<void> getWeather() async {
+    if (!offlineMode) {
+      try {
+        if (weather.id == 0 || DateTime.now().difference(lastWeatherFetch).inMinutes > 60) {
+          Trace trace = FirebasePerformance.instance.newTrace("getWeather()");
+          await trace.start();
+          Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+          await httpClient.get(Uri.parse("https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$WEATHER_API_KEY"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            if (value.statusCode == 200) {
+              setState(() {
+                weather = Weather.fromJson(jsonDecode(utf8.decode(value.bodyBytes)));
+              });
+              lastWeatherFetch = DateTime.now();
+            } else {
+              log("[home_page] Failed to fetch weather, status code ${value.statusCode}", LogLevel.error);
+              AlertService.showErrorSnackbar(context, "Failed to fetch weather!");
+            }
+          });
+          trace.stop();
+        } else {
+          log("[home_page] Using cached weather, last fetch was ${DateTime.now().difference(lastWeatherFetch).inMinutes} minutes ago (minimum 60 minutes)");
+        }
+      } catch(e) {
+        log("[home_page] ${e.toString()}", LogLevel.error);
+        AlertService.showErrorSnackbar(context, "Failed to fetch weather!");
+      }
+    } else {
+      log("[home_page] Offline mode, not displaying weather", LogLevel.warn);
+    }
   }
 
   Future<void> getDining() async {
@@ -404,15 +438,35 @@ class _HomePageState extends State<HomePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        ExtendedImage.network(
-                                          "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
-                                          height: 35,
+                                        Row(
+                                          children: [
+                                            ExtendedImage.network(
+                                              "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
+                                              height: 35,
+                                            ),
+                                            const Padding(padding: EdgeInsets.all(4)),
+                                            Text(
+                                              "NEWS | ${DateFormat("MMMM d, yyyy").format(DateTime.now())}",
+                                              style: const TextStyle(color: Colors.white, fontSize: 17)
+                                            ),
+                                          ],
                                         ),
-                                        const Padding(padding: EdgeInsets.all(4)),
-                                        Text(
-                                          "NEWS | ${DateFormat("MMMM d, yyyy").format(DateTime.now())}",
-                                          style: const TextStyle(color: Colors.white, fontSize: 17)
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            BoxedIcon(
+                                              WeatherIcons.fromString(weather.id != 0 ? "wi-${DateTime.now().hour > 6 && DateTime.now().hour < 20 ? "day" : "night"}-${weatherCodeToIcon[weather.id]}" : "wi-moon-new", fallback: WeatherIcons.day_sunny),
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            const Padding(padding: EdgeInsets.all(2)),
+                                            Text(
+                                              weather.temp != 0.0 ? "${((weather.temp - 273.15) * 9/5 + 32).toStringAsFixed(1)} °F" : "– °F",
+                                              style: const TextStyle(fontSize: 17, color: Colors.white)
+                                            )
+                                          ],
                                         ),
                                       ],
                                     ),

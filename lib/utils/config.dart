@@ -20,6 +20,7 @@ import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
 import 'package:storke_central/models/waitz_building.dart';
+import 'package:storke_central/models/weather.dart';
 import 'package:storke_central/utils/syncfusion_meeting.dart';
 
 final router = FluroRouter();
@@ -29,7 +30,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.4.10+2");
+Version appVersion = Version("2.4.11+2");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
@@ -42,6 +43,7 @@ String UCSB_API_KEY = "ucsb-api-key";
 String UCSB_DINING_CAM_KEY = "ucsb-dining-key";
 String MAPBOX_PUBLIC_TOKEN = "mapbox-public-token";
 String MAPBOX_ACCESS_TOKEN = "mapbox-access-token";
+String WEATHER_API_KEY = "weather-api-key";
 String ONESIGNAL_APP_ID = "onesignal-app-id";
 
 String APP_STORE_URL = "https://apps.apple.com/us/app/apple-store/id1594777645";
@@ -71,6 +73,9 @@ DiningHall selectedDiningHall = DiningHall();
 
 NewsArticle headlineArticle = NewsArticle();
 DateTime lastHeadlineArticleFetch = DateTime.now();
+
+Weather weather = Weather();
+DateTime lastWeatherFetch = DateTime.now();
 
 List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
@@ -221,3 +226,67 @@ Quarter fall21 = Quarter.fromJson({
   "firstDayOfClasses": "2021-09-23 00:00:00.000",
   "lastDayOfClasses": "2021-12-03 23:59:00.000"
 });
+
+Map<int, String> weatherCodeToIcon = {
+  201: "thunderstorm",
+  202: "thunderstorm",
+  210: "lightning",
+  211: "lightning",
+  212: "lightning",
+  221: "lightning",
+  230: "thunderstorm",
+  231: "thunderstorm",
+  232: "thunderstorm",
+  300: "sprinkle",
+  301: "sprinkle",
+  302: "rain",
+  310: "rain-mix",
+  311: "rain",
+  312: "rain",
+  313: "showers",
+  314: "rain",
+  321: "sprinkle",
+  500: "sprinkle",
+  501: "rain",
+  502: "rain",
+  503: "rain",
+  504: "rain",
+  511: "rain-mix",
+  520: "showers",
+  521: "showers",
+  522: "showers",
+  531: "storm-showers",
+  600: "snow",
+  601: "snow",
+  602: "sleet",
+  611: "rain-mix",
+  612: "rain-mix",
+  615: "rain-mix",
+  616: "rain-mix",
+  620: "rain-mix",
+  621: "snow",
+  622: "snow",
+  701: "showers",
+  711: "smoke",
+  721: "haze",
+  731: "dust",
+  741: "fog",
+  761: "dust",
+  762: "dust",
+  771: "cloudy-gusts",
+  781: "tornado",
+  800: "sunny",
+  801: "cloudy-gusts",
+  802: "cloudy-gusts",
+  803: "cloudy-gusts",
+  804: "cloudy",
+  900: "tornado",
+  901: "storm-showers",
+  902: "hurricane",
+  903: "snowflake-cold",
+  904: "hot",
+  905: "windy",
+  906: "hail",
+  957: "strong-wind",
+  200: "thunderstorm"
+};
