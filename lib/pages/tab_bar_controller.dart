@@ -19,7 +19,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/login.dart';
@@ -380,7 +379,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   void fetchBuildings() async {
     if (!offlineMode) {
-      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 1440) {
+      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 10080) {
         try {
           Trace trace = FirebasePerformance.instance.newTrace("fetchBuildings()");
           await trace.start();
@@ -391,19 +390,31 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             });
             lastBuildingFetch = DateTime.now();
           });
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
+          prefs.setStringList("BUILDINGS_LIST", buildings.map((e) => jsonEncode(e).toString()).toList());
+          prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toString());
           trace.stop();
         } catch(err) {
           AlertService.showErrorSnackbar(context, "Failed to get buildings!");
           log("[tab_bar_controller] ${err.toString()}", LogLevel.error);
         }
       } else {
-        log("[tab_bar_controller] Using cached building list, last fetch was ${DateTime.now().difference(lastBuildingFetch).inMinutes} minutes ago (minimum 1440 minutes)");
+        log("[tab_bar_controller] Using cached building list, last fetch was ${DateTime.now().difference(lastBuildingFetch).inMinutes} minutes ago (minimum 10080 minutes)");
       }
     } else {
       log("[tab_bar_controller] Offline mode, searching cache for buildings...");
+      loadOfflineBuildings();
     }
+  }
+
+  void loadOfflineBuildings() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineBuildings()");
+    await trace.start();
+    if (prefs.containsKey("BUILDINGS_LIST")) {
+      setState(() {
+        buildings = prefs.getStringList("BUILDINGS_LIST")!.map((e) => Building.fromJson(jsonDecode(e))).toList();
+      });
+    }
+    trace.stop();
   }
 
   @override

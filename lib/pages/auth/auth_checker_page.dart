@@ -11,6 +11,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart' as sc;
 import 'package:storke_central/utils/auth_service.dart';
@@ -186,6 +187,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     if (!prefs.containsKey("BUILDINGS_LAST_FETCH")) prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toIso8601String());
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
     lastBuildingFetch = DateTime.parse(prefs.getString("BUILDINGS_LAST_FETCH")!);
+    loadOfflineBuildings();
   }
 
   Future<void> loadOfflineMode() async {
@@ -195,6 +197,17 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     loadOfflineUser();
     loadOfflineFriendsList();
     offlineMode = true;
+  }
+
+  void loadOfflineBuildings() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineBuildings()");
+    await trace.start();
+    if (prefs.containsKey("BUILDINGS_LIST")) {
+      setState(() {
+        buildings = prefs.getStringList("BUILDINGS_LIST")!.map((e) => Building.fromJson(jsonDecode(e))).toList();
+      });
+    }
+    trace.stop();
   }
 
   Future<bool> loadOfflineUser() async {
