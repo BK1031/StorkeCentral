@@ -3,10 +3,13 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"montecito/config"
+	"montecito/model"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -56,4 +59,24 @@ func RegisterRinconRoute(route string) {
 	if err != nil {
 	}
 	println("Registered route " + route)
+}
+
+func MatchRoute(route string, requestID string) model.Service {
+	queryRoute := strings.ReplaceAll(route, "/", "-")
+	//http.Get(rinconHost + ":" + config.RinconPort + "/routes/match/" + queryRoute)
+	rinconClient := &http.Client{}
+	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
+	req.Header.Set("Request-ID", requestID)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := rinconClient.Do(req)
+	if err != nil {
+		log.Printf(err.Error())
+	}
+	defer res.Body.Close()
+	if res.StatusCode == 200 {
+		var service model.Service
+		json.NewDecoder(res.Body).Decode(&service)
+		return service
+	}
+	return model.Service{}
 }

@@ -1,11 +1,15 @@
 package config
 
-import "os"
+import (
+	"montecito/model"
+	"os"
+)
 
 var Version = "2.0.0"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
+var RinconService = model.Service{}
 
 var PostgresHost = os.Getenv("POSTGRES_HOST")
 var PostgresUser = os.Getenv("POSTGRES_USER")
