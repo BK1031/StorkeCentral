@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"io"
 	"log"
 	"montecito/config"
 	"montecito/model"
 	"montecito/service"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -82,27 +84,51 @@ func GetProxy(c *gin.Context) {
 		req.Header.Add("Content-Type", "application/json")
 		res, err := proxyClient.Do(req)
 		if err != nil {
-			log.Printf(err.Error())
+			log.Println(err.Error())
 		}
 		defer res.Body.Close()
-		if res.StatusCode == 200 {
-			log.Println(res.Header)
-			log.Println(json.NewDecoder(res.Body))
-			c.JSON(http.StatusBadGateway, model.Response{
-				Status:    "SUCCESS",
-				Ping:      time.Now().Sub(startTime).String(),
-				Timestamp: time.Now(),
-				Service:   mappedService.Name + " v" + mappedService.Version,
-				//Data:
-			})
+
+		log.Println(res.Header)
+
+		responseModel := model.Response{
+			Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
+			Gateway:   "Montecito v" + config.Version,
+			Service:   mappedService.Name + " v" + mappedService.Version,
+			Timestamp: time.Now().Format(time.RubyDate),
 		}
+
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			// Failed to decode response body
+			log.Println(err.Error())
+			c.JSON(http.StatusInternalServerError, model.Response{
+				Status:    "ERROR",
+				Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
+				Gateway:   "Montecito v" + config.Version,
+				Service:   config.RinconService.Name + " v" + config.RinconService.Version,
+				Timestamp: time.Now().Format(time.RubyDate),
+				Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
+			})
+			return
+		}
+		bodyString := string(bodyBytes)
+		responseModel.Data = json.RawMessage(bodyString)
+
+		if res.StatusCode >= 200 && res.StatusCode < 300 {
+			responseModel.Status = "SUCCESS"
+		} else {
+			responseModel.Status = "ERROR"
+		}
+		c.JSON(res.StatusCode, responseModel)
+
 	} else {
 		c.JSON(http.StatusBadGateway, model.Response{
 			Status:    "ERROR",
-			Ping:      time.Now().Sub(startTime).String(),
-			Timestamp: time.Now(),
+			Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
+			Gateway:   "Montecito v" + config.Version,
 			Service:   config.RinconService.Name + " v" + config.RinconService.Version,
-			Message:   "No service to handle route: " + c.Request.URL.String(),
+			Timestamp: time.Now().Format(time.RubyDate),
+			Data:      json.RawMessage("{\"message\": \"No service to handle route: " + c.Request.URL.String() + "\"}"),
 		})
 	}
 }

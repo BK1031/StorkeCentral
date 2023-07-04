@@ -1,12 +1,12 @@
 package model
 
-import "time"
+import "encoding/json"
 
 type Response struct {
-	Status    string      `json:"status"`
-	Ping      string      `json:"ping"`
-	Timestamp time.Time   `json:"timestamp"`
-	Service   string      `json:"service"`
-	Message   string      `json:"message,omitempty"`
-	Data      interface{} `json:"data,omitempty"`
+	Status    string          `json:"status"`
+	Ping      string          `json:"ping"`
+	Gateway   string          `json:"gateway"`
+	Service   string          `json:"service"`
+	Timestamp string          `json:"timestamp"`
+	Data      json.RawMessage `json:"data"`
 }
