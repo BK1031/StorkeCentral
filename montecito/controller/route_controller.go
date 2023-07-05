@@ -37,8 +37,8 @@ func CorsHandler() gin.HandlerFunc {
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		println("-------------------------------------------------------------------")
-		println(time.Now().Format(time.RubyDate))
-		println("REQUESTED ROUTE: " + c.Request.URL.String() + " [" + c.Request.Method + "]")
+		println(time.Now().Format("Mon Jan 02 15:04:05 MST 2006"))
+		println("REQUESTED ROUTE: " + c.Request.Host + c.Request.URL.String() + " [" + c.Request.Method + "]")
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			println("REQUEST BODY: " + err.Error())

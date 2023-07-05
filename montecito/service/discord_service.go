@@ -26,15 +26,23 @@ func ConnectDiscord() {
 }
 
 func DiscordLogRequest(c *gin.Context) {
-	requestID := c.Writer.Header().Get("Request-ID")
+	requestID := c.GetHeader("Request-ID")
 	if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
-		_, err := Discord.ChannelMessageSend(config.DiscordChannel, ":green_circle: `STATUS "+strconv.Itoa(c.Writer.Status())+"` \n```"+requestID+"\n\n"+time.Now().Format(time.RubyDate)+"\n"+c.Request.URL.Host+c.Request.URL.Path+" ["+c.Request.Method+"]\nUser \"userID\" [user@ucsb.edu]```")
+		_, err := Discord.ChannelMessageSend(config.DiscordChannel, ":green_circle: `STATUS "+strconv.Itoa(c.Writer.Status())+"`\n"+
+			"```Request ID: "+requestID+"\n\n"+
+			time.Now().Format("Mon Jan 02 15:04:05 MST 2006")+"\n"+
+			"["+c.Request.Method+"] "+c.Request.Host+c.Request.URL.String()+
+			"\nUser \"userID\" [user@ucsb.edu]```")
 		if err != nil {
 			fmt.Println("Error sending Discord message, ", err)
 			return
 		}
 	} else {
-		_, err := Discord.ChannelMessageSend(config.DiscordChannel, ":red_circle: `STATUS "+strconv.Itoa(c.Writer.Status())+"` \n```"+requestID+"\n\n"+time.Now().Format(time.RubyDate)+"\n"+c.Request.URL.String()+" ["+c.Request.Method+"]\nUser \"userID\" [user@ucsb.edu]```")
+		_, err := Discord.ChannelMessageSend(config.DiscordChannel, ":red_circle: `STATUS "+strconv.Itoa(c.Writer.Status())+"`\n"+
+			"```Request ID: "+requestID+"\n\n"+
+			time.Now().Format("Mon Jan 02 15:04:05 MST 2006")+"\n"+
+			"["+c.Request.Method+"] "+c.Request.Host+c.Request.URL.String()+
+			"\nUser \"userID\" [user@ucsb.edu]```")
 		if err != nil {
 			fmt.Println("Error sending Discord message, ", err)
 			return

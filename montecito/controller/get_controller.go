@@ -40,7 +40,7 @@ func GetProxy(c *gin.Context) {
 				Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
 				Gateway:   "Montecito v" + config.Version,
 				Service:   mappedService.Name + " v" + mappedService.Version,
-				Timestamp: time.Now().Format(time.RubyDate),
+				Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
 				Data:      json.RawMessage("{\"message\": \"Failed to reach " + mappedService.Name + "! Is the service online?\"}"),
 			})
 		} else {
@@ -51,7 +51,7 @@ func GetProxy(c *gin.Context) {
 				Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
 				Gateway:   "Montecito v" + config.Version,
 				Service:   mappedService.Name + " v" + mappedService.Version,
-				Timestamp: time.Now().Format(time.RubyDate),
+				Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
 			}
 			var proxyResponseBodyBytes []byte
 			proxyResponseBodyBytes, err = io.ReadAll(proxyResponse.Body)
@@ -64,7 +64,7 @@ func GetProxy(c *gin.Context) {
 					Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
 					Gateway:   "Montecito v" + config.Version,
 					Service:   mappedService.Name + " v" + mappedService.Version,
-					Timestamp: time.Now().Format(time.RubyDate),
+					Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
 					Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
 				})
 			} else {
@@ -92,7 +92,7 @@ func GetProxy(c *gin.Context) {
 			Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
 			Gateway:   "Montecito v" + config.Version,
 			Service:   config.RinconService.Name + " v" + config.RinconService.Version,
-			Timestamp: time.Now().Format(time.RubyDate),
+			Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
 			Data:      json.RawMessage("{\"message\": \"No service to handle route: " + c.Request.URL.String() + "\"}"),
 		})
 	}
