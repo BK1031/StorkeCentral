@@ -19,7 +19,7 @@ func GetProxy(c *gin.Context) {
 	// Get service to handle route
 	mappedService := service.MatchRoute(strings.Split(c.Request.URL.String(), "/")[1], requestID)
 	if mappedService.ID != 0 {
-		println("PROXY TO (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
+		println("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
 		proxyClient := &http.Client{}
 		proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+config.RinconPort+c.Request.URL.String(), nil)
 		//proxyRequest, _ := http.NewRequest("GET", service.URL+c.FullPath(), nil)
@@ -34,52 +34,58 @@ func GetProxy(c *gin.Context) {
 		proxyResponse, err := proxyClient.Do(proxyRequest)
 		if err != nil {
 			println("Failed to proxy request to " + mappedService.Name + ": " + err.Error())
-		} else {
-			println("Successfully proxied request to " + mappedService.Name + "!")
-		}
-		defer proxyResponse.Body.Close()
-		// Transfer body from proxy response
-		responseModel := model.Response{
-			Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
-			Gateway:   "Montecito v" + config.Version,
-			Service:   mappedService.Name + " v" + mappedService.Version,
-			Timestamp: time.Now().Format(time.RubyDate),
-		}
-		var proxyResponseBodyBytes []byte
-		proxyResponseBodyBytes, err = io.ReadAll(proxyResponse.Body)
-		if err != nil {
-			// Failed to decode response body
-			println(err.Error())
-			c.JSON(http.StatusInternalServerError, model.Response{
+			c.JSON(http.StatusServiceUnavailable, model.Response{
 				Status:    "ERROR",
 				Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
 				Gateway:   "Montecito v" + config.Version,
-				Service:   config.RinconService.Name + " v" + config.RinconService.Version,
+				Service:   mappedService.Name + " v" + mappedService.Version,
 				Timestamp: time.Now().Format(time.RubyDate),
-				Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
+				Data:      json.RawMessage("{\"message\": \"Failed to reach " + mappedService.Name + "! Is the service online?\"}"),
 			})
-			// TODO: Discord logging
-			return
-		}
-		responseModel.Data = json.RawMessage(string(proxyResponseBodyBytes))
-		// Transfer status from proxy response
-		if proxyResponse.StatusCode >= 200 && proxyResponse.StatusCode < 300 {
-			responseModel.Status = "SUCCESS"
 		} else {
-			responseModel.Status = "ERROR"
-		}
-		// Transfer headers from proxy response
-		for header, values := range proxyResponse.Header {
-			if header != "Content-Length" && header != "Connection" && header != "Date" {
-				for _, value := range values {
-					c.Header(header, value)
+			println("Successfully proxied request to " + mappedService.Name + "!")
+			defer proxyResponse.Body.Close()
+			// Transfer body from proxy response
+			responseModel := model.Response{
+				Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
+				Gateway:   "Montecito v" + config.Version,
+				Service:   mappedService.Name + " v" + mappedService.Version,
+				Timestamp: time.Now().Format(time.RubyDate),
+			}
+			var proxyResponseBodyBytes []byte
+			proxyResponseBodyBytes, err = io.ReadAll(proxyResponse.Body)
+			println(string(proxyResponseBodyBytes))
+			if err != nil {
+				// Failed to decode response body
+				println(err.Error())
+				c.JSON(http.StatusInternalServerError, model.Response{
+					Status:    "ERROR",
+					Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
+					Gateway:   "Montecito v" + config.Version,
+					Service:   mappedService.Name + " v" + mappedService.Version,
+					Timestamp: time.Now().Format(time.RubyDate),
+					Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
+				})
+			} else {
+				responseModel.Data = json.RawMessage(string(proxyResponseBodyBytes))
+				// Transfer status from proxy response
+				if proxyResponse.StatusCode >= 200 && proxyResponse.StatusCode < 300 {
+					responseModel.Status = "SUCCESS"
+				} else {
+					responseModel.Status = "ERROR"
 				}
+				// Transfer headers from proxy response
+				for header, values := range proxyResponse.Header {
+					if header != "Content-Length" && header != "Connection" && header != "Date" {
+						for _, value := range values {
+							c.Header(header, value)
+						}
+					}
+				}
+				c.Header("Request-ID", requestID)
+				c.JSON(proxyResponse.StatusCode, responseModel)
 			}
 		}
-		c.Header("Request-ID", requestID)
-		c.JSON(proxyResponse.StatusCode, responseModel)
-		// TODO: Discord logging
-		return
 	} else {
 		c.JSON(http.StatusBadGateway, model.Response{
 			Status:    "ERROR",
@@ -89,9 +95,10 @@ func GetProxy(c *gin.Context) {
 			Timestamp: time.Now().Format(time.RubyDate),
 			Data:      json.RawMessage("{\"message\": \"No service to handle route: " + c.Request.URL.String() + "\"}"),
 		})
-		// TODO: Discord logging
-		return
 	}
+	// TODO: Discord logging
+	RequestAfterLogger(c)
+	return
 }
 
 func PostProxy(c *gin.Context) {

@@ -61,6 +61,7 @@ func RegisterRinconRoute(route string) {
 }
 
 func MatchRoute(route string, requestID string) model.Service {
+	var service model.Service
 	queryRoute := strings.ReplaceAll(route, "/", "-")
 	//http.Get(rinconHost + ":" + config.RinconPort + "/routes/match/" + queryRoute)
 	rinconClient := &http.Client{}
@@ -70,12 +71,11 @@ func MatchRoute(route string, requestID string) model.Service {
 	res, err := rinconClient.Do(req)
 	if err != nil {
 		println(err.Error())
+		return service
 	}
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
-		var service model.Service
 		json.NewDecoder(res.Body).Decode(&service)
-		return service
 	}
-	return model.Service{}
+	return service
 }
