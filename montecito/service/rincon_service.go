@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"montecito/config"
 	"montecito/model"
 	"net/http"
@@ -70,7 +69,7 @@ func MatchRoute(route string, requestID string) model.Service {
 	req.Header.Add("Content-Type", "application/json")
 	res, err := rinconClient.Do(req)
 	if err != nil {
-		log.Printf(err.Error())
+		println(err.Error())
 	}
 	defer res.Body.Close()
 	if res.StatusCode == 200 {

@@ -2,17 +2,11 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
 	"log"
-	"montecito/config"
-	"montecito/model"
 	"montecito/service"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -24,9 +18,37 @@ func InitializeRoutes(router *gin.Engine) {
 	//router.GET("/montecito/ping", Ping)
 }
 
+func CorsHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Headers", "*")
+		c.Header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
+		c.Header("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	}
+}
+
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		println("GATEWAY REQUEST ID: " + c.GetHeader("Request-ID"))
+		println("-------------------------------------------------------------------")
+		println(time.Now().Format(time.RubyDate))
+		println("REQUESTED ROUTE: " + c.Request.URL.String() + " [" + c.Request.Method + "]")
+		bodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			println("REQUEST BODY: " + err.Error())
+		} else {
+			println("REQUEST BODY: " + string(bodyBytes))
+		}
+		defer c.Request.Body.Close()
+		println("REQUEST ORIGIN: " + c.ClientIP())
+		requestID := uuid.New().String()
+		println("GATEWAY REQUEST ID: " + requestID)
+		c.Header("Request-ID", requestID)
 		c.Next()
 	}
 }
@@ -66,77 +88,4 @@ func AuthChecker() gin.HandlerFunc {
 		// Any path can also be quickly halted if not ready for prod
 		c.Next()
 	}
-}
-
-func GetProxy(c *gin.Context) {
-	startTime := time.Now()
-	requestID := uuid.New().String()
-	c.Header("Request-ID", requestID)
-	fmt.Println("GATEWAY REQUEST ID: " + requestID)
-	// Get service to handle route
-	mappedService := service.MatchRoute(strings.Split(c.Request.URL.String(), "/")[1], requestID)
-	if mappedService.ID != 0 {
-		// Proxy the actual request
-		proxyClient := &http.Client{}
-		req, _ := http.NewRequest("GET", "http://localhost"+":"+config.RinconPort+c.Request.URL.String(), nil)
-		//req, _ := http.NewRequest("GET", service.URL+c.FullPath(), nil)
-		req.Header.Set("Request-ID", requestID)
-		req.Header.Add("Content-Type", "application/json")
-		res, err := proxyClient.Do(req)
-		if err != nil {
-			log.Println(err.Error())
-		}
-		defer res.Body.Close()
-
-		log.Println(res.Header)
-
-		responseModel := model.Response{
-			Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
-			Gateway:   "Montecito v" + config.Version,
-			Service:   mappedService.Name + " v" + mappedService.Version,
-			Timestamp: time.Now().Format(time.RubyDate),
-		}
-
-		bodyBytes, err := io.ReadAll(res.Body)
-		if err != nil {
-			// Failed to decode response body
-			log.Println(err.Error())
-			c.JSON(http.StatusInternalServerError, model.Response{
-				Status:    "ERROR",
-				Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
-				Gateway:   "Montecito v" + config.Version,
-				Service:   config.RinconService.Name + " v" + config.RinconService.Version,
-				Timestamp: time.Now().Format(time.RubyDate),
-				Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
-			})
-			return
-		}
-		bodyString := string(bodyBytes)
-		responseModel.Data = json.RawMessage(bodyString)
-
-		if res.StatusCode >= 200 && res.StatusCode < 300 {
-			responseModel.Status = "SUCCESS"
-		} else {
-			responseModel.Status = "ERROR"
-		}
-		c.JSON(res.StatusCode, responseModel)
-
-	} else {
-		c.JSON(http.StatusBadGateway, model.Response{
-			Status:    "ERROR",
-			Ping:      strconv.FormatInt(time.Now().Sub(startTime).Milliseconds(), 10) + "ms",
-			Gateway:   "Montecito v" + config.Version,
-			Service:   config.RinconService.Name + " v" + config.RinconService.Version,
-			Timestamp: time.Now().Format(time.RubyDate),
-			Data:      json.RawMessage("{\"message\": \"No service to handle route: " + c.Request.URL.String() + "\"}"),
-		})
-	}
-}
-
-func PostProxy(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Montecito v" + config.Version + " is online!"})
-}
-
-func DeleteProxy(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Montecito v" + config.Version + " is online!"})
 }
