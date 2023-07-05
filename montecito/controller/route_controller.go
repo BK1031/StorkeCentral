@@ -33,7 +33,7 @@ func CorsHandler() gin.HandlerFunc {
 	}
 }
 
-func RequestBeforeLogger() gin.HandlerFunc {
+func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		println("-------------------------------------------------------------------")
 		println(time.Now().Format(time.RubyDate))
@@ -51,11 +51,6 @@ func RequestBeforeLogger() gin.HandlerFunc {
 		c.Header("Request-ID", requestID)
 		c.Next()
 	}
-}
-
-func RequestAfterLogger(c *gin.Context) {
-	println("RESPONSE STATUS: ")
-	println("-------------------------------------------------------------------")
 }
 
 func AuthChecker() gin.HandlerFunc {

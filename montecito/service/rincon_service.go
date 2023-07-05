@@ -45,6 +45,7 @@ func RegisterRincon() {
 	} else {
 		println("Registered service with Rincon!")
 		RegisterRinconRoute("/montecito")
+		GetRinconServiceInfo()
 	}
 }
 
@@ -60,10 +61,24 @@ func RegisterRinconRoute(route string) {
 	println("Registered route " + route)
 }
 
+func GetRinconServiceInfo() {
+	var service model.Service
+	rinconClient := &http.Client{}
+	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/rincon", nil)
+	res, err := rinconClient.Do(req)
+	if err != nil {
+		println(err.Error())
+	}
+	defer res.Body.Close()
+	if res.StatusCode == 200 {
+		json.NewDecoder(res.Body).Decode(&service)
+	}
+	config.RinconService = service
+}
+
 func MatchRoute(route string, requestID string) model.Service {
 	var service model.Service
 	queryRoute := strings.ReplaceAll(route, "/", "-")
-	//http.Get(rinconHost + ":" + config.RinconPort + "/routes/match/" + queryRoute)
 	rinconClient := &http.Client{}
 	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
 	req.Header.Set("Request-ID", requestID)

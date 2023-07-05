@@ -21,8 +21,8 @@ func GetProxy(c *gin.Context) {
 	if mappedService.ID != 0 {
 		println("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
 		proxyClient := &http.Client{}
-		proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+config.RinconPort+c.Request.URL.String(), nil)
-		//proxyRequest, _ := http.NewRequest("GET", service.URL+c.FullPath(), nil)
+		proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
+		//proxyRequest, _ := http.NewRequest("GET", mappedService.URL+c.Request.URL.String(), nil)
 		// Transfer headers to proxy request
 		proxyRequest.Header.Set("Request-ID", requestID)
 		for header, values := range c.Request.Header {
@@ -54,7 +54,7 @@ func GetProxy(c *gin.Context) {
 			}
 			var proxyResponseBodyBytes []byte
 			proxyResponseBodyBytes, err = io.ReadAll(proxyResponse.Body)
-			println(string(proxyResponseBodyBytes))
+			//println("PROXY RESPONSE: " + string(proxyResponseBodyBytes))
 			if err != nil {
 				// Failed to decode response body
 				println(err.Error())
@@ -97,7 +97,6 @@ func GetProxy(c *gin.Context) {
 		})
 	}
 	// TODO: Discord logging
-	RequestAfterLogger(c)
 	return
 }
 
