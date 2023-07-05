@@ -17,6 +17,7 @@ func setupRouter() *gin.Engine {
 	r.Use(controller.CorsHandler())
 	r.Use(controller.RequestLogger())
 	r.Use(controller.AuthChecker())
+	r.Use(controller.ResponseLogger())
 	return r
 }
 

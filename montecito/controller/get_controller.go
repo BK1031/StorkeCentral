@@ -16,8 +16,9 @@ import (
 func GetProxy(c *gin.Context) {
 	startTime := time.Now()
 	requestID := c.GetHeader("Request-ID")
+	c.Header("Request-ID", requestID)
 	// Get service to handle route
-	mappedService := service.MatchRoute(strings.Split(c.Request.URL.String(), "/")[1], requestID)
+	mappedService := service.MatchRoute(strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
 	if mappedService.ID != 0 {
 		println("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
 		proxyClient := &http.Client{}
@@ -56,7 +57,7 @@ func GetProxy(c *gin.Context) {
 			proxyResponseBodyBytes, err = io.ReadAll(proxyResponse.Body)
 			//println("PROXY RESPONSE: " + string(proxyResponseBodyBytes))
 			if err != nil {
-				// Failed to decode response body
+				//	Failed to decode response body
 				println(err.Error())
 				c.JSON(http.StatusInternalServerError, model.Response{
 					Status:    "ERROR",
@@ -67,7 +68,7 @@ func GetProxy(c *gin.Context) {
 					Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
 				})
 			} else {
-				responseModel.Data = json.RawMessage(string(proxyResponseBodyBytes))
+				responseModel.Data = json.RawMessage(proxyResponseBodyBytes)
 				// Transfer status from proxy response
 				if proxyResponse.StatusCode >= 200 && proxyResponse.StatusCode < 300 {
 					responseModel.Status = "SUCCESS"
@@ -82,7 +83,6 @@ func GetProxy(c *gin.Context) {
 						}
 					}
 				}
-				c.Header("Request-ID", requestID)
 				c.JSON(proxyResponse.StatusCode, responseModel)
 			}
 		}
@@ -96,14 +96,6 @@ func GetProxy(c *gin.Context) {
 			Data:      json.RawMessage("{\"message\": \"No service to handle route: " + c.Request.URL.String() + "\"}"),
 		})
 	}
-	// TODO: Discord logging
+	defer service.DiscordLogRequest(c)
 	return
-}
-
-func PostProxy(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Montecito v" + config.Version + " is online!"})
-}
-
-func DeleteProxy(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Montecito v" + config.Version + " is online!"})
 }

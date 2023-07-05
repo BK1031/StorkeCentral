@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"montecito/service"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -48,8 +49,15 @@ func RequestLogger() gin.HandlerFunc {
 		println("REQUEST ORIGIN: " + c.ClientIP())
 		requestID := uuid.New().String()
 		println("GATEWAY REQUEST ID: " + requestID)
-		c.Header("Request-ID", requestID)
+		c.Request.Header.Set("Request-ID", requestID)
 		c.Next()
+	}
+}
+
+func ResponseLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		println("RESPONSE STATUS: " + strconv.Itoa(c.Writer.Status()))
 	}
 }
 
