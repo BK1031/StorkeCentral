@@ -36,6 +36,7 @@ func PostProxy(c *gin.Context) {
 		var requestBodyBytes []byte
 		requestBodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
+			println("Failed to read request body: " + err.Error())
 		}
 		proxyRequest.Body = io.NopCloser(bytes.NewBuffer(requestBodyBytes))
 		// Proxy the actual request
