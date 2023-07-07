@@ -68,7 +68,12 @@ func GetProxy(c *gin.Context) {
 					Data:      json.RawMessage("{\"message\": \"Failed to decode service response body: " + err.Error() + "\"}"),
 				})
 			} else {
-				responseModel.Data = json.RawMessage(proxyResponseBodyBytes)
+				err = json.Unmarshal(proxyResponseBodyBytes, &responseModel.Data)
+				if err != nil {
+					// JSON marshalling failed, return body as string
+					println("Failed to unmarshall response body, returning as message string: " + err.Error())
+					responseModel.Data = json.RawMessage("{\"message\": \"" + string(proxyResponseBodyBytes) + "\"}")
+				}
 				// Transfer status from proxy response
 				if proxyResponse.StatusCode >= 200 && proxyResponse.StatusCode < 300 {
 					responseModel.Status = "SUCCESS"
@@ -96,6 +101,6 @@ func GetProxy(c *gin.Context) {
 			Data:      json.RawMessage("{\"message\": \"No service to handle route: " + c.Request.URL.String() + "\"}"),
 		})
 	}
-	defer service.DiscordLogRequest(c)
+	go service.DiscordLogRequest(c)
 	return
 }
