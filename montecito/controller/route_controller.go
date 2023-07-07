@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -45,7 +46,7 @@ func RequestLogger() gin.HandlerFunc {
 		} else {
 			println("REQUEST BODY: " + string(bodyBytes))
 		}
-		defer c.Request.Body.Close()
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		println("REQUEST ORIGIN: " + c.ClientIP())
 		requestID := uuid.New().String()
 		println("GATEWAY REQUEST ID: " + requestID)
