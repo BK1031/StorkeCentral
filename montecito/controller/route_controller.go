@@ -3,10 +3,13 @@ package controller
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
 	"log"
+	"montecito/config"
+	"montecito/model"
 	"montecito/service"
 	"strconv"
 	"strings"
@@ -26,6 +29,7 @@ func CorsHandler() gin.HandlerFunc {
 		c.Header("Access-Control-Allow-Headers", "*")
 		c.Header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
 		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Set("startTime", time.Now())
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -62,6 +66,42 @@ func ResponseLogger() gin.HandlerFunc {
 	}
 }
 
+func APIKeyChecker() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		apiKey := service.VerifyAPIKey(c.GetHeader("SC-API-KEY"))
+
+		if apiKey.ID == "" {
+			startTime, _ := c.Get("startTime")
+			println("INVALID API KEY")
+			c.AbortWithStatusJSON(401, model.Response{
+				Status:    "ERROR",
+				Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
+				Gateway:   "Montecito v" + config.Version,
+				Service:   "Montecito v" + config.Version,
+				Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
+				Data:      json.RawMessage("{\"message\": \"StorkeCentral API Key invalid or missing!\"}"),
+			})
+			return
+		}
+		println("API KEY: " + apiKey.ID)
+
+		if apiKey.Expires.Before(time.Now()) {
+			startTime, _ := c.Get("startTime")
+			c.AbortWithStatusJSON(401, model.Response{
+				Status:    "ERROR",
+				Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
+				Gateway:   "Montecito v" + config.Version,
+				Service:   "Montecito v" + config.Version,
+				Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
+				Data:      json.RawMessage("{\"message\": \"StorkeCentral API Key expired on " + apiKey.Expires.Format("Mon Jan 02 15:04:05 MST 2006") + "\"}"),
+			})
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func AuthChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -76,7 +116,7 @@ func AuthChecker() gin.HandlerFunc {
 		if c.GetHeader("Authorization") != "" {
 			token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[1])
 			if err != nil {
-				println("error verifying ID token")
+				println("🚨 Failed to verify token: " + err.Error())
 				requestUserID = "null"
 			} else {
 				println("Decoded User ID: " + token.UID)

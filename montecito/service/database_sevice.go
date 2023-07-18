@@ -5,6 +5,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"montecito/config"
+	"montecito/model"
 	"os"
 	"time"
 )
@@ -28,7 +29,7 @@ func InitializeDB() {
 		}
 	} else {
 		println("Connected to postgres database")
-		db.AutoMigrate()
+		db.AutoMigrate(&model.APIKey{})
 		println("AutoMigration complete")
 		DB = db
 	}

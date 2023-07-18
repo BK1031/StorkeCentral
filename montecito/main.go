@@ -16,6 +16,7 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(controller.CorsHandler())
 	r.Use(controller.RequestLogger())
+	r.Use(controller.APIKeyChecker())
 	r.Use(controller.AuthChecker())
 	r.Use(controller.ResponseLogger())
 	return r
@@ -24,6 +25,7 @@ func setupRouter() *gin.Engine {
 func main() {
 	router = setupRouter()
 	service.InitializeDB()
+	service.GetAllAPIKeys()
 	service.InitializeFirebase()
 	service.ConnectDiscord()
 	service.RegisterRincon()
