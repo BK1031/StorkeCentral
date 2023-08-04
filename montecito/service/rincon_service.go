@@ -43,7 +43,8 @@ func RegisterRincon() {
 			os.Exit(100)
 		}
 	} else {
-		println("Registered service with Rincon!")
+		GetServiceInfo()
+		println("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/montecito")
 		GetRinconServiceInfo()
 	}
@@ -74,6 +75,21 @@ func GetRinconServiceInfo() {
 		json.NewDecoder(res.Body).Decode(&service)
 	}
 	config.RinconService = service
+}
+
+func GetServiceInfo() {
+	var service model.Service
+	rinconClient := &http.Client{}
+	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/montecito", nil)
+	res, err := rinconClient.Do(req)
+	if err != nil {
+		println(err.Error())
+	}
+	defer res.Body.Close()
+	if res.StatusCode == 200 {
+		json.NewDecoder(res.Body).Decode(&service)
+	}
+	config.Service = service
 }
 
 func MatchRoute(route string, requestID string) model.Service {

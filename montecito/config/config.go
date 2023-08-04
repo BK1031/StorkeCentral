@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+var Service = model.Service{}
+
 var Version = "2.0.0"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")

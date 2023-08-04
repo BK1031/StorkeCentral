@@ -3,6 +3,9 @@ package controller
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"io"
 	"montecito/config"
 	"montecito/model"
@@ -17,14 +20,18 @@ func GetProxy(c *gin.Context) {
 	startTime, _ := c.Get("startTime")
 	requestID := c.GetHeader("Request-ID")
 	c.Header("Request-ID", requestID)
+	// Start tracing span
+	tr := otel.Tracer(config.Service.Name)
+	_, span := tr.Start(c.Request.Context(), "[GET] "+c.Request.URL.String(), oteltrace.WithAttributes(attribute.Key("Request-ID").String(requestID)))
+	defer span.End()
 	// Get service to handle route
 	mappedService := service.MatchRoute(strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
 	if mappedService.ID != 0 {
 		if service.VerifyAPIKeyScopes(c.Request.Header.Get("SC-API-KEY"), mappedService, c.Request.Method) {
 			println("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
 			proxyClient := &http.Client{}
-			proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
-			//proxyRequest, _ := http.NewRequest("GET", mappedService.URL+c.Request.URL.String(), nil)
+			//proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
+			proxyRequest, _ := http.NewRequest("GET", mappedService.URL+c.Request.URL.String(), nil)
 			// Transfer headers to proxy request
 			proxyRequest.Header.Set("Request-ID", requestID)
 			for header, values := range c.Request.Header {
