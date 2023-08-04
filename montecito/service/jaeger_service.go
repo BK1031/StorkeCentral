@@ -1,18 +1,15 @@
 package service
 
 import (
-	"context"
-	"log"
-	"montecito/config"
-	"strconv"
-	"time"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"log"
+	"montecito/config"
+	"strconv"
 )
 
 func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
@@ -38,29 +35,11 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 }
 
 func InitializeJaeger() {
-	tp, err := tracerProvider("http://localhost:14268/api/traces")
+	//jaegerUrl := "http://localhost:" + config.JaegerPort + "/api/traces" // Use this when not running in Docker
+	jaegerUrl := "http://jaeger:" + config.JaegerPort + "/api/traces"
+	tp, err := tracerProvider(jaegerUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Register our TracerProvider as the global so any imported
-	// instrumentation in the future will default to using it.
 	otel.SetTracerProvider(tp)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	//tr := tp.Tracer(config.Service.Name)
-
-	JaegerTest(ctx)
-}
-
-func JaegerTest(ctx context.Context) {
-	tr := otel.Tracer(config.Service.Name)
-	_, span := tr.Start(ctx, "bar")
-	span.SetAttributes(attribute.Key("test_key").String("some-value"))
-	defer span.End()
-
-	time.Sleep(136 * time.Millisecond)
-	println("JaegerTest")
 }

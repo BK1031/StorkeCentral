@@ -12,6 +12,7 @@ var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
 var RinconService = model.Service{}
+var JaegerPort = os.Getenv("JAEGER_PORT")
 
 var PostgresHost = os.Getenv("POSTGRES_HOST")
 var PostgresUser = os.Getenv("POSTGRES_USER")
