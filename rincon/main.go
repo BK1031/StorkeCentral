@@ -25,6 +25,7 @@ func main() {
 	service.ConnectDiscord()
 	controller.InitializeRoutes(router)
 	controller.RegisterSelf()
+	service.InitializeJaeger()
 	if config.Env == "PROD" {
 		controller.RegisterStatusCronJob()
 	}

@@ -2,6 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"net/http"
 	"rincon/config"
 	"rincon/model"
@@ -11,11 +14,21 @@ import (
 )
 
 func GetAllServices(c *gin.Context) {
+	// Start tracing span
+	tr := otel.Tracer(config.Service.Name)
+	_, span := tr.Start(c.Request.Context(), "GetAllServices", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
 	result := service.GetAllServices()
 	c.JSON(http.StatusOK, result)
 }
 
 func GetService(c *gin.Context) {
+	// Start tracing span
+	tr := otel.Tracer(config.Service.Name)
+	_, span := tr.Start(c.Request.Context(), "GetService", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
 	if i, err := strconv.Atoi(c.Param("name")); err == nil {
 		// integer id passed
 		result := service.GetServiceByID(i)
@@ -32,6 +45,11 @@ func GetService(c *gin.Context) {
 }
 
 func CreateService(c *gin.Context) {
+	// Start tracing span
+	tr := otel.Tracer(config.Service.Name)
+	_, span := tr.Start(c.Request.Context(), "CreateService", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
 	var input model.Service
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -59,6 +77,7 @@ func RegisterSelf() {
 	s.Port, _ = strconv.Atoi(config.Port)
 	s.StatusEmail = config.StatusEmail
 	s.CreatedAt = time.Now()
+	config.Service = s
 	service.CreateService(s)
 	// Register routes with service
 	service.CreateRoute(model.Route{

@@ -94,7 +94,7 @@ func GetServiceInfo() {
 
 func MatchRoute(route string, requestID string) model.Service {
 	var service model.Service
-	queryRoute := strings.ReplaceAll(route, "/", "-")
+	queryRoute := strings.ReplaceAll(route, "/", "%2F")
 	rinconClient := &http.Client{}
 	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
 	req.Header.Set("Request-ID", requestID)

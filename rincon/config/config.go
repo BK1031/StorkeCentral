@@ -1,10 +1,16 @@
 package config
 
-import "os"
+import (
+	"os"
+	"rincon/model"
+)
 
-var Version = "1.3.6"
+var Service = model.Service{}
+
+var Version = "1.4.0"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
+var JaegerPort = os.Getenv("JAEGER_PORT")
 
 var PostgresHost = os.Getenv("POSTGRES_HOST")
 var PostgresUser = os.Getenv("POSTGRES_USER")
