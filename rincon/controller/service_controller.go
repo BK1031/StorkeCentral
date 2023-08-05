@@ -77,8 +77,9 @@ func RegisterSelf() {
 	s.Port, _ = strconv.Atoi(config.Port)
 	s.StatusEmail = config.StatusEmail
 	s.CreatedAt = time.Now()
-	config.Service = s
 	service.CreateService(s)
+	// Get service to set config.Service
+	config.Service = service.GetServiceByName("Rincon")[0]
 	// Register routes with service
 	service.CreateRoute(model.Route{
 		Route:       "/rincon",

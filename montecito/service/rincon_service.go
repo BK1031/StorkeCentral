@@ -2,7 +2,9 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"montecito/config"
 	"montecito/model"
 	"net/http"
@@ -64,7 +66,7 @@ func RegisterRinconRoute(route string) {
 
 func GetRinconServiceInfo() {
 	var service model.Service
-	rinconClient := &http.Client{}
+	rinconClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/rincon", nil)
 	res, err := rinconClient.Do(req)
 	if err != nil {
@@ -79,7 +81,7 @@ func GetRinconServiceInfo() {
 
 func GetServiceInfo() {
 	var service model.Service
-	rinconClient := &http.Client{}
+	rinconClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/montecito", nil)
 	res, err := rinconClient.Do(req)
 	if err != nil {
@@ -92,11 +94,12 @@ func GetServiceInfo() {
 	config.Service = service
 }
 
-func MatchRoute(route string, requestID string) model.Service {
+func MatchRoute(context context.Context, route string, requestID string) model.Service {
 	var service model.Service
-	queryRoute := strings.ReplaceAll(route, "/", "%2F")
-	rinconClient := &http.Client{}
-	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
+	queryRoute := strings.ReplaceAll(route, "/", "<->")
+	rinconClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+	println(queryRoute)
+	req, _ := http.NewRequestWithContext(context, "GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
 	req.Header.Set("Request-ID", requestID)
 	req.Header.Add("Content-Type", "application/json")
 	res, err := rinconClient.Do(req)

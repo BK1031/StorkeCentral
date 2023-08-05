@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"montecito/config"
 	"montecito/controller"
 	"montecito/service"
@@ -16,6 +17,7 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(controller.CorsHandler())
 	r.Use(controller.RequestLogger())
+	r.Use(otelgin.Middleware("Montecito"))
 	r.Use(controller.APIKeyChecker())
 	r.Use(controller.AuthChecker())
 	r.Use(controller.ResponseLogger())

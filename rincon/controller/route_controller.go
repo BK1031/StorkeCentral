@@ -41,8 +41,8 @@ func MatchRoute(c *gin.Context) {
 	_, span := tr.Start(c.Request.Context(), "MatchRoute", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
-	var routeUrl = "/" + strings.ReplaceAll(c.Param("route"), "%2F", "/")
-	println(routeUrl)
+	var routeUrl = "/" + strings.ReplaceAll(c.Param("route"), "<->", "/")
+	println("Decoded route: " + routeUrl)
 	allRoutes := service.GetAllRoutes()
 	for i := 0; i < len(allRoutes); i++ {
 		if strings.HasPrefix(routeUrl, allRoutes[i].Route) {
@@ -82,7 +82,7 @@ func GetRoute(c *gin.Context) {
 	_, span := tr.Start(c.Request.Context(), "GetRoute", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
-	var r = "/" + strings.ReplaceAll(c.Param("route"), "%2F", "/")
+	var r = "/" + strings.ReplaceAll(c.Param("route"), "<->", "/")
 	result := service.GetRouteByID(r)
 	if result.Route != r {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No route registered for " + r})
@@ -125,7 +125,7 @@ func RemoveRoute(c *gin.Context) {
 	_, span := tr.Start(c.Request.Context(), "RemoveRoute", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
-	var r = "/" + strings.ReplaceAll(c.Param("route"), "%2F", "/")
+	var r = "/" + strings.ReplaceAll(c.Param("route"), "<->", "/")
 	result := service.GetRouteByID(r)
 	if result.Route != r {
 		c.JSON(http.StatusNotFound, gin.H{"message": "No route registered for " + r})

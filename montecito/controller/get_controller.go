@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
@@ -24,14 +25,19 @@ func GetProxy(c *gin.Context) {
 	tr := otel.Tracer(config.Service.Name)
 	_, span := tr.Start(c.Request.Context(), "[GET] "+c.Request.URL.String(), oteltrace.WithAttributes(attribute.Key("Request-ID").String(requestID)))
 	defer span.End()
+	println(span.SpanContext().SpanID().String())
+	println(span.SpanContext().TraceID().String())
+	println(span.SpanContext().TraceFlags().String())
+	println(span.SpanContext().TraceState().String())
+	println(span.SpanContext().IsRemote())
 	// Get service to handle route
-	mappedService := service.MatchRoute(strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
+	mappedService := service.MatchRoute(c.Request.Context(), strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
 	if mappedService.ID != 0 {
 		if service.VerifyAPIKeyScopes(c.Request.Header.Get("SC-API-KEY"), mappedService, c.Request.Method) {
 			println("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
-			proxyClient := &http.Client{}
-			//proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
-			proxyRequest, _ := http.NewRequest("GET", mappedService.URL+c.Request.URL.String(), nil)
+			proxyClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+			proxyRequest, _ := http.NewRequestWithContext(c.Request.Context(), "GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
+			//proxyRequest, _ := http.NewRequestWithContext(c.Request.Context(),"GET", mappedService.URL+c.Request.URL.String(), nil)
 			// Transfer headers to proxy request
 			proxyRequest.Header.Set("Request-ID", requestID)
 			for header, values := range c.Request.Header {

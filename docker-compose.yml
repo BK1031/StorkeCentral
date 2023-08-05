@@ -34,6 +34,7 @@ services:
     depends_on:
       - db
       - rincon
+      - jaeger
     build: ./montecito
     image: bk1031/sc_montecito
     ports:
@@ -42,18 +43,22 @@ services:
       ENV: $ENV
       PORT: $MONTECITO_PORT
       RINCON_PORT: $RINCON_PORT
+      JAEGER_PORT: $JAEGER_PORT
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PORT: $POSTGRES_PORT
       DISCORD_TOKEN: $MONTECITO_DISCORD_TOKEN
       DISCORD_GUILD: $MONTECITO_DISCORD_GUILD
       DISCORD_CHANNEL: $MONTECITO_DISCORD_CHANNEL
-      JDBC: $MONTECITO_JDBC
-      POSTGRES_USER: $MONTECITO_POSTGRES_USER
-      POSTGRES_PASSWORD: $MONTECITO_POSTGRES_PASSWORD
       STATUS_EMAIL: $MONTECITO_STATUS_EMAIL
+      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
 
   rincon:
     container_name: rincon
     depends_on:
       - db
+      - jaeger
     build: ./rincon
     image: bk1031/sc_rincon
     ports:
@@ -61,6 +66,7 @@ services:
     environment:
       ENV: $ENV
       PORT: $RINCON_PORT
+      JAEGER_PORT: $JAEGER_PORT
       POSTGRES_HOST: $POSTGRES_HOST
       POSTGRES_USER: $POSTGRES_USER
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
@@ -73,149 +79,149 @@ services:
       STATUS_EMAIL: $RINCON_STATUS_EMAIL
       REGISTRY_UPDATE_DELAY: $RINCON_REGISTRY_UPDATE_DELAY
 
-  lacumbre:
-    container_name: lacumbre
-    depends_on:
-      - db
-      - rincon
-    build: ./lacumbre
-    image: bk1031/sc_lacumbre
-    ports:
-      - "4003:4003"
-    environment:
-      ENV: $ENV
-      PORT: $LACUMBRE_PORT
-      RINCON_PORT: $RINCON_PORT
-      POSTGRES_HOST: $POSTGRES_HOST
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_PORT: $POSTGRES_PORT
-      DISCORD_TOKEN: $LACUMBRE_DISCORD_TOKEN
-      DISCORD_GUILD: $LACUMBRE_DISCORD_GUILD
-      DISCORD_CHANNEL: $LACUMBRE_DISCORD_CHANNEL
-      STATUS_EMAIL: $LACUMBRE_STATUS_EMAIL
-      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
-
-  gaviota:
-    container_name: gaviota
-    depends_on:
-      - db
-      - rincon
-    build: ./gaviota
-    image: bk1031/sc_gaviota
-    ports:
-      - "4004:4004"
-    environment:
-      ENV: $ENV
-      PORT: $GAVIOTA_PORT
-      RINCON_PORT: $RINCON_PORT
-      POSTGRES_HOST: $POSTGRES_HOST
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_PORT: $POSTGRES_PORT
-      DISCORD_TOKEN: $GAVIOTA_DISCORD_TOKEN
-      DISCORD_GUILD: $GAVIOTA_DISCORD_GUILD
-      DISCORD_CHANNEL: $GAVIOTA_DISCORD_CHANNEL
-      STATUS_EMAIL: $GAVIOTA_STATUS_EMAIL
-      ARTICLE_UPDATE_DELAY: $GAVIOTA_ARTICLE_UPDATE_DELAY
-      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
-
-  tepusquet:
-    container_name: tepusquet
-    depends_on:
-      - db
-      - rincon
-    build: ./tepusquet
-    image: bk1031/sc_tepusquet
-    ports:
-      - "4005:4005"
-    environment:
-      ENV: $ENV
-      PORT: $TEPUSQUET_PORT
-      RINCON_PORT: $RINCON_PORT
-      POSTGRES_HOST: $POSTGRES_HOST
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_PORT: $POSTGRES_PORT
-      DISCORD_TOKEN: $TEPUSQUET_DISCORD_TOKEN
-      DISCORD_GUILD: $TEPUSQUET_DISCORD_GUILD
-      DISCORD_CHANNEL: $TEPUSQUET_DISCORD_CHANNEL
-      STATUS_EMAIL: $TEPUSQUET_STATUS_EMAIL
-      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
-      CRED_ENCRYPTION_KEY: $TEPUSQUET_CRED_ENCRYPTION_KEY
-
-  arguello:
-    container_name: arguello
-    depends_on:
-      - db
-      - rincon
-    build: ./arguello
-    image: bk1031/sc_arguello
-    ports:
-      - "4006:4006"
-    environment:
-      ENV: $ENV
-      PORT: $ARGUELLO_PORT
-      RINCON_PORT: $RINCON_PORT
-      POSTGRES_HOST: $POSTGRES_HOST
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_PORT: $POSTGRES_PORT
-      DISCORD_TOKEN: $ARGUELLO_DISCORD_TOKEN
-      DISCORD_GUILD: $ARGUELLO_DISCORD_GUILD
-      DISCORD_CHANNEL: $ARGUELLO_DISCORD_CHANNEL
-      STATUS_EMAIL: $ARGUELLO_STATUS_EMAIL
-      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
-
-  miranda:
-    container_name: miranda
-    depends_on:
-      - db
-      - rincon
-    build: ./miranda
-    image: bk1031/sc_miranda
-    ports:
-      - "4007:4007"
-    environment:
-      ENV: $ENV
-      PORT: $MIRANDA_PORT
-      RINCON_PORT: $RINCON_PORT
-      POSTGRES_HOST: $POSTGRES_HOST
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_PORT: $POSTGRES_PORT
-      DISCORD_TOKEN: $MIRANDA_DISCORD_TOKEN
-      DISCORD_GUILD: $MIRANDA_DISCORD_GUILD
-      DISCORD_CHANNEL: $MIRANDA_DISCORD_CHANNEL
-      ONESIGNAL_APP_ID: $MIRANDA_ONESIGNAL_APP_ID
-      ONESIGNAL_API_KEY: $MIRANDA_ONESIGNAL_API_KEY
-      STATUS_EMAIL: $MIRANDA_STATUS_EMAIL
-      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
-
-  jalama:
-    container_name: jalama
-    depends_on:
-      - db
-      - rincon
-    build: ./jalama
-    image: bk1031/sc_jalama
-    ports:
-      - "4008:4008"
-    environment:
-      ENV: $ENV
-      PORT: $JALAMA_PORT
-      RINCON_PORT: $RINCON_PORT
-      POSTGRES_HOST: $POSTGRES_HOST
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_PORT: $POSTGRES_PORT
-      DISCORD_TOKEN: $JALAMA_DISCORD_TOKEN
-      DISCORD_GUILD: $JALAMA_DISCORD_GUILD
-      DISCORD_CHANNEL: $JALAMA_DISCORD_CHANNEL
-      UCSB_API_KEY: $UCSB_API_KEY
-      MEAL_UPDATE_DELAY: $JALAMA_MEAL_UPDATE_DELAY
-      STATUS_EMAIL: $MIRANDA_STATUS_EMAIL
-      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+#  lacumbre:
+#    container_name: lacumbre
+#    depends_on:
+#      - db
+#      - rincon
+#    build: ./lacumbre
+#    image: bk1031/sc_lacumbre
+#    ports:
+#      - "4003:4003"
+#    environment:
+#      ENV: $ENV
+#      PORT: $LACUMBRE_PORT
+#      RINCON_PORT: $RINCON_PORT
+#      POSTGRES_HOST: $POSTGRES_HOST
+#      POSTGRES_USER: $POSTGRES_USER
+#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+#      POSTGRES_PORT: $POSTGRES_PORT
+#      DISCORD_TOKEN: $LACUMBRE_DISCORD_TOKEN
+#      DISCORD_GUILD: $LACUMBRE_DISCORD_GUILD
+#      DISCORD_CHANNEL: $LACUMBRE_DISCORD_CHANNEL
+#      STATUS_EMAIL: $LACUMBRE_STATUS_EMAIL
+#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+#
+#  gaviota:
+#    container_name: gaviota
+#    depends_on:
+#      - db
+#      - rincon
+#    build: ./gaviota
+#    image: bk1031/sc_gaviota
+#    ports:
+#      - "4004:4004"
+#    environment:
+#      ENV: $ENV
+#      PORT: $GAVIOTA_PORT
+#      RINCON_PORT: $RINCON_PORT
+#      POSTGRES_HOST: $POSTGRES_HOST
+#      POSTGRES_USER: $POSTGRES_USER
+#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+#      POSTGRES_PORT: $POSTGRES_PORT
+#      DISCORD_TOKEN: $GAVIOTA_DISCORD_TOKEN
+#      DISCORD_GUILD: $GAVIOTA_DISCORD_GUILD
+#      DISCORD_CHANNEL: $GAVIOTA_DISCORD_CHANNEL
+#      STATUS_EMAIL: $GAVIOTA_STATUS_EMAIL
+#      ARTICLE_UPDATE_DELAY: $GAVIOTA_ARTICLE_UPDATE_DELAY
+#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+#
+#  tepusquet:
+#    container_name: tepusquet
+#    depends_on:
+#      - db
+#      - rincon
+#    build: ./tepusquet
+#    image: bk1031/sc_tepusquet
+#    ports:
+#      - "4005:4005"
+#    environment:
+#      ENV: $ENV
+#      PORT: $TEPUSQUET_PORT
+#      RINCON_PORT: $RINCON_PORT
+#      POSTGRES_HOST: $POSTGRES_HOST
+#      POSTGRES_USER: $POSTGRES_USER
+#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+#      POSTGRES_PORT: $POSTGRES_PORT
+#      DISCORD_TOKEN: $TEPUSQUET_DISCORD_TOKEN
+#      DISCORD_GUILD: $TEPUSQUET_DISCORD_GUILD
+#      DISCORD_CHANNEL: $TEPUSQUET_DISCORD_CHANNEL
+#      STATUS_EMAIL: $TEPUSQUET_STATUS_EMAIL
+#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+#      CRED_ENCRYPTION_KEY: $TEPUSQUET_CRED_ENCRYPTION_KEY
+#
+#  arguello:
+#    container_name: arguello
+#    depends_on:
+#      - db
+#      - rincon
+#    build: ./arguello
+#    image: bk1031/sc_arguello
+#    ports:
+#      - "4006:4006"
+#    environment:
+#      ENV: $ENV
+#      PORT: $ARGUELLO_PORT
+#      RINCON_PORT: $RINCON_PORT
+#      POSTGRES_HOST: $POSTGRES_HOST
+#      POSTGRES_USER: $POSTGRES_USER
+#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+#      POSTGRES_PORT: $POSTGRES_PORT
+#      DISCORD_TOKEN: $ARGUELLO_DISCORD_TOKEN
+#      DISCORD_GUILD: $ARGUELLO_DISCORD_GUILD
+#      DISCORD_CHANNEL: $ARGUELLO_DISCORD_CHANNEL
+#      STATUS_EMAIL: $ARGUELLO_STATUS_EMAIL
+#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+#
+#  miranda:
+#    container_name: miranda
+#    depends_on:
+#      - db
+#      - rincon
+#    build: ./miranda
+#    image: bk1031/sc_miranda
+#    ports:
+#      - "4007:4007"
+#    environment:
+#      ENV: $ENV
+#      PORT: $MIRANDA_PORT
+#      RINCON_PORT: $RINCON_PORT
+#      POSTGRES_HOST: $POSTGRES_HOST
+#      POSTGRES_USER: $POSTGRES_USER
+#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+#      POSTGRES_PORT: $POSTGRES_PORT
+#      DISCORD_TOKEN: $MIRANDA_DISCORD_TOKEN
+#      DISCORD_GUILD: $MIRANDA_DISCORD_GUILD
+#      DISCORD_CHANNEL: $MIRANDA_DISCORD_CHANNEL
+#      ONESIGNAL_APP_ID: $MIRANDA_ONESIGNAL_APP_ID
+#      ONESIGNAL_API_KEY: $MIRANDA_ONESIGNAL_API_KEY
+#      STATUS_EMAIL: $MIRANDA_STATUS_EMAIL
+#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+#
+#  jalama:
+#    container_name: jalama
+#    depends_on:
+#      - db
+#      - rincon
+#    build: ./jalama
+#    image: bk1031/sc_jalama
+#    ports:
+#      - "4008:4008"
+#    environment:
+#      ENV: $ENV
+#      PORT: $JALAMA_PORT
+#      RINCON_PORT: $RINCON_PORT
+#      POSTGRES_HOST: $POSTGRES_HOST
+#      POSTGRES_USER: $POSTGRES_USER
+#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+#      POSTGRES_PORT: $POSTGRES_PORT
+#      DISCORD_TOKEN: $JALAMA_DISCORD_TOKEN
+#      DISCORD_GUILD: $JALAMA_DISCORD_GUILD
+#      DISCORD_CHANNEL: $JALAMA_DISCORD_CHANNEL
+#      UCSB_API_KEY: $UCSB_API_KEY
+#      MEAL_UPDATE_DELAY: $JALAMA_MEAL_UPDATE_DELAY
+#      STATUS_EMAIL: $MIRANDA_STATUS_EMAIL
+#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
 
 volumes:
   pgdata:
