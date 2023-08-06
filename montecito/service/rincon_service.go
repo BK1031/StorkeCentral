@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"montecito/config"
@@ -94,13 +93,13 @@ func GetServiceInfo() {
 	config.Service = service
 }
 
-func MatchRoute(context context.Context, route string, requestID string) model.Service {
+func MatchRoute(traceparent string, route string, requestID string) model.Service {
 	var service model.Service
 	queryRoute := strings.ReplaceAll(route, "/", "<->")
-	rinconClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
-	println(queryRoute)
-	req, _ := http.NewRequestWithContext(context, "GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
+	rinconClient := http.Client{}
+	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
 	req.Header.Set("Request-ID", requestID)
+	req.Header.Set("traceparent", traceparent)
 	req.Header.Add("Content-Type", "application/json")
 	res, err := rinconClient.Do(req)
 	if err != nil {

@@ -37,12 +37,13 @@ func RequestLogger() gin.HandlerFunc {
 
 func MatchRoute(c *gin.Context) {
 	// Start tracing span
-	tr := otel.Tracer(config.Service.Name)
-	_, span := tr.Start(c.Request.Context(), "MatchRoute", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	span := service.BuildSpan(c.Request.Context(), "MatchRoute", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
 	var routeUrl = "/" + strings.ReplaceAll(c.Param("route"), "<->", "/")
+	span.SetAttributes(attribute.Key("route").String(routeUrl))
 	println("Decoded route: " + routeUrl)
+
 	allRoutes := service.GetAllRoutes()
 	for i := 0; i < len(allRoutes); i++ {
 		if strings.HasPrefix(routeUrl, allRoutes[i].Route) {
@@ -56,6 +57,7 @@ func MatchRoute(c *gin.Context) {
 			} else {
 				// Select a service instance from list
 				c.JSON(http.StatusOK, matchedServices[rand.Intn(len(matchedServices))])
+				span.SetAttributes(attribute.Key("service").String(allRoutes[i].ServiceName))
 				service.Discord.ChannelMessageSend(config.DiscordChannel, "Successfully mapped active service `"+allRoutes[i].ServiceName+"` to route `"+allRoutes[i].Route+"` for route `"+routeUrl+"`")
 				return
 			}

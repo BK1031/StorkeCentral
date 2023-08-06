@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"rincon/config"
 	"rincon/controller"
 	"rincon/service"
@@ -16,7 +15,7 @@ func setupRouter() *gin.Engine {
 	}
 	r := gin.Default()
 	r.Use(controller.RequestLogger())
-	r.Use(otelgin.Middleware("Rincon"))
+	r.Use(service.JaegerPropogator())
 	return r
 }
 
