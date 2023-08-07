@@ -3,11 +3,10 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"montecito/config"
 	"montecito/model"
+	"montecito/utils"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -32,20 +31,19 @@ func RegisterRincon() {
 			rinconRetries++
 			if rinconRetries%2 == 0 {
 				rinconHost = "http://localhost"
-				println("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
+				utils.SugarLogger.Errorln("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
 			} else {
 				rinconHost = "http://rincon"
-				println("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
+				utils.SugarLogger.Errorln("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
 			}
 			time.Sleep(time.Second * 5)
 			RegisterRincon()
 		} else {
-			println("failed to register with rincon after 15 attempts, terminating program...")
-			os.Exit(100)
+			utils.SugarLogger.Fatalln("failed to register with rincon after 15 attempts, terminating program...")
 		}
 	} else {
 		GetServiceInfo()
-		println("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
+		utils.SugarLogger.Infoln("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/montecito")
 		GetRinconServiceInfo()
 	}
@@ -60,16 +58,16 @@ func RegisterRinconRoute(route string) {
 	_, err := http.Post(rinconHost+":"+config.RinconPort+"/routes", "application/json", responseBody)
 	if err != nil {
 	}
-	println("Registered route " + route)
+	utils.SugarLogger.Infoln("Registered route " + route)
 }
 
 func GetRinconServiceInfo() {
 	var service model.Service
-	rinconClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+	rinconClient := http.Client{}
 	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/rincon", nil)
 	res, err := rinconClient.Do(req)
 	if err != nil {
-		println(err.Error())
+		utils.SugarLogger.Errorln(err.Error())
 	}
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
@@ -80,11 +78,11 @@ func GetRinconServiceInfo() {
 
 func GetServiceInfo() {
 	var service model.Service
-	rinconClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+	rinconClient := http.Client{}
 	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/montecito", nil)
 	res, err := rinconClient.Do(req)
 	if err != nil {
-		println(err.Error())
+		utils.SugarLogger.Errorln(err.Error())
 	}
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
@@ -103,7 +101,7 @@ func MatchRoute(traceparent string, route string, requestID string) model.Servic
 	req.Header.Add("Content-Type", "application/json")
 	res, err := rinconClient.Do(req)
 	if err != nil {
-		println(err.Error())
+		utils.SugarLogger.Errorln(err.Error())
 		return service
 	}
 	defer res.Body.Close()

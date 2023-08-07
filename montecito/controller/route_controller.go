@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
-	"log"
 	"montecito/config"
 	"montecito/model"
 	"montecito/service"
+	"montecito/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -41,19 +41,19 @@ func CorsHandler() gin.HandlerFunc {
 
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		println("-------------------------------------------------------------------")
-		println(time.Now().Format("Mon Jan 02 15:04:05 MST 2006"))
-		println("REQUESTED ROUTE: " + c.Request.Host + c.Request.URL.String() + " [" + c.Request.Method + "]")
+		utils.SugarLogger.Infoln("-------------------------------------------------------------------")
+		utils.SugarLogger.Infoln(time.Now().Format("Mon Jan 02 15:04:05 MST 2006"))
+		utils.SugarLogger.Infoln("REQUESTED ROUTE: " + c.Request.Host + c.Request.URL.String() + " [" + c.Request.Method + "]")
 		bodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			println("REQUEST BODY: " + err.Error())
+			utils.SugarLogger.Infoln("REQUEST BODY: " + err.Error())
 		} else {
-			println("REQUEST BODY: " + string(bodyBytes))
+			utils.SugarLogger.Infoln("REQUEST BODY: " + string(bodyBytes))
 		}
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		println("REQUEST ORIGIN: " + c.ClientIP())
+		utils.SugarLogger.Infoln("REQUEST ORIGIN: " + c.ClientIP())
 		requestID := uuid.New().String()
-		println("GATEWAY REQUEST ID: " + requestID)
+		utils.SugarLogger.Infoln("GATEWAY REQUEST ID: " + requestID)
 		c.Request.Header.Set("Request-ID", requestID)
 		c.Next()
 	}
@@ -62,7 +62,7 @@ func RequestLogger() gin.HandlerFunc {
 func ResponseLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
-		println("RESPONSE STATUS: " + strconv.Itoa(c.Writer.Status()))
+		utils.SugarLogger.Infoln("RESPONSE STATUS: " + strconv.Itoa(c.Writer.Status()))
 	}
 }
 
@@ -72,7 +72,7 @@ func APIKeyChecker() gin.HandlerFunc {
 
 		if apiKey.ID == "" {
 			startTime, _ := c.Get("startTime")
-			println("INVALID API KEY")
+			utils.SugarLogger.Errorln("INVALID API KEY")
 			c.AbortWithStatusJSON(401, model.Response{
 				Status:    "ERROR",
 				Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
@@ -83,10 +83,11 @@ func APIKeyChecker() gin.HandlerFunc {
 			})
 			return
 		}
-		println("API KEY: " + apiKey.ID)
+		utils.SugarLogger.Infoln("API KEY: " + apiKey.ID)
 
 		if apiKey.Expires.Before(time.Now()) {
 			startTime, _ := c.Get("startTime")
+			utils.SugarLogger.Errorln("API KEY EXPIRED ON " + apiKey.Expires.Format("Mon Jan 02 15:04:05 MST 2006") + "!")
 			c.AbortWithStatusJSON(401, model.Response{
 				Status:    "ERROR",
 				Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
@@ -111,15 +112,15 @@ func AuthChecker() gin.HandlerFunc {
 		ctx := context.Background()
 		client, err := service.FirebaseAdmin.Auth(ctx)
 		if err != nil {
-			log.Fatalf("error getting Auth client: %v\n", err)
+			utils.SugarLogger.Fatalf("error getting Auth client: %v\n", err)
 		}
 		if c.GetHeader("Authorization") != "" {
 			token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[1])
 			if err != nil {
-				println("🚨 Failed to verify token: " + err.Error())
+				utils.SugarLogger.Errorln("🚨 Failed to verify token: " + err.Error())
 				requestUserID = "null"
 			} else {
-				println("Decoded User ID: " + token.UID)
+				utils.SugarLogger.Infoln("Decoded User ID: " + token.UID)
 				requestUserID = token.UID
 				// TODO: Get user roles from lacumbre
 				// roles := service.GetRolesForUser(requestUserID)
@@ -128,10 +129,10 @@ func AuthChecker() gin.HandlerFunc {
 				// }
 			}
 		} else {
-			println("No user token provided")
+			utils.SugarLogger.Infoln("No user token provided")
 			requestUserID = "null"
 		}
-		println("STUB: " + requestUserID)
+		utils.SugarLogger.Infoln("STUB: " + requestUserID)
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod

@@ -1,4 +1,4 @@
-package service
+package utils
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"log"
 	"montecito/config"
 	"strconv"
 )
@@ -39,11 +38,11 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 }
 
 func InitializeJaeger() {
-	jaegerUrl := "http://localhost:" + config.JaegerPort + "/api/traces" // Use this when not running in Docker
-	//jaegerUrl := "http://jaeger:" + config.JaegerPort + "/api/traces"
+	//jaegerUrl := "http://localhost:" + utils.JaegerPort + "/api/traces" // Use this when not running in Docker
+	jaegerUrl := "http://jaeger:" + config.JaegerPort + "/api/traces"
 	tp, err := tracerProvider(jaegerUrl)
 	if err != nil {
-		log.Fatal(err)
+		SugarLogger.Errorln(err)
 	}
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
@@ -53,7 +52,6 @@ func JaegerPropogator() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Parse the traceparent header to get the trace and span IDs
 		if c.Request.Header.Get("traceparent") != "" {
-			println("Found traceparent!")
 			ctx := c.Request.Context()
 			p := propagation.TraceContext{}
 			sc := p.Extract(ctx, propagation.HeaderCarrier(c.Request.Header))
@@ -64,8 +62,6 @@ func JaegerPropogator() gin.HandlerFunc {
 			// Set the extracted trace context in the request context
 			ctx = oteltrace.ContextWithRemoteSpanContext(ctx, extractedSpanContext)
 			c.Request = c.Request.WithContext(ctx)
-		} else {
-			println("No existing traceparent")
 		}
 
 		c.Next()

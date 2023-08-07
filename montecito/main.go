@@ -5,6 +5,7 @@ import (
 	"montecito/config"
 	"montecito/controller"
 	"montecito/service"
+	"montecito/utils"
 )
 
 var router *gin.Engine
@@ -16,7 +17,7 @@ func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(controller.CorsHandler())
 	r.Use(controller.RequestLogger())
-	r.Use(service.JaegerPropogator())
+	r.Use(utils.JaegerPropogator())
 	r.Use(controller.APIKeyChecker())
 	r.Use(controller.AuthChecker())
 	r.Use(controller.ResponseLogger())
@@ -24,13 +25,17 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
+	utils.InitializeLogger()
+	defer utils.Logger.Sync()
+
 	router = setupRouter()
 	service.InitializeDB()
 	service.GetAllAPIKeys()
 	service.InitializeFirebase()
 	service.ConnectDiscord()
 	service.RegisterRincon()
-	service.InitializeJaeger()
+	utils.InitializeJaeger()
+
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }

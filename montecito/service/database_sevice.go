@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 	"montecito/config"
 	"montecito/model"
-	"os"
+	"montecito/utils"
 	"time"
 )
 
@@ -20,17 +20,16 @@ func InitializeDB() {
 	if err != nil {
 		if dbRetries < 15 {
 			dbRetries++
-			println("failed to connect database, retrying in 5s... ")
+			utils.SugarLogger.Errorln("failed to connect database, retrying in 5s... ")
 			time.Sleep(time.Second * 5)
 			InitializeDB()
 		} else {
-			println("failed to connect database after 15 attempts, terminating program...")
-			os.Exit(100)
+			utils.SugarLogger.Fatalln("failed to connect database after 15 attempts, terminating program...")
 		}
 	} else {
-		println("Connected to postgres database")
+		utils.SugarLogger.Infoln("Connected to postgres database")
 		db.AutoMigrate(&model.APIKey{})
-		println("AutoMigration complete")
+		utils.SugarLogger.Infoln("AutoMigration complete")
 		DB = db
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"montecito/config"
 	"montecito/model"
 	"montecito/service"
+	"montecito/utils"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,22 +21,21 @@ func GetProxy(c *gin.Context) {
 	requestID := c.GetHeader("Request-ID")
 	c.Header("Request-ID", requestID)
 	// Start tracing span
-	span := service.BuildSpan(c.Request.Context(), "[GET] "+c.Request.URL.String(), oteltrace.WithAttributes(attribute.Key("Request-ID").String(requestID)))
+	span := utils.BuildSpan(c.Request.Context(), "[GET] "+c.Request.URL.String(), oteltrace.WithAttributes(attribute.Key("Request-ID").String(requestID)))
 	defer span.End()
 	// Get service to handle route
-	mappedService := service.MatchRoute(service.BuildTraceparent(span), strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
+	mappedService := service.MatchRoute(utils.BuildTraceparent(span), strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
 	if mappedService.ID != 0 {
 		if service.VerifyAPIKeyScopes(c.Request.Header.Get("SC-API-KEY"), mappedService, c.Request.Method) {
-			println("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
+			utils.SugarLogger.Infoln("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
 			proxyClient := &http.Client{}
 			//proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
 			proxyRequest, _ := http.NewRequest("GET", mappedService.URL+c.Request.URL.String(), nil)
 			// Transfer headers to proxy request
 			proxyRequest.Header.Set("Request-ID", requestID)
-			proxyRequest.Header.Set("traceparent", service.BuildTraceparent(span))
+			proxyRequest.Header.Set("traceparent", utils.BuildTraceparent(span))
 			for header, values := range c.Request.Header {
 				for _, value := range values {
-					println(header + ": " + value)
 					proxyRequest.Header.Add(header, value)
 				}
 			}
@@ -43,7 +43,7 @@ func GetProxy(c *gin.Context) {
 			// Proxy the actual request
 			proxyResponse, err := proxyClient.Do(proxyRequest)
 			if err != nil {
-				println("Failed to proxy request to " + mappedService.Name + ": " + err.Error())
+				utils.SugarLogger.Errorln("Failed to proxy request to " + mappedService.Name + ": " + err.Error())
 				c.JSON(http.StatusServiceUnavailable, model.Response{
 					Status:    "ERROR",
 					Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
@@ -53,7 +53,7 @@ func GetProxy(c *gin.Context) {
 					Data:      json.RawMessage("{\"message\": \"Failed to reach " + mappedService.Name + "! Is the service online?\"}"),
 				})
 			} else {
-				println("Successfully proxied request to " + mappedService.Name + "!")
+				utils.SugarLogger.Infoln("Successfully proxied request to " + mappedService.Name + "!")
 				defer proxyResponse.Body.Close()
 				// Transfer body from proxy response
 				responseModel := model.Response{
@@ -64,10 +64,9 @@ func GetProxy(c *gin.Context) {
 				}
 				var proxyResponseBodyBytes []byte
 				proxyResponseBodyBytes, err = io.ReadAll(proxyResponse.Body)
-				//println("PROXY RESPONSE: " + string(proxyResponseBodyBytes))
 				if err != nil {
 					//	Failed to decode response body
-					println(err.Error())
+					utils.SugarLogger.Errorln(err.Error())
 					c.JSON(http.StatusInternalServerError, model.Response{
 						Status:    "ERROR",
 						Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
@@ -80,7 +79,7 @@ func GetProxy(c *gin.Context) {
 					err = json.Unmarshal(proxyResponseBodyBytes, &responseModel.Data)
 					if err != nil {
 						// JSON marshalling failed, return body as string
-						println("Failed to unmarshall response body, returning as message string: " + err.Error())
+						utils.SugarLogger.Errorln("Failed to unmarshall response body, returning as message string: " + err.Error())
 						responseModel.Data = json.RawMessage("{\"message\": \"" + string(proxyResponseBodyBytes) + "\"}")
 					}
 					// Transfer status from proxy response

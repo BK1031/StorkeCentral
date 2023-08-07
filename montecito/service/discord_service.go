@@ -1,10 +1,10 @@
 package service
 
 import (
-	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"montecito/config"
+	"montecito/utils"
 	"strconv"
 	"time"
 )
@@ -14,13 +14,13 @@ var Discord *discordgo.Session
 func ConnectDiscord() {
 	dg, err := discordgo.New("Bot " + config.DiscordToken)
 	if err != nil {
-		fmt.Println("Error creating Discord session, ", err)
+		utils.SugarLogger.Errorln("Error creating Discord session, ", err)
 		return
 	}
 	Discord = dg
 	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Montecito v"+config.Version+" online! `[ENV = "+config.Env+"]`")
 	if err != nil {
-		fmt.Println("Error sending Discord message, ", err)
+		utils.SugarLogger.Errorln("Error sending Discord message, ", err)
 		return
 	}
 }
@@ -34,7 +34,7 @@ func DiscordLogRequest(c *gin.Context) {
 			"["+c.Request.Method+"] "+c.Request.Host+c.Request.URL.String()+
 			"\nUser \"userID\" [user@ucsb.edu]```")
 		if err != nil {
-			fmt.Println("Error sending Discord message, ", err)
+			utils.SugarLogger.Errorln("Error sending Discord message, ", err)
 			return
 		}
 	} else {
@@ -44,7 +44,7 @@ func DiscordLogRequest(c *gin.Context) {
 			"["+c.Request.Method+"] "+c.Request.Host+c.Request.URL.String()+
 			"\nUser \"userID\" [user@ucsb.edu]```")
 		if err != nil {
-			fmt.Println("Error sending Discord message, ", err)
+			utils.SugarLogger.Errorln("Error sending Discord message, ", err)
 			return
 		}
 	}
