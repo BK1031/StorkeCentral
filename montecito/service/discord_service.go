@@ -18,7 +18,7 @@ func ConnectDiscord() {
 		return
 	}
 	Discord = dg
-	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Montecito v"+config.Version+" online! `[ENV = "+config.Env+"]`")
+	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: "+config.Service.Name+" v"+config.Version+" online! `[ENV = "+config.Env+"]`")
 	if err != nil {
 		utils.SugarLogger.Errorln("Error sending Discord message, ", err)
 		return

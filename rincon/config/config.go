@@ -7,7 +7,7 @@ import (
 
 var Service = model.Service{}
 
-var Version = "1.4.1"
+var Version = "1.4.5"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var JaegerPort = os.Getenv("JAEGER_PORT")
@@ -23,6 +23,7 @@ var EmailPassword = os.Getenv("EMAIL_PASSWORD")
 var DiscordToken = os.Getenv("DISCORD_TOKEN")
 var DiscordGuild = os.Getenv("DISCORD_GUILD")
 var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
+var StatusChannel = os.Getenv("STATUS_CHANNEL")
 
 var StatusEmail = os.Getenv("STATUS_EMAIL")
 

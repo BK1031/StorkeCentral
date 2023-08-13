@@ -2,21 +2,20 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"net/http"
 	"rincon/config"
 	"rincon/model"
 	"rincon/service"
+	service2 "rincon/utils"
 	"strconv"
 	"time"
 )
 
 func GetAllServices(c *gin.Context) {
 	// Start tracing span
-	tr := otel.Tracer(config.Service.Name)
-	_, span := tr.Start(c.Request.Context(), "GetAllServices", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	span := service2.BuildSpan(c.Request.Context(), "GetAllServices", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
 	result := service.GetAllServices()
@@ -25,8 +24,7 @@ func GetAllServices(c *gin.Context) {
 
 func GetService(c *gin.Context) {
 	// Start tracing span
-	tr := otel.Tracer(config.Service.Name)
-	_, span := tr.Start(c.Request.Context(), "GetService", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	span := service2.BuildSpan(c.Request.Context(), "GetService", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
 	if i, err := strconv.Atoi(c.Param("name")); err == nil {
@@ -46,8 +44,7 @@ func GetService(c *gin.Context) {
 
 func CreateService(c *gin.Context) {
 	// Start tracing span
-	tr := otel.Tracer(config.Service.Name)
-	_, span := tr.Start(c.Request.Context(), "CreateService", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	span := service2.BuildSpan(c.Request.Context(), "CreateService", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
 	var input model.Service

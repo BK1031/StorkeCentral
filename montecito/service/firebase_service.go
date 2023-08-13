@@ -39,7 +39,7 @@ func FirebaseDBTest() {
 		utils.SugarLogger.Errorln("An error has occurred: %s", err)
 	}
 	client.Collection("testing").Add(ctx, map[string]interface{}{
-		"message":   "Montecito v" + config.Version + " is online!",
+		"message":   config.Service.Name + " v" + config.Version + " is online!",
 		"env":       config.Env,
 		"timestamp": time.Now().String(),
 	})

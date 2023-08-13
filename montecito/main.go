@@ -30,10 +30,10 @@ func main() {
 
 	router = setupRouter()
 	service.InitializeDB()
+	service.RegisterRincon()
 	service.GetAllAPIKeys()
 	service.InitializeFirebase()
 	service.ConnectDiscord()
-	service.RegisterRincon()
 	utils.InitializeJaeger()
 
 	controller.InitializeRoutes(router)

@@ -19,8 +19,8 @@ func InitializeFirebase() {
 	}
 	ctx := context.Background()
 	conf := &firebase.Config{
-		DatabaseURL:      "https://storke-central.firebaseio.com",
-		ProjectID:        "storke-central",
+		DatabaseURL: "https://storke-central.firebaseio.com",
+		ProjectID:   "storke-central",
 	}
 	opt := option.WithCredentialsJSON(decoded)
 	app, err := firebase.NewApp(ctx, conf, opt)
@@ -38,8 +38,8 @@ func FirebaseDBTest() {
 		log.Printf("An error has occurred: %s", err)
 	}
 	client.Collection("testing").Add(ctx, map[string]interface{}{
-		"message":    "Lacumbre v" + config.Version + " is online!",
-		"env": config.Env,
+		"message":   config.Service.Name + " v" + config.Version + " is online!",
+		"env":       config.Env,
 		"timestamp": time.Now().String(),
 	})
 }

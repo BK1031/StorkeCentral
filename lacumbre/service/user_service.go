@@ -2,6 +2,7 @@ package service
 
 import (
 	"lacumbre/model"
+	"lacumbre/utils"
 )
 
 func GetAllUsers() []model.User {
@@ -28,22 +29,22 @@ func GetUserByID(userID string) model.User {
 
 func CreateUser(user model.User) error {
 	if DB.Where("id = ?", user.ID).Updates(&user).RowsAffected == 0 {
-		println("New user created with id: " + user.ID)
+		utils.SugarLogger.Infoln("New user created with id: " + user.ID)
 		if result := DB.Create(&user); result.Error != nil {
 			return result.Error
 		}
 		DiscordLogNewUser(user)
 	} else {
-		println("User with id: " + user.ID + " has been updated!")
+		utils.SugarLogger.Infoln("User with id: " + user.ID + " has been updated!")
 	}
 	if user.Privacy.UserID != "" {
-		println("User with id: " + user.ID + " has non-empty privacy object, setting privacy in db...")
+		utils.SugarLogger.Infoln("User with id: " + user.ID + " has non-empty privacy object, setting privacy in db...")
 		user.Privacy.UserID = user.ID
 		if err := SetPrivacyForUser(user.ID, user.Privacy); err != nil {
 			return err
 		}
 	} else {
-		println("User with id: " + user.ID + " has empty privacy object, nothing to do here!")
+		utils.SugarLogger.Infoln("User with id: " + user.ID + " has empty privacy object, nothing to do here!")
 	}
 	return nil
 }

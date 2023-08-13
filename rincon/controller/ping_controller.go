@@ -6,12 +6,12 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"net/http"
 	"rincon/config"
-	"rincon/service"
+	"rincon/utils"
 )
 
 func Ping(c *gin.Context) {
 	// Start tracing span
-	span := service.BuildSpan(c.Request.Context(), "Ping", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	span := utils.BuildSpan(c.Request.Context(), "Ping", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
 	c.JSON(http.StatusOK, gin.H{"message": "Rincon v" + config.Version + " is online!"})

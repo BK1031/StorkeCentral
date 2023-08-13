@@ -79,28 +79,30 @@ services:
       STATUS_EMAIL: $RINCON_STATUS_EMAIL
       REGISTRY_UPDATE_DELAY: $RINCON_REGISTRY_UPDATE_DELAY
 
-#  lacumbre:
-#    container_name: lacumbre
-#    depends_on:
-#      - db
-#      - rincon
-#    build: ./lacumbre
-#    image: bk1031/sc_lacumbre
-#    ports:
-#      - "4003:4003"
-#    environment:
-#      ENV: $ENV
-#      PORT: $LACUMBRE_PORT
-#      RINCON_PORT: $RINCON_PORT
-#      POSTGRES_HOST: $POSTGRES_HOST
-#      POSTGRES_USER: $POSTGRES_USER
-#      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-#      POSTGRES_PORT: $POSTGRES_PORT
-#      DISCORD_TOKEN: $LACUMBRE_DISCORD_TOKEN
-#      DISCORD_GUILD: $LACUMBRE_DISCORD_GUILD
-#      DISCORD_CHANNEL: $LACUMBRE_DISCORD_CHANNEL
-#      STATUS_EMAIL: $LACUMBRE_STATUS_EMAIL
-#      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
+  lacumbre:
+    container_name: lacumbre
+    depends_on:
+      - db
+      - rincon
+    build: ./lacumbre
+    image: bk1031/sc_lacumbre
+    ports:
+      - "4003:4003"
+    environment:
+      ENV: $ENV
+      PORT: $LACUMBRE_PORT
+      RINCON_PORT: $RINCON_PORT
+      JAEGER_PORT: $JAEGER_PORT
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_PORT: $POSTGRES_PORT
+      DISCORD_TOKEN: $LACUMBRE_DISCORD_TOKEN
+      DISCORD_GUILD: $LACUMBRE_DISCORD_GUILD
+      DISCORD_CHANNEL: $LACUMBRE_DISCORD_CHANNEL
+      STATUS_CHANNEL: $LACUMBRE_STATUS_CHANNEL
+      STATUS_EMAIL: $LACUMBRE_STATUS_EMAIL
+      FIREBASE_SERVICE_ACCOUNT: $FIREBASE_SERVICE_ACCOUNT
 #
 #  gaviota:
 #    container_name: gaviota
