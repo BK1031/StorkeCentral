@@ -1,9 +1,9 @@
 package service
 
 import (
-	"fmt"
 	"gaviota/config"
 	"gaviota/model"
+	"gaviota/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -12,13 +12,13 @@ var Discord *discordgo.Session
 func ConnectDiscord() {
 	dg, err := discordgo.New("Bot " + config.DiscordToken)
 	if err != nil {
-		fmt.Println("Error creating Discord session, ", err)
+		utils.SugarLogger.Errorln("Error creating Discord session, ", err)
 		return
 	}
 	Discord = dg
-	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Gaviota v"+config.Version+" online! `[ENV = "+config.Env+"]`")
+	_, err = Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: "+config.Service.Name+" v"+config.Version+" online! `[ENV = "+config.Env+"]`")
 	if err != nil {
-		fmt.Println("Error sending Discord message, ", err)
+		utils.SugarLogger.Errorln("Error sending Discord message, ", err)
 		return
 	}
 }
@@ -48,6 +48,6 @@ func DiscordLogNewArticle(article model.Article) {
 	})
 	_, err := Discord.ChannelMessageSendEmbeds(config.DiscordChannel, embeds)
 	if err != nil {
-		println(err.Error())
+		utils.SugarLogger.Errorln(err.Error())
 	}
 }

@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"gaviota/service"
+	"gaviota/utils"
 	"github.com/gin-gonic/gin"
 	"log"
 	"strings"
@@ -18,7 +19,7 @@ func InitializeRoutes(router *gin.Engine) {
 
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		println("GATEWAY REQUEST ID: " + c.GetHeader("Request-ID"))
+		utils.SugarLogger.Infoln("GATEWAY REQUEST ID: " + c.GetHeader("Request-ID"))
 		c.Next()
 	}
 }
@@ -37,10 +38,10 @@ func AuthChecker() gin.HandlerFunc {
 		if c.GetHeader("Authorization") != "" {
 			token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[1])
 			if err != nil {
-				println("error verifying ID token")
+				utils.SugarLogger.Errorln("error verifying ID token")
 				requestUserID = "null"
 			} else {
-				println("Decoded User ID: " + token.UID)
+				utils.SugarLogger.Infoln("Decoded User ID: " + token.UID)
 				requestUserID = token.UID
 				// TODO: Get user roles from lacumbre
 				//roles := service.GetRolesForUser(requestUserID)
@@ -49,10 +50,10 @@ func AuthChecker() gin.HandlerFunc {
 				//}
 			}
 		} else {
-			println("No user token provided")
+			utils.SugarLogger.Infoln("No user token provided")
 			requestUserID = "null"
 		}
-		println("STUB: " + requestUserID)
+		utils.SugarLogger.Infoln("STUB: " + requestUserID)
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod
