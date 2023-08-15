@@ -2,10 +2,10 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 	"jalama/config"
 	"jalama/model"
+	"jalama/utils"
 )
 
 func GetAllDiningHalls() []model.DiningHall {
@@ -30,11 +30,10 @@ func FetchAllDiningHalls() []model.DiningHall {
 		EnableTrace().
 		SetHeader("ucsb-api-key", config.UcsbApiKey).
 		Get("https://api.ucsb.edu/dining/commons/v1/")
-	fmt.Println("Response Info:")
-	fmt.Println("  Error      :", err)
-	fmt.Println("  Status Code:", resp.StatusCode())
-	fmt.Println("  Time       :", resp.Time())
-	fmt.Println()
+	utils.SugarLogger.Infoln("Response Info:")
+	utils.SugarLogger.Infoln("  Error      :", err)
+	utils.SugarLogger.Infoln("  Status Code:", resp.StatusCode())
+	utils.SugarLogger.Infoln("  Time       :", resp.Time())
 
 	var responseMap []map[string]interface{}
 	json.Unmarshal(resp.Body(), &responseMap)

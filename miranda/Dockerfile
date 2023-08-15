@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine3.17 as builder
+FROM golang:1.20-alpine3.17 as builder
 
 ENV GOOS=linux
 
@@ -24,5 +24,8 @@ FROM alpine:3.17
 WORKDIR /
 
 COPY --from=builder /miranda /miranda
+
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=America/Los_Angeles
 
 ENTRYPOINT ["/miranda"]

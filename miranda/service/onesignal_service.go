@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"miranda/config"
+	"miranda/utils"
 	"os"
 
 	onesignal "github.com/OneSignal/onesignal-go-api"
@@ -25,8 +25,8 @@ func CreateOSNotification(notification *onesignal.Notification) {
 	resp, r, err := OneSignal.DefaultApi.CreateNotification(appAuth).Notification(*notification).Execute()
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `DefaultApi.CreateNotification``: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+		utils.SugarLogger.Errorln(os.Stderr, "Error when calling `DefaultApi.CreateNotification``: %v\n", err)
+		utils.SugarLogger.Errorln(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	fmt.Fprintf(os.Stdout, "Response from `DefaultApi.CreateNotification`: %v\n", resp)
+	utils.SugarLogger.Infoln(os.Stdout, "Response from `DefaultApi.CreateNotification`: %v\n", resp)
 }

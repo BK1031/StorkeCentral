@@ -4,6 +4,7 @@ import (
 	onesignal "github.com/OneSignal/onesignal-go-api"
 	"miranda/config"
 	"miranda/model"
+	"miranda/utils"
 )
 
 func GetAllNotificationsForUser(userID string) []model.Notification {
@@ -39,7 +40,7 @@ func GetNotificationByID(notificationID string) model.Notification {
 
 func CreateNotification(notification model.Notification) error {
 	if DB.Where("id = ?", notification.ID).Updates(&notification).RowsAffected == 0 {
-		println("New notification created with id: " + notification.ID)
+		utils.SugarLogger.Infoln("New notification created with id: " + notification.ID)
 		if result := DB.Create(&notification); result.Error != nil {
 			return result.Error
 		}
@@ -60,24 +61,18 @@ func CreateNotification(notification model.Notification) error {
 				osNotification.SetUrl(notification.LaunchURL)
 			}
 			osNotification.SetIncludePlayerIds([]string{GetPlayerIDForUser(notification.UserID)})
-			//if notification.Priority == "HIGH" {
-			//	osNotification.SetPriority(10)
-			//	osNotification.Set
-			//} else {
-			//	osNotification.SetPriority(5)
-			//}
 			CreateOSNotification(&osNotification)
 		}
 	} else {
-		println("Notification with id: " + notification.ID + " has been updated!")
+		utils.SugarLogger.Infoln("Notification with id: " + notification.ID + " has been updated!")
 	}
 	if len(notification.Data) > 0 {
-		println("Notification with id: " + notification.ID + " has non-empty data, setting data in db...")
+		utils.SugarLogger.Infoln("Notification with id: " + notification.ID + " has non-empty data, setting data in db...")
 		if err := SetDataForNotification(notification.ID, notification.Data); err != nil {
 			return err
 		}
 	} else {
-		println("Notification with id: " + notification.ID + " has empty data, nothing to do here!")
+		utils.SugarLogger.Infoln("Notification with id: " + notification.ID + " has empty data, nothing to do here!")
 	}
 	return nil
 }

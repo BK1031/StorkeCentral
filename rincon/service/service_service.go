@@ -32,7 +32,7 @@ func GetServiceByName(name string) []model.Service {
 	return services
 }
 
-func CreateService(service model.Service) error {
+func CreateService(service model.Service) (model.Service, error) {
 	var existingServices []model.Service
 	_ = DB.Where("url = ?", service.URL).Find(&existingServices)
 	for i, s := range existingServices {

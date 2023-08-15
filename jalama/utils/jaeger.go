@@ -11,7 +11,7 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"rincon/config"
+	"jalama/config"
 	"strconv"
 )
 
@@ -38,7 +38,7 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 }
 
 func InitializeJaeger() {
-	//jaegerUrl := "http://localhost:" + config.JaegerPort + "/api/traces" // Use this when not running in Docker
+	//jaegerUrl := "http://localhost:" + utils.JaegerPort + "/api/traces" // Use this when not running in Docker
 	jaegerUrl := "http://jaeger:" + config.JaegerPort + "/api/traces"
 	tp, err := tracerProvider(jaegerUrl)
 	if err != nil {

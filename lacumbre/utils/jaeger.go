@@ -38,7 +38,7 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 }
 
 func InitializeJaeger() {
-	//jaegerUrl := "http://localhost:" + utils.JaegerPort + "/api/traces" // Use this when not running in Docker
+	//jaegerUrl := "http://localhost:" + config.JaegerPort + "/api/traces" // Use this when not running in Docker
 	jaegerUrl := "http://jaeger:" + config.JaegerPort + "/api/traces"
 	tp, err := tracerProvider(jaegerUrl)
 	if err != nil {

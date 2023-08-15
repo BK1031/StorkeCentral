@@ -2,13 +2,12 @@ package service
 
 import (
 	"fmt"
-	"jalama/config"
-	"jalama/model"
-	"os"
-	"time"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"jalama/config"
+	"jalama/model"
+	"jalama/utils"
+	"time"
 )
 
 var DB *gorm.DB
@@ -21,17 +20,16 @@ func InitializeDB() {
 	if err != nil {
 		if dbRetries < 15 {
 			dbRetries++
-			println("failed to connect database, retrying in 5s... ")
+			utils.SugarLogger.Errorln("failed to connect database, retrying in 5s... ")
 			time.Sleep(time.Second * 5)
 			InitializeDB()
 		} else {
-			println("failed to connect database after 15 attempts, terminating program...")
-			os.Exit(100)
+			utils.SugarLogger.Fatalln("failed to connect database after 15 attempts, terminating program...")
 		}
 	} else {
-		println("Connected to postgres database")
+		utils.SugarLogger.Infoln("Connected to postgres database")
 		db.AutoMigrate(&model.DiningHall{}, &model.Meal{}, &model.MenuItem{})
-		println("AutoMigration complete")
+		utils.SugarLogger.Infoln("AutoMigration complete")
 		DB = db
 	}
 }

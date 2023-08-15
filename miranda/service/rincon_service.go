@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"miranda/config"
+	"miranda/model"
+	"miranda/utils"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
@@ -29,19 +30,19 @@ func RegisterRincon() {
 			rinconRetries++
 			if rinconRetries%2 == 0 {
 				rinconHost = "http://localhost"
-				println("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
+				utils.SugarLogger.Errorln("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
 			} else {
 				rinconHost = "http://rincon"
-				println("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
+				utils.SugarLogger.Errorln("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
 			}
 			time.Sleep(time.Second * 5)
 			RegisterRincon()
 		} else {
-			println("failed to register with rincon after 15 attempts, terminating program...")
-			os.Exit(100)
+			utils.SugarLogger.Fatalln("failed to register with rincon after 15 attempts, terminating program...")
 		}
 	} else {
-		println("Registered service with Rincon!")
+		GetServiceInfo()
+		utils.SugarLogger.Infoln("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/miranda")
 		RegisterRinconRoute("/notifications")
 	}
@@ -56,5 +57,20 @@ func RegisterRinconRoute(route string) {
 	_, err := http.Post(rinconHost+":"+config.RinconPort+"/routes", "application/json", responseBody)
 	if err != nil {
 	}
-	println("Registered route " + route)
+	utils.SugarLogger.Infoln("Registered route " + route)
+}
+
+func GetServiceInfo() {
+	var service model.Service
+	rinconClient := http.Client{}
+	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/miranda", nil)
+	res, err := rinconClient.Do(req)
+	if err != nil {
+		utils.SugarLogger.Errorln(err.Error())
+	}
+	defer res.Body.Close()
+	if res.StatusCode == 200 {
+		json.NewDecoder(res.Body).Decode(&service)
+	}
+	config.Service = service
 }

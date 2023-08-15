@@ -44,6 +44,7 @@ func RegisterRincon() {
 		utils.SugarLogger.Infoln("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/gaviota")
 		RegisterRinconRoute("/news")
+		GetServiceInfo()
 	}
 }
 
@@ -62,7 +63,7 @@ func RegisterRinconRoute(route string) {
 func GetServiceInfo() {
 	var service model.Service
 	rinconClient := http.Client{}
-	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/lacumbre", nil)
+	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/gaviota", nil)
 	res, err := rinconClient.Do(req)
 	if err != nil {
 		utils.SugarLogger.Errorln(err.Error())

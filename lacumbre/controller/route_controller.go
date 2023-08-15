@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"lacumbre/service"
 	"lacumbre/utils"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -40,7 +39,7 @@ func AuthChecker() gin.HandlerFunc {
 		ctx := context.Background()
 		client, err := service.FirebaseAdmin.Auth(ctx)
 		if err != nil {
-			log.Fatalf("error getting Auth client: %v\n", err)
+			utils.SugarLogger.Fatalln("error getting Auth client: %v\n", err)
 		}
 		if c.GetHeader("Authorization") != "" {
 			token, err := client.VerifyIDToken(ctx, strings.Split(c.GetHeader("Authorization"), "Bearer ")[1])

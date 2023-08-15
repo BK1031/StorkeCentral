@@ -31,7 +31,7 @@ func GetProxy(c *gin.Context) {
 			proxyClient := &http.Client{}
 			//proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
 			proxyRequest, _ := http.NewRequest("GET", mappedService.URL+c.Request.URL.String(), nil)
-			// Transfer headers to proxy request
+			//Transfer headers to proxy request
 			proxyRequest.Header.Set("Request-ID", requestID)
 			proxyRequest.Header.Set("traceparent", utils.BuildTraceparent(span))
 			for header, values := range c.Request.Header {

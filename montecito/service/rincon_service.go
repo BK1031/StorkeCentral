@@ -42,9 +42,9 @@ func RegisterRincon() {
 			utils.SugarLogger.Fatalln("failed to register with rincon after 15 attempts, terminating program...")
 		}
 	} else {
-		GetServiceInfo()
 		utils.SugarLogger.Infoln("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/montecito")
+		GetServiceInfo()
 		GetRinconServiceInfo()
 	}
 }

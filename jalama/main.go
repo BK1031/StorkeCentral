@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 	"jalama/config"
 	"jalama/controller"
 	"jalama/model"
 	"jalama/service"
+	"jalama/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -22,17 +23,23 @@ func setupRouter() *gin.Engine {
 	}
 	r := gin.Default()
 	r.Use(controller.RequestLogger())
+	r.Use(utils.JaegerPropogator())
 	r.Use(controller.AuthChecker())
 	return r
 }
 
 func main() {
+	utils.InitializeLogger()
+	defer utils.Logger.Sync()
+
 	router = setupRouter()
 	service.InitializeDB()
+	service.RegisterRincon()
 	service.InitializeFirebase()
 	service.ConnectDiscord()
-	service.RegisterRincon()
 	controller.RegisterMealCronJob()
+	utils.InitializeJaeger()
+
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }
