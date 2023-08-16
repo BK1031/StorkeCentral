@@ -52,11 +52,12 @@ func CreateService(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := service.CreateService(input); err != nil {
+	createdService, err := service.CreateService(input)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, input)
+	c.JSON(http.StatusOK, createdService)
 }
 
 func RegisterSelf() {
@@ -74,9 +75,7 @@ func RegisterSelf() {
 	s.Port, _ = strconv.Atoi(config.Port)
 	s.StatusEmail = config.StatusEmail
 	s.CreatedAt = time.Now()
-	service.CreateService(s)
-	// Get service to set config.Service
-	config.Service = service.GetServiceByName("Rincon")[0]
+	config.Service, _ = service.CreateService(s)
 	// Register routes with service
 	service.CreateRoute(model.Route{
 		Route:       "/rincon",

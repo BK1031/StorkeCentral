@@ -41,21 +41,21 @@ func CreateService(service model.Service) (model.Service, error) {
 	}
 	id, err := GenerateServiceID(6)
 	if err != nil {
-		return err
+		return service, err
 	}
 	service.ID, _ = strconv.Atoi(id)
 	if result := DB.Create(&service); result.Error != nil {
-		return result.Error
+		return service, result.Error
 	}
-	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "New service ("+strconv.Itoa(service.ID)+") "+service.Name+" added to registry")
-	return nil
+	go Discord.ChannelMessageSend(config.DiscordChannel, "New service ("+strconv.Itoa(service.ID)+") "+service.Name+" added to registry")
+	return service, nil
 }
 
 func RemoveService(service model.Service) error {
 	if result := DB.Delete(&service); result.Error != nil {
 		return result.Error
 	}
-	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Service ("+strconv.Itoa(service.ID)+") "+service.Name+" removed from registry")
+	go Discord.ChannelMessageSend(config.DiscordChannel, "Service ("+strconv.Itoa(service.ID)+") "+service.Name+" removed from registry")
 	return nil
 }
 

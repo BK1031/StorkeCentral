@@ -46,7 +46,7 @@ func SendStatusEmail(service model.Service, status bool) {
 	if err := gomail.Send(sender, m); err != nil {
 		utils.SugarLogger.Errorln("Could not send email to %q: %v", service.StatusEmail, err)
 	}
-	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Statuspage update email sent")
+	go Discord.ChannelMessageSend(config.DiscordChannel, "Statuspage update email sent")
 	m.Reset()
 }
 
@@ -81,8 +81,8 @@ func SendStatusLog(service model.Service, status bool) {
 		IconURL:      "",
 		ProxyIconURL: "",
 	}
-	_, _ = Discord.ChannelMessageSendEmbed(config.DiscordChannel, &embed)
+	go Discord.ChannelMessageSendEmbed(config.DiscordChannel, &embed)
 	if !status {
-		_, _ = Discord.ChannelMessageSend(config.DiscordChannel, ":fire: :fire: :fire: <@&981503871396511775> service down fuck fuck fuck :fire: :fire: :fire:\nhttps://storkecentral.statuspage.io/")
+		go Discord.ChannelMessageSend(config.DiscordChannel, ":fire: :fire: :fire: <@&981503871396511775> service down fuck fuck fuck :fire: :fire: :fire:\nhttps://storkecentral.statuspage.io/")
 	}
 }

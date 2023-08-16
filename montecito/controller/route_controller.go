@@ -66,6 +66,25 @@ func ResponseLogger() gin.HandlerFunc {
 	}
 }
 
+func MontecitoRoutes() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.URL.String() == "/montecito/ping" {
+			startTime, _ := c.Get("startTime")
+			Ping(c)
+			c.AbortWithStatusJSON(200, model.Response{
+				Status:    "ERROR",
+				Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
+				Gateway:   "Montecito v" + config.Version,
+				Service:   "Montecito v" + config.Version,
+				Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
+				Data:      json.RawMessage("{\"message\": \"Montecito v" + config.Version + " is online!\"}"),
+			})
+			return
+		}
+		c.Next()
+	}
+}
+
 func APIKeyChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		apiKey := service.VerifyAPIKey(c.GetHeader("SC-API-KEY"))

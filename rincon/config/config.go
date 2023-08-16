@@ -7,7 +7,7 @@ import (
 
 var Service = model.Service{}
 
-var Version = "1.4.8"
+var Version = "1.4.11"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var JaegerPort = os.Getenv("JAEGER_PORT")

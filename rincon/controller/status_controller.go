@@ -51,7 +51,7 @@ func GetServiceStatus(c *gin.Context) {
 func RegisterStatusCronJob() {
 	c := cron.New()
 	entryID, err := c.AddFunc("@every "+config.RegistryUpdateDelay+"s", func() {
-		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Status CRON Job")
+		go service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Status CRON Job")
 		utils.SugarLogger.Infoln("Starting Status CRON Job...")
 		services := service.GetAllServices()
 		for i, s := range services {
@@ -59,7 +59,7 @@ func RegisterStatusCronJob() {
 			service.GetServiceStatus(s)
 		}
 		utils.SugarLogger.Infoln("Finished Status CRON Job!")
-		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Finished Status CRON Job!")
+		go service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Finished Status CRON Job!")
 	})
 	if err != nil {
 		return

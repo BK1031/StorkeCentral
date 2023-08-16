@@ -7,7 +7,7 @@ import (
 
 var Service = model.Service{}
 
-var Version = "1.2.1"
+var Version = "1.2.2"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")

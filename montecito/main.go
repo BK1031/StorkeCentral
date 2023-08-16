@@ -21,6 +21,7 @@ func setupRouter() *gin.Engine {
 	r.Use(controller.APIKeyChecker())
 	r.Use(controller.AuthChecker())
 	r.Use(controller.ResponseLogger())
+	r.Use(controller.MontecitoRoutes())
 	return r
 }
 

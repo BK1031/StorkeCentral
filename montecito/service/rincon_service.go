@@ -25,7 +25,7 @@ func RegisterRincon() {
 		"status_email": config.StatusEmail,
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
-	_, err := http.Post(rinconHost+":"+config.RinconPort+"/services", "application/json", responseBody)
+	res, err := http.Post(rinconHost+":"+config.RinconPort+"/services", "application/json", responseBody)
 	if err != nil {
 		if rinconRetries < 15 {
 			rinconRetries++
@@ -42,9 +42,12 @@ func RegisterRincon() {
 			utils.SugarLogger.Fatalln("failed to register with rincon after 15 attempts, terminating program...")
 		}
 	} else {
+		defer res.Body.Close()
+		if res.StatusCode == 200 {
+			json.NewDecoder(res.Body).Decode(&config.Service)
+		}
 		utils.SugarLogger.Infoln("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/montecito")
-		GetServiceInfo()
 		GetRinconServiceInfo()
 	}
 }
@@ -74,21 +77,6 @@ func GetRinconServiceInfo() {
 		json.NewDecoder(res.Body).Decode(&service)
 	}
 	config.RinconService = service
-}
-
-func GetServiceInfo() {
-	var service model.Service
-	rinconClient := http.Client{}
-	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/montecito", nil)
-	res, err := rinconClient.Do(req)
-	if err != nil {
-		utils.SugarLogger.Errorln(err.Error())
-	}
-	defer res.Body.Close()
-	if res.StatusCode == 200 {
-		json.NewDecoder(res.Body).Decode(&service)
-	}
-	config.Service = service
 }
 
 func MatchRoute(traceparent string, route string, requestID string) model.Service {

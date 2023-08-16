@@ -33,7 +33,7 @@ func CreateRoute(route model.Route) error {
 	if result := DB.Create(&route); result.Error != nil {
 		return result.Error
 	}
-	Discord.ChannelMessageSend(config.DiscordChannel, "New route `"+route.Route+"` registered for service "+route.ServiceName)
+	go Discord.ChannelMessageSend(config.DiscordChannel, "New route `"+route.Route+"` registered for service "+route.ServiceName)
 	return nil
 }
 
@@ -41,6 +41,6 @@ func RemoveRoute(route model.Route) error {
 	if result := DB.Delete(&route); result.Error != nil {
 		return result.Error
 	}
-	Discord.ChannelMessageSend(config.DiscordChannel, "Route `"+route.Route+"` removed from service "+route.ServiceName)
+	go Discord.ChannelMessageSend(config.DiscordChannel, "Route `"+route.Route+"` removed from service "+route.ServiceName)
 	return nil
 }

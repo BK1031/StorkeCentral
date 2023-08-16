@@ -53,21 +53,21 @@ func MatchRoute(c *gin.Context) {
 				service.RemoveRoute(allRoutes[i])
 				c.JSON(http.StatusNotFound, gin.H{"message": "No service found to handle: " + routeUrl})
 				utils.SugarLogger.Errorln("Failed to find active service `" + allRoutes[i].ServiceName + "` for route `" + allRoutes[i].Route + "`")
-				service.Discord.ChannelMessageSend(config.DiscordChannel, "Failed to find active service `"+allRoutes[i].ServiceName+"` for route `"+allRoutes[i].Route+"`")
+				go service.Discord.ChannelMessageSend(config.DiscordChannel, "Failed to find active service `"+allRoutes[i].ServiceName+"` for route `"+allRoutes[i].Route+"`")
 				return
 			} else {
 				// Select a service instance from list
 				c.JSON(http.StatusOK, matchedServices[rand.Intn(len(matchedServices))])
 				span.SetAttributes(attribute.Key("service").String(allRoutes[i].ServiceName))
 				utils.SugarLogger.Infoln("Successfully mapped active service `" + allRoutes[i].ServiceName + "` to route `" + allRoutes[i].Route + "` for route `" + routeUrl + "`")
-				service.Discord.ChannelMessageSend(config.DiscordChannel, "Successfully mapped active service `"+allRoutes[i].ServiceName+"` to route `"+allRoutes[i].Route+"` for route `"+routeUrl+"`")
+				go service.Discord.ChannelMessageSend(config.DiscordChannel, "Successfully mapped active service `"+allRoutes[i].ServiceName+"` to route `"+allRoutes[i].Route+"` for route `"+routeUrl+"`")
 				return
 			}
 		}
 	}
 	c.JSON(http.StatusNotFound, gin.H{"message": "No service found to handle: " + routeUrl})
-	utils.SugarLogger.Errorln(config.DiscordChannel, "Failed to find mapped route for route `"+routeUrl+"`")
-	service.Discord.ChannelMessageSend(config.DiscordChannel, "Failed to find mapped route for route `"+routeUrl+"`")
+	utils.SugarLogger.Errorln("Failed to find mapped route for route `" + routeUrl + "`")
+	go service.Discord.ChannelMessageSend(config.DiscordChannel, "Failed to find mapped route for route `"+routeUrl+"`")
 	return
 }
 
