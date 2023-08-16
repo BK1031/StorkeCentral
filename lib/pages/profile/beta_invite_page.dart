@@ -4,16 +4,16 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -32,8 +32,15 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   String inviteCode = "";
   String inviteURL = "";
   DateTime expires = DateTime.now().add(const Duration(days: 7));
-  int codeCap = 10;
+  int codeCap = 5;
   List<User> invitedUsers = [];
+
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
 
   @override
   void initState() {
@@ -44,7 +51,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   void getExistingCode() {
     FirebaseFirestore.instance.doc("beta/users").get().then((value) {
       try {
-        log(value.get(currentUser.id));
+        log("[beta_invite_page] ${value.get(currentUser.id)}");
         setState(() {
           inviteCode = value.get(currentUser.id);
         });
@@ -55,27 +62,46 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             expires = expires.toLocal();
             codeCap = value.get("cap");
           });
+          if (expires.isBefore(DateTime.now())) {
+            log("[beta_invite_page] Invite code has expired, generating new code...");
+            setState(() {
+              codeCap = 5;
+              inviteCode = generateInviteCode();
+              expires = DateTime.now().add(const Duration(days: 7));
+            });
+            if (!kIsWeb) {
+              generateInviteLink().then((value) => uploadNewCode());
+            } else {
+              AlertService.showInfoSnackbar(context, "Unfortunately, we cannot generate an invite code for you on the web. Please try again in our mobile app.");
+            }
+          }
           value.get("uses").forEach((element) {
-            log("Adding user $element to invited users list");
+            log("[beta_invite_page] Adding user $element to invited users list");
             addUserToInvitedList(element.toString());
           });
         });
       } catch (err) {
         // No existing code
         setState(() {
+          codeCap = 5;
           inviteCode = generateInviteCode();
+          expires = DateTime.now().add(const Duration(days: 7));
         });
-        generateInviteLink().then((value) => uploadNewCode());
+        if (!kIsWeb) {
+          generateInviteLink().then((value) => uploadNewCode());
+        } else {
+          AlertService.showInfoSnackbar(context, "Unfortunately, we cannot generate an invite code for you on the web. Please try again in our mobile app.");
+        }
       }
     });
   }
 
   Future<void> addUserToInvitedList(String userID) async {
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
-        invitedUsers.add(User.fromJson(jsonDecode(response.body)["data"]));
+        invitedUsers.add(User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]));
       });
     }
   }
@@ -121,7 +147,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
       )
     );
     final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
-    log("Generated invite link: $inviteURL");
+    log("[beta_invite_page] Generated invite link: $inviteURL");
     inviteURL = dynamicLink.shortUrl.toString();
   }
 
@@ -160,7 +186,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             const Text(
-              "You can share the code below with your friends to invite them to the beta. If you need more invites, let us know in the Discord. ",
+              "You can share the code below with your friends to invite them to the beta. Come back here to get more invites each week!",
               style: TextStyle(fontSize: 16),
             ),
             const Padding(padding: EdgeInsets.all(8)),
@@ -183,27 +209,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                       trailing: const Icon(Icons.copy),
                       onTap: () async {
                         await Clipboard.setData(ClipboardData(text: "Hey, here's an invite code for StorkeCentral, the cool new app I was talking about: $inviteCode\n\n$inviteURL"));
-                        AnimatedSnackBar(
-                          mobileSnackBarPosition: MobileSnackBarPosition.bottom,
-                          desktopSnackBarPosition: DesktopSnackBarPosition.bottomRight,
-                          builder: (context) {
-                            return Card(
-                              color: SB_GREEN,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const [
-                                    Icon(Icons.check_rounded, color: Colors.white),
-                                    Padding(padding: EdgeInsets.all(4)),
-                                    Expanded(child: Text("Invite code copied to clipboard!", style: TextStyle(color: Colors.white),)),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ).show(context);
+                        AlertService.showInfoSnackbar(context, "Copied invite code to clipboard!");
                       },
                     ),
                     Padding(

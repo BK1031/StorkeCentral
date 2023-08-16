@@ -1,8 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -76,32 +79,37 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   }
 
   Future<void> fetchGoldSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("fetchGoldSchedule()");
+    await trace.start();
     try {
       setState(() {
         state = 0;
       });
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
-          userCourses = jsonDecode(value.body)["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
-          log("Fetched ${userCourses.length} courses from Gold");
+          userCourses = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
+          log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
           getCourseInformation(selectedQuarter.id);
         } else {
-          log("Invalid credentials, launching login page", LogLevel.warn);
+          log("[load_schedule_page] Invalid credentials, launching login page", LogLevel.warn);
           setState(() {
             state = 1;
           });
         }
       });
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
     }
+    trace.stop();
   }
 
   Future<void> saveCredentials() async {
+    Trace trace = FirebasePerformance.instance.newTrace("saveCredentials()");
+    await trace.start();
     setState(() {
       state = 0;
     });
@@ -116,7 +124,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         if (value.statusCode == 200) {
           fetchGoldSchedule();
         } else {
-          log("Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
+          log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
           passwordController.clear();
           setState(() {
             state = 1;
@@ -133,39 +141,42 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         }
       });
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
     }
+    trace.stop();
   }
 
   String generateEncryptionKey() {
     const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     Random _rnd = Random.secure();
-    log("Generated encryption key", LogLevel.info);
+    log("[load_schedule_page] Generated encryption key", LogLevel.info);
     return String.fromCharCodes(Iterable.generate(32, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
   }
 
   Future<void> getCourseInformation(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("getCourseInformation()");
+    await trace.start();
     try {
       setState(() {
         state = 2;
       });
       goldCourses.clear();
       for (UserCourse course in userCourses) {
-        await http.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/${course.courseID}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
+        await httpClient.get(Uri.parse("https://api.ucsb.edu/academics/curriculums/v3/classes/$quarter/${course.courseID}"), headers: {"ucsb-api-key": UCSB_API_KEY}).then((value) {
           GoldCourse goldCourse = GoldCourse.fromJson(jsonDecode(value.body));
           goldCourse.enrollCode = course.courseID;
           setState(() {
             goldCourses.add(goldCourse);
           });
-          log("Retrieved course info for ${goldCourse.toString()} (${course.courseID})");
+          log("[load_schedule_page] Retrieved course info for ${goldCourse.toString()} (${course.courseID})");
         });
       }
       createUserSchedule(quarter);
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
@@ -183,30 +194,36 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         }
       );
     }
+    trace.stop();
   }
 
-  void createUserSchedule(String quarter) {
+  Future<void> createUserSchedule(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("createUserSchedule()");
+    await trace.start();
     for (GoldCourse course in goldCourses) {
-      log("Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      log("[load_schedule_page] Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
         if (section.enrollCode == course.enrollCode || section.section == "0100") {
-          log("[x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
+          log("[load_schedule_page] [x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
           goldSectionMap[section] = true;
         } else {
-          log("[ ] ${section.enrollCode}");
+          log("[load_schedule_page] [ ] ${section.enrollCode}");
           goldSectionMap[section] = false;
         }
       }
     }
     setState(() => state = 3);
+    trace.stop();
   }
 
-  void generateUserSchedule(String quarter) {
+  Future<void> generateUserSchedule(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("generateUserSchedule()");
+    await trace.start();
     setState(() => state = 4);
     // Generate userScheduleItems from goldCourses and goldSectionMap
     userScheduleItems.clear();
     for (GoldCourse course in goldCourses) {
-      log("Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+      log("[load_schedule_page] Generating finalized schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
       for (GoldSection section in course.sections) {
         if (goldSectionMap[section]!) {
           for (GoldCourseTime time in section.times) {
@@ -224,28 +241,31 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
               userScheduleItem.quarter = quarter;
               userScheduleItems.add(userScheduleItem);
             });
-            log("+ ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
+            log("[load_schedule_page] + ${time.days} ${time.beginTime} - ${time.endTime} in ${time.building} ${time.room}");
           }
         }
       }
     }
-    log("Generated ${userScheduleItems.length} schedule items");
+    log("[load_schedule_page] Generated ${userScheduleItems.length} schedule items");
+    trace.stop();
     saveUserSchedule();
   }
 
   Future<void> saveUserSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("saveUserSchedule()");
+    await trace.start();
     try {
       setState(() {
         state = 5;
       });
 
-      log("Saving schedule to database...");
+      log("[load_schedule_page] Saving schedule to database...");
 
       await AuthService.getAuthToken();
       await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       await AuthService.getAuthToken();
       await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(userScheduleItems));
-      log("Saved schedule to database");
+      log("[load_schedule_page] Saved schedule to database");
       setState(() {
         state = 6;
         // Set lastScheduleFetch to force a refresh
@@ -255,7 +275,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         router.pop(context);
       });
     } catch(err) {
-      log(err.toString(), LogLevel.error);
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       setState(() {
         state = 0;
       });
@@ -273,6 +293,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           }
       );
     }
+    trace.stop();
   }
 
   @override

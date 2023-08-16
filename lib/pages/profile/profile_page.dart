@@ -1,6 +1,5 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:extended_image/extended_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
         child: CupertinoButton(
           color: SB_RED,
           onPressed: () {
-            FirebaseAuth.instance.signOut();
+            AuthService.signOut();
             router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
           },
           child: const Text("Sign out", style: TextStyle(color: Colors.white),),

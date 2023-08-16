@@ -19,6 +19,9 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/users/schedule/:userID/:quarter", GetScheduleForUserForQuarter)
 	router.POST("/users/schedule/:userID/:quarter", SetScheduleForUserForQuarter)
 	router.DELETE("/users/schedule/:userID/:quarter", RemoveScheduleForUserForQuarter)
+	router.GET("/users/schedule/:userID/:quarter/next", GetUpNextForUserForQuarter)
+	router.GET("/users/passtime/:userID/:quarter", GetPasstimeForUserForQuarter)
+	router.GET("/users/passtime/:userID/:quarter/fetch", FetchPasstimeForUserForQuarter)
 }
 
 func RequestLogger() gin.HandlerFunc {

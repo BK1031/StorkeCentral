@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:storke_central/pages/onboarding/footer.dart';
 import 'package:storke_central/pages/onboarding/header.dart';
 import 'package:video_player/video_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({Key? key}) : super(key: key);
@@ -25,38 +26,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _scrollController.position.isScrollingNotifier.addListener(() {
-        if (!_scrollController.position.isScrollingNotifier.value) {
-          if (_scrollController.position.pixels > 1 * (MediaQuery.of(context).size.width > 1500 ? 800 : MediaQuery.of(context).size.width > 800 ? 400 : 150) && !videoPlayed[1]) {
-            _controller2.setVolume(0.0);
-            _controller2.seekTo(const Duration(seconds: 0));
-            _controller2.play();
-            videoPlayed[1] = true;
-          } else if (_scrollController.position.pixels > 2 * (MediaQuery.of(context).size.width > 1500 ? 800 : MediaQuery.of(context).size.width > 800 ? 400 : 150) && !videoPlayed[2]) {
-            _controller3.setVolume(0.0);
-            _controller3.seekTo(const Duration(seconds: 0));
-            _controller3.play();
-            videoPlayed[2] = true;
-          } else if (_scrollController.position.pixels > 3 * (MediaQuery.of(context).size.width > 1500 ? 800 : MediaQuery.of(context).size.width > 800 ? 400 : 150) && !videoPlayed[3]) {
-            _controller4.setVolume(0.0);
-            _controller4.seekTo(const Duration(seconds: 0));
-            _controller4.play();
-            videoPlayed[3] = true;
-          } else if (_scrollController.position.pixels > 4 * (MediaQuery.of(context).size.width > 1500 ? 800 : MediaQuery.of(context).size.width > 800 ? 400 : 150) && !videoPlayed[4]) {
-            _controller5.setVolume(0.0);
-            _controller5.seekTo(const Duration(seconds: 0));
-            _controller5.play();
-            videoPlayed[4] = true;
-          } else if (_scrollController.position.pixels > 5 * (MediaQuery.of(context).size.width > 1500 ? 800 : MediaQuery.of(context).size.width > 800 ? 400 : 150) && !videoPlayed[5]) {
-            _controller6.setVolume(0.0);
-            _controller6.seekTo(const Duration(seconds: 0));
-            _controller6.play();
-            videoPlayed[5] = true;
-          }
-        }
-      });
-    });
     setupPlayers();
   }
 
@@ -95,7 +64,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
             const Header(),
             Container(
               padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
-              // color: Colors.greenAccent,
+              // color: Colors.purpleAccent,
               // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
               child: _controller1.value.isInitialized
@@ -105,65 +74,125 @@ class _OnboardingPageState extends State<OnboardingPage> {
               )
                   : Container(),
             ),
-            Container(
-              padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
-              // color: Colors.greenAccent,
-              // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
-              child: _controller2.value.isInitialized
-                  ? AspectRatio(
-                aspectRatio: _controller2.value.aspectRatio,
-                child: VideoPlayer(_controller2),
-              )
-                  : Container(),
+            VisibilityDetector(
+              key: const Key('Landing2'),
+              onVisibilityChanged: (visibilityInfo) {
+                var visiblePercentage = visibilityInfo.visibleFraction * 100;
+                if (visiblePercentage > 80 && !videoPlayed[1]) {
+                  _controller2.setVolume(0.0);
+                  _controller2.seekTo(const Duration(seconds: 0));
+                  _controller2.play();
+                  videoPlayed[1] = true;
+                }
+              },
+              child: Container(
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
+                // color: Colors.greenAccent,
+                // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
+                child: _controller2.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller2.value.aspectRatio,
+                  child: VideoPlayer(_controller2),
+                )
+                    : Container(),
+              ),
             ),
-            Container(
-              padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
-              // color: Colors.greenAccent,
-              // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
-              child: _controller3.value.isInitialized
-                  ? AspectRatio(
-                aspectRatio: _controller3.value.aspectRatio,
-                child: VideoPlayer(_controller3),
-              )
-                  : Container(),
+            VisibilityDetector(
+              key: const Key('Landing3'),
+              onVisibilityChanged: (visibilityInfo) {
+                var visiblePercentage = visibilityInfo.visibleFraction * 100;
+                if (visiblePercentage > 80 && !videoPlayed[2]) {
+                  _controller3.setVolume(0.0);
+                  _controller3.seekTo(const Duration(seconds: 0));
+                  _controller3.play();
+                  videoPlayed[2] = true;
+                }
+              },
+              child: Container(
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
+                // color: Colors.orangeAccent,
+                // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
+                child: _controller3.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller3.value.aspectRatio,
+                  child: VideoPlayer(_controller3),
+                )
+                    : Container(),
+              ),
             ),
-            Container(
-              padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
-              // color: Colors.greenAccent,
-              // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
-              child: _controller4.value.isInitialized
-                  ? AspectRatio(
-                aspectRatio: _controller4.value.aspectRatio,
-                child: VideoPlayer(_controller4),
-              )
-                  : Container(),
+            VisibilityDetector(
+              key: const Key('Landing4'),
+              onVisibilityChanged: (visibilityInfo) {
+                var visiblePercentage = visibilityInfo.visibleFraction * 100;
+                if (visiblePercentage > 80 && !videoPlayed[3]) {
+                  _controller4.setVolume(0.0);
+                  _controller4.seekTo(const Duration(seconds: 0));
+                  _controller4.play();
+                  videoPlayed[3] = true;
+                }
+              },
+              child: Container(
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
+                // color: Colors.greenAccent,
+                // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
+                child: _controller4.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller4.value.aspectRatio,
+                  child: VideoPlayer(_controller4),
+                )
+                    : Container(),
+              ),
             ),
-            Container(
-              padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
-              // color: Colors.greenAccent,
-              // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
-              child: _controller5.value.isInitialized
-                  ? AspectRatio(
-                aspectRatio: _controller5.value.aspectRatio,
-                child: VideoPlayer(_controller5),
-              )
-                  : Container(),
+            VisibilityDetector(
+              key: const Key('Landing5'),
+              onVisibilityChanged: (visibilityInfo) {
+                var visiblePercentage = visibilityInfo.visibleFraction * 100;
+                if (visiblePercentage > 80 && !videoPlayed[4]) {
+                  _controller5.setVolume(0.0);
+                  _controller5.seekTo(const Duration(seconds: 0));
+                  _controller5.play();
+                  videoPlayed[4] = true;
+                }
+              },
+              child: Container(
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
+                // color: Colors.orangeAccent,
+                // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
+                child: _controller5.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller5.value.aspectRatio,
+                  child: VideoPlayer(_controller5),
+                )
+                    : Container(),
+              ),
             ),
-            Container(
-              padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
-              // color: Colors.greenAccent,
-              // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
-              child: _controller6.value.isInitialized
-                  ? AspectRatio(
-                aspectRatio: _controller6.value.aspectRatio,
-                child: VideoPlayer(_controller6),
-              )
-                  : Container(),
+            VisibilityDetector(
+              key: const Key('Landing6'),
+              onVisibilityChanged: (visibilityInfo) {
+                var visiblePercentage = visibilityInfo.visibleFraction * 100;
+                if (visiblePercentage > 80 && !videoPlayed[5]) {
+                  _controller6.setVolume(0.0);
+                  _controller6.seekTo(const Duration(seconds: 0));
+                  _controller6.play();
+                  videoPlayed[5] = true;
+                }
+              },
+              child: Container(
+                padding: MediaQuery.of(context).size.width > 800 ? const EdgeInsets.all(32) : const EdgeInsets.only(bottom: 32),
+                // color: Colors.greenAccent,
+                // width: MediaQuery.of(context).size.width > 1500 ? 1500 : MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width > 1500 ? MediaQuery.of(context).size.height - 200 : null,
+                child: _controller6.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller6.value.aspectRatio,
+                  child: VideoPlayer(_controller6),
+                )
+                    : Container(),
+              ),
             ),
             const Footer(),
           ],

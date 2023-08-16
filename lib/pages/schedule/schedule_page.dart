@@ -1,13 +1,15 @@
 import 'dart:convert';
 
 import 'package:calendar_view/calendar_view.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:storke_central/models/quarter.dart';
+import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -29,6 +31,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   bool classesFound = true;
   bool loading = false;
   final CalendarController _controller = CalendarController();
+
+  bool passtimeExpanded = false;
 
   @override
   bool get wantKeepAlive => false;
@@ -60,14 +64,22 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     if (!offlineMode) {
       try {
         // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
-        log("${userScheduleItems.length} existing userScheduleItems");
-
+        log("[schedule_page] ${userScheduleItems.length} existing userScheduleItems");
         if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
-          setState(() => loading = true);
+          Trace trace = FirebasePerformance.instance.newTrace("getUserSchedule()");
+          await trace.start();
+          if (quarter == currentQuarter.id) {
+            // We only want to persist/load the current quarter
+            loadOfflineSchedule();
+            getPasstime();
+          } else {
+            // Only show the loading indicator if we're not loading from offline storage
+            setState(() => loading = true);
+          }
           await AuthService.getAuthToken();
-          await http.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-            if (jsonDecode(value.body)["data"].length == 0) {
-              log("No schedule items found in db for this quarter.", LogLevel.warn);
+          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
+              log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
                 loading = false;
@@ -78,28 +90,104 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               setState(() {
                 classesFound = true;
                 loading = false;
-                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+                userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
+              if (quarter == currentQuarter.id) {
+                prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
+              }
               buildCalendar();
             }
           });
+          trace.stop();
         } else {
-          log("Schedule items already loaded for this quarter, skipping fetch.");
+          log("[schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
+          buildCalendar();
         }
       } catch(err) {
-        // TODO: Show error snackbar
-        log(err.toString(), LogLevel.error);
+        AlertService.showErrorSnackbar(context, "Failed to get schedule!");
+        log("[schedule_page] ${err.toString()}", LogLevel.error);
         setState(() => classesFound = true);
       }
     } else {
-      log("Offline mode, searching cache for schedule...");
+      log("[schedule_page] Offline mode, searching cache for schedule...");
+      loadOfflineSchedule();
+      AlertService.showSuccessSnackbar(context, "Loaded offline schedule!");
     }
+  }
+
+  void loadOfflineSchedule() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineSchedule()");
+    await trace.start();
+    if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
+      setState(() {
+        userScheduleItems = prefs.getStringList("USER_SCHEDULE_ITEMS")!.map((e) => UserScheduleItem.fromJson(jsonDecode(e))).toList();
+      });
+      log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
+      buildCalendar();
+    }
+    trace.stop();
+  }
+
+  Future<void> getPasstime() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getPasstime()");
+    await trace.start();
+    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
+      if (value.statusCode == 200) {
+        // Successfully got passtime
+        setState(() {
+          userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
+        });
+        if (DateTime.now().difference(userPasstime.createdAt).inDays > 7) {
+          log("[schedule_page] Passtime is older than 7 days, fetching new passtime...");
+          fetchPasstime();
+        }
+      } else if (value.statusCode == 404) {
+        // Passtime not found, fetch it
+        fetchPasstime();
+      } else {
+        log("[schedule_page] Failed to get passtime: ${value.body}", LogLevel.error);
+      }
+    });
+    trace.stop();
+  }
+
+  Future<void> fetchPasstime() async {
+    Trace trace = FirebasePerformance.instance.newTrace("fetchPasstime()");
+    await trace.start();
+    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}/fetch"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
+      if (value.statusCode == 200) {
+        // Successfully got passtime
+        setState(() {
+          userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
+        });
+      } else {
+        AlertService.showErrorSnackbar(context, "Failed to fetch passtime!");
+        log("[schedule_page] Failed to fetch passtime: ${value.body}", LogLevel.error);
+      }
+    });
+    trace.stop();
+  }
+
+  // Returns the next passtime start time based on the current date
+  // Will always return pass 3 is current date is after pass 1 and 2
+  Map<String, DateTime> getNextPasstime(UserPasstime passtime) {
+    Map<String, DateTime> returnMap = {};
+    if (passtime.passOneStart.isAfter(DateTime.now())) {
+      returnMap["Pass 1"] = passtime.passOneStart;
+    } else if (passtime.passTwoStart.isAfter(DateTime.now())) {
+      returnMap["Pass 2"] = passtime.passTwoStart;
+    } else {
+      returnMap["Pass 3"] = passtime.passThreeStart;
+    }
+    return returnMap;
   }
 
   // Function that actually creates the class events
   // TODO: Add finals to calendar
-  void buildCalendar() {
-    log("Building calendar...");
+  Future<void> buildCalendar() async {
+    Trace trace = FirebasePerformance.instance.newTrace("buildCalendar()");
+    await trace.start();
+    log("[schedule_page] Building calendar...");
     lastScheduleFetch = DateTime.now();
     clearCalendar();
     for (var item in userScheduleItems) {
@@ -121,6 +209,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
         color++;
       }
     }
+    trace.stop();
   }
 
   void clearCalendar() {
@@ -195,7 +284,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                     ],
                   ),
                   onPressed: () {
-                    FirebaseAuth.instance.signOut();
+                    AuthService.signOut();
                     router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
                   },
                 ),
@@ -206,12 +295,114 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       );
     } else {
       return Scaffold(
-          floatingActionButton: FloatingActionButton(
-            child: const Icon(Icons.refresh),
-            onPressed: () {
-              router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
-            },
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Visibility(
+                    visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeEnd.isAfter(DateTime.now()) && userPasstime.userID != "",
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Card(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                passtimeExpanded = !passtimeExpanded;
+                              });
+                            },
+                            child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                padding: const EdgeInsets.all(8),
+                                height: passtimeExpanded ? 150 : 55,
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first.toLocal())}",
+                                                style: const TextStyle(fontSize: 14)
+                                            )
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                          child: Icon(
+                                            passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
+                                            color: passtimeExpanded ? SB_NAVY : Colors.grey,
+                                            size: 35,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: passtimeExpanded ? [
+                                        const Padding(padding: EdgeInsets.all(4),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text("Pass 1:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${DateFormat("M/d h:mm a").format(userPasstime.passOneStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passOneEnd.toLocal())}",
+                                                style: const TextStyle(fontSize: 16)
+                                            )
+                                          ],
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(4),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text("Pass 2:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${DateFormat("M/d h:mm a").format(userPasstime.passTwoStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passTwoEnd.toLocal())}",
+                                                style: const TextStyle(fontSize: 16)
+                                            )
+                                          ],
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(4),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text("Pass 3:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                            Text(
+                                                "${DateFormat("M/d h:mm a").format(userPasstime.passThreeStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passThreeEnd.toLocal())}",
+                                                style: const TextStyle(fontSize: 16)
+                                            )
+                                          ],
+                                        )
+                                      ] : [],
+                                    )
+                                  ],
+                                )
+                            ),
+                          ),
+                        )
+                      ],
+                    )
+                  ),
+                ),
+                const Padding(padding: EdgeInsets.all(4),),
+                FloatingActionButton(
+                  child: const Icon(Icons.refresh),
+                  onPressed: () {
+                    router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+                  },
+                ),
+              ],
+            ),
           ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
           body: Stack(
             children: [
               Column(
@@ -427,7 +618,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                     color: Colors.white,
                   ),
                 ),
-              )
+              ),
             ],
           )
       );

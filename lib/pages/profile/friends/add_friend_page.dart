@@ -1,15 +1,18 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -32,6 +35,13 @@ class _AddFriendPageState extends State<AddFriendPage> {
   List<String> loadingList = [];
   bool refreshing = false;
 
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
   _onChangedHandler(String input) {
     const duration = Duration(milliseconds: 800);
     if (searchOnStoppedTyping != null) {
@@ -42,15 +52,18 @@ class _AddFriendPageState extends State<AddFriendPage> {
 
   Future<void> getSearchedUser(String id) async {
     if (id != "") {
+      Trace trace = FirebasePerformance.instance.newTrace("getSearchedUser()");
+      await trace.start();
       await AuthService.getAuthToken();
       var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       setState(() {
         if (response.statusCode == 200) {
-          searchedUser = User.fromJson(jsonDecode(response.body)["data"]);
+          searchedUser = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
         } else {
           searchedUser = User();
         }
       });
+      trace.stop();
     } else {
       setState(() {
         searchedUser = User();
@@ -59,6 +72,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
   }
 
   Future<void> acceptFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() {
@@ -67,41 +82,28 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Friend request accepted!");
+      log("[add_friend_page] Friend request accepted!");
       setState(() {
         requests.removeWhere((element) => element.id == friend.id);
         friends.add(friend);
       });
       updateUserFriendsList();
       // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.success,
-          title: "Friend Request Accepted",
-          widget: Text("You are now friends with ${friend.user.firstName}!"),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_GREEN,
-          confirmBtnText: "OK"
-      );
+      AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
-      log(response.body, LogLevel.error);
+      log("[add_friend_page] ${response.body}", LogLevel.error);
       // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Friend Request Error",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      AlertService.showErrorSnackbar(context, "Failed to send friend request");
     }
     setState(() {
       loadingList.remove(user.id);
     });
+    trace.stop();
   }
 
   Future<void> requestFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("requestFriend()");
+    await trace.start();
     Friend friend = Friend();
     friend.id = "${currentUser.id}-${user.id}";
     friend.fromUserID = currentUser.id;
@@ -113,7 +115,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Sent friend request");
+      log("[add_friend_page] Sent friend request");
       setState(() {
         requests.add(friend);
       });
@@ -121,29 +123,33 @@ class _AddFriendPageState extends State<AddFriendPage> {
       if (searchedUser.id != "") {
         // Rebuild searched user widget
         getSearchedUser(user.id);
-        log("Rebuilt searched user widget");
+        log("[add_friend_page] Rebuilt searched user widget");
       } else {
         // Rebuild in suggested list
-        log("Rebuilt in suggested list");
+        log("[add_friend_page] Rebuilt in suggested list");
       }
     } else {
-      log(response.body, LogLevel.error);
-      // TODO: show error snackbar
+      log("[add_friend_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to send friend request!");
     }
     setState(() {
       loadingList.remove(user.id);
     });
+    trace.stop();
   }
 
   Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Successfully updated local friend list");
+      log("[add_friend_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
           requests.add(friend);
         } else if (friend.status == "ACCEPTED") {
@@ -155,20 +161,24 @@ class _AddFriendPageState extends State<AddFriendPage> {
         requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
-      log(response.body, LogLevel.error);
-      // TODO: show error snackbar
+      log("[add_friend_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
+    trace.stop();
   }
 
   Future<void> getSuggestedFriends() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getSuggestedFriends()");
+    await trace.start();
     setState(() => refreshing = true);
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       // TODO: make this an actual mutual friends endpoint (once i learn graph shit from cs130a)
-      log("Retrieved suggested users");
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        User user = User.fromJson(jsonDecode(response.body)["data"][i]);
+      log("[add_friend_page] Retrieved suggested users");
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        User user = User.fromJson(responseJson["data"][i]);
         if (user.id != currentUser.id && !friends.any((element) => element.user.id == user.id)) {
           setState(() {
             suggestedFriends.add(user);
@@ -179,9 +189,10 @@ class _AddFriendPageState extends State<AddFriendPage> {
         refreshing = false;
       });
     } else {
-      log(response.body, LogLevel.error);
-      // TODO: show error snackbar
+      log("[add_friend_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to get suggested friends!");
     }
+    trace.stop();
   }
 
   @override

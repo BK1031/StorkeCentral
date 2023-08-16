@@ -4,9 +4,9 @@ import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/notification.dart' as sc;
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -42,15 +42,15 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       setState(() => loading = true);
       await AuthService.getAuthToken();
-      await http.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
-          notifications = jsonDecode(value.body)["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
+          notifications = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         });
       });
     } catch(err) {
-      // TODO: Show error snackbar
-      log(err.toString(), LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to mark notification as read");
+      log("[notifications_page] {err.toString()}", LogLevel.error);
     }
     setState(() => loading = false);
   }
@@ -62,10 +62,10 @@ class _NotificationPageState extends State<NotificationPage> {
     });
     try {
       await AuthService.getAuthToken();
-      await http.post(Uri.parse("$API_HOST/notifications"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(notification));
+      await httpClient.post(Uri.parse("$API_HOST/notifications"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(notification));
     } catch(err) {
-      // TODO: Show error snackbar
-      log(err.toString(), LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to mark notification as read");
+      log("[notifications_page] ${err.toString()}", LogLevel.error);
     }
   }
 

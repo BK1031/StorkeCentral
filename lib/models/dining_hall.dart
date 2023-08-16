@@ -19,10 +19,15 @@ class DiningHall {
   DiningHall();
 
   pictureFromId(String id) {
-    if (id == "carrillo") return "images/carrillo.jpeg";
-    else if (id == "de-la-guerra") return "images/de-la-guerra.jpeg";
-    else if (id == "ortega") return "images/ortega.jpeg";
-    else if (id == "portola") return "images/portola.jpeg";
+    if (id == "carrillo") {
+      return "images/carrillo.jpeg";
+    } else if (id == "de-la-guerra") {
+      return "images/de-la-guerra.jpeg";
+    } else if (id == "ortega") {
+      return "images/ortega.jpeg";
+    } else if (id == "portola") {
+      return "images/portola.jpeg";
+    }
   }
 
   DiningHall.fromJson(Map<String, dynamic> json) {

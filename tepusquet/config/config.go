@@ -22,8 +22,10 @@ var DiscordToken = os.Getenv("DISCORD_TOKEN")
 var DiscordGuild = os.Getenv("DISCORD_GUILD")
 var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
 
+var CredEncryptionKey = os.Getenv("CRED_ENCRYPTION_KEY")
+var UpNextUpdateDelay = os.Getenv("UPNEXT_UPDATE_DELAY")
+var NotificationUpdateDelay = os.Getenv("NOTIFICATION_UPDATE_DELAY")
+
 var StatusEmail = os.Getenv("STATUS_EMAIL")
 
 var FirebaseServiceAccountEncoded = os.Getenv("FIREBASE_SERVICE_ACCOUNT")
-
-var CredEncryptionKey = os.Getenv("CRED_ENCRYPTION_KEY")

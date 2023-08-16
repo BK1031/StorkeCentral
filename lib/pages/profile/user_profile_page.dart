@@ -1,12 +1,16 @@
+// ignore_for_file: use_build_context_synchronously, duplicate_ignore
+
 import 'dart:convert';
 
-import 'package:cool_alert/cool_alert.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_performance/firebase_performance.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:storke_central/models/friend.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -44,21 +48,30 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void getUser() async {
+    Trace trace = FirebasePerformance.instance.newTrace("getUser()");
+    await trace.start();
+    // Check if user is already stored in friends list
+    if (friends.any((element) => element.id.contains(userID))) {
+      setState(() {
+        user = friends.firstWhere((element) => element.id.contains(userID)).user;
+      });
+    }
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
-        user = User.fromJson(jsonDecode(response.body)["data"]);
+        user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
       });
-      log("====== USER PROFILE INFO ======");
-      log("FIRST NAME: ${user.firstName}");
-      log("LAST NAME: ${user.lastName}");
-      log("EMAIL: ${user.email}");
-      log("====== =============== ======");
+      log("[user_profile_page] ====== USER PROFILE INFO ======");
+      log("[user_profile_page] FIRST NAME: ${user.firstName}");
+      log("[user_profile_page] LAST NAME: ${user.lastName}");
+      log("[user_profile_page] EMAIL: ${user.email}");
+      log("[user_profile_page] ====== =============== ======");
     }
     else {
-      log("Account not found!");
+      log("[user_profile_page] Account not found!");
     }
+    trace.stop();
   }
   
   String getFriendshipStatus() {
@@ -72,12 +85,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } else if (requests.any((element) => element.fromUserID == userID)) {
       status = "PENDING";
     }
-    log("FRIENDSHIP STATUS: $status");
+    log("[user_profile_page] FRIENDSHIP STATUS: $status");
     return status;
   }
 
   bool showPronouns() {
-    log("PRONOUNS: ${user.privacy.pronouns}");
+    log("[user_profile_page] PRONOUNS: ${user.privacy.pronouns}");
     if (user.pronouns != "") {
       if (user.privacy.pronouns == "PUBLIC") {
         return true;
@@ -89,7 +102,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   bool showEmail() {
-    log("EMAIL: ${user.privacy.email}");
+    log("[user_profile_page] EMAIL: ${user.privacy.email}");
     if (user.email != "") {
       if (user.privacy.email == "PUBLIC") {
         return true;
@@ -101,7 +114,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   bool showPhoneNumber() {
-    log("PHONE NUMBER: ${user.privacy.phoneNumber}");
+    log("[user_profile_page] PHONE NUMBER: ${user.privacy.phoneNumber}");
     if (user.phoneNumber != "") {
       if (user.privacy.phoneNumber == "PUBLIC") {
         return true;
@@ -117,45 +130,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> acceptFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() => loading = true);
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Friend request accepted!");
+      log("[user_profile_page] Friend request accepted!");
       setState(() {
         requests.removeWhere((element) => element.id == friend.id);
         friends.add(friend);
       });
       updateUserFriendsList();
-      // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.success,
-          title: "Friend Request Accepted",
-          widget: Text("You are now friends with ${friend.user.firstName}!"),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_GREEN,
-          confirmBtnText: "OK"
-      );
+      AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
-      log(response.body, LogLevel.error);
-      // ignore: use_build_context_synchronously
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Friend Request Error",
-          widget: Text(response.body.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      log("[user_profile_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to accept friend request!");
     }
     setState(() => loading = false);
+    trace.stop();
   }
 
   Future<void> requestFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("requestFriend()");
+    await trace.start();
     Friend friend = Friend();
     friend.id = "${currentUser.id}-${user.id}";
     friend.fromUserID = currentUser.id;
@@ -165,44 +165,51 @@ class _UserProfilePageState extends State<UserProfilePage> {
     await AuthService.getAuthToken();
     var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("Sent friend request");
+      log("[user_profile_page] Sent friend request");
       setState(() {
         requests.add(friend);
       });
       updateUserFriendsList();
     } else {
-      log(response.body, LogLevel.error);
-      // TODO: show error snackbar
+      log("[user_profile_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to send friend request!");
     }
     setState(() => loading = false);
+    trace.stop();
   }
 
   Future<void> removeFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("removeFriend()");
+    await trace.start();
     Friend friend = friends.where((element) => element.id.contains(user.id)).first;
     setState(() => loading = true);
     await AuthService.getAuthToken();
     var response = await http.delete(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${friend.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Friend removed!");
+      log("[user_profile_page] Friend removed!");
       setState(() {
         friends.removeWhere((element) => element.id == friend.id);
       });
       updateUserFriendsList();
     } else {
-      log(response.body, LogLevel.error);
+      log("[user_profile_page] ${response.body}", LogLevel.error);
     }
     setState(() => loading = false);
+    trace.stop();
   }
 
   Future<void> updateUserFriendsList() async {
+    Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
+    await trace.start();
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      log("Successfully updated local friend list");
+      log("[user_profile_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      for (int i = 0; i < jsonDecode(response.body)["data"].length; i++) {
-        Friend friend = Friend.fromJson(jsonDecode(response.body)["data"][i]);
+      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      for (int i = 0; i < responseJson["data"].length; i++) {
+        Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
           requests.add(friend);
         } else if (friend.status == "ACCEPTED") {
@@ -214,9 +221,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
       });
     } else {
-      log(response.body, LogLevel.error);
-      // TODO: show error snackbar
+      log("[user_profile_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
+    trace.stop();
   }
   
   @override
@@ -263,6 +271,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             const Padding(padding: EdgeInsets.all(4)),
             Text(
+              // user.bio != "" ? utf8.decode(user.bio.runes.toList()) : "No bio",
               user.bio != "" ? user.bio : "No bio",
               style: const TextStyle(fontSize: 18),
             ),
@@ -362,19 +371,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ],
                     ),
                     onPressed: () {
-                      CoolAlert.show(
-                        context: context,
-                        type: CoolAlertType.confirm,
-                        title: "Remove friend?",
-                        widget: Text("Are you sure you want to remove ${user.firstName} as a friend?"),
-                        backgroundColor: SB_NAVY,
-                        confirmBtnColor: SB_RED,
-                        confirmBtnText: "Yes",
-                        onConfirmBtnTap: () {
-                          removeFriend(user);
-                          router.pop(context);
-                        }
-                      );
+                      removeFriend(user);
                     },
                   ),
                 ),
@@ -408,7 +405,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   title: const Text("View Schedule"),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded),
                   onTap: () {
-                    router.navigateTo(context, "/schedule/user/${user.id}");
+                    router.navigateTo(context, "/schedule/user/${user.id}", transition: TransitionType.native);
                   },
                 )
               ),

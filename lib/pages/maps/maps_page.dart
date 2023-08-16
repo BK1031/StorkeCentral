@@ -98,8 +98,8 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
       distance = Geolocator.distanceBetween(currentPosition!.latitude, currentPosition!.longitude, lat, long);
       return distance;
     } catch(err) {
-      // TODO: Show error snackbar
-      log(err.toString(), LogLevel.error);
+      // Silently fail
+      log("[maps_page] ${err.toString()}", LogLevel.error);
     }
     return distance;
   }
@@ -125,7 +125,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
   
   void selectBuilding(Building building) {
     mapController?.removeSymbols(mapController!.symbols);
-    log("Selected building ${building.name}", LogLevel.info);
+    log("[maps_page] Selected building ${building.name}", LogLevel.info);
     setState(() {
       selectedBuilding = building;
       _buildingSelected = true;

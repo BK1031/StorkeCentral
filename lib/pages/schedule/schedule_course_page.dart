@@ -48,7 +48,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
         });
       }
     }
-    log("Found ${scheduleItems.length} schedule items for this course");
+    log("[schedule_course_page] Found ${scheduleItems.length} schedule items for this course");
     getBuildings();
   }
 

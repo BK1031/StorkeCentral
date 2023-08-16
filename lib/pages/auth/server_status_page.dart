@@ -23,7 +23,15 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
   Timer? timer;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
+    super.initState();
     getAllServiceStatuses();
     timer = Timer.periodic(const Duration(seconds: 5), (Timer t) => getAllServiceStatuses());
   }
@@ -55,14 +63,14 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
     }
     try {
       var serviceStatus = await http.get(Uri.parse("$API_HOST/$service/ping"));
-      log("$service: ${serviceStatus.statusCode}");
+      log("[server_status_page] $service: ${serviceStatus.statusCode}");
       if (mounted) {
         setState(() {
           status[service] = serviceStatus.statusCode == 200 ? "ONLINE" : "OFFLINE";
         });
       }
     } catch (err) {
-      log("$service: $err");
+      log("[server_status_page] $service: $err");
       if (mounted) {
         setState(() {
           status[service] = "OFFLINE";

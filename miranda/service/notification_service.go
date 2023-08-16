@@ -41,6 +41,7 @@ func GetNotificationByID(notificationID string) model.Notification {
 func CreateNotification(notification model.Notification) error {
 	if DB.Where("id = ?", notification.ID).Updates(&notification).RowsAffected == 0 {
 		utils.SugarLogger.Infoln("New notification created with id: " + notification.ID)
+		go Discord.ChannelMessageSend(config.DiscordChannel, "New notification just created by "+notification.Sender+" for user "+notification.UserID)
 		if result := DB.Create(&notification); result.Error != nil {
 			return result.Error
 		}
