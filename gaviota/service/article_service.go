@@ -3,9 +3,9 @@ package service
 import (
 	"crypto/rand"
 	"gaviota/model"
+	"gaviota/utils"
+	colly "github.com/gocolly/colly/v2"
 )
-
-import colly "github.com/gocolly/colly/v2"
 
 func GetAllArticles() []model.Article {
 	var articles []model.Article
@@ -33,13 +33,13 @@ func GetLatestArticle() model.Article {
 
 func CreateArticle(article model.Article) error {
 	if DB.Where("id = ?", article.ID).Updates(&article).RowsAffected == 0 {
-		println("New article created with id: " + article.ID)
+		utils.SugarLogger.Infoln("New article created with id: " + article.ID)
 		if result := DB.Create(&article); result.Error != nil {
 			return result.Error
 		}
 		DiscordLogNewArticle(article)
 	} else {
-		println("Article with id: " + article.ID + " has been updated!")
+		utils.SugarLogger.Infoln("Article with id: " + article.ID + " has been updated!")
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func FetchLatestArticle() model.Article {
 	article.ID = GenerateArticleID(10)
 	c.Visit("https://dailynexus.com/")
 	if article.Title == GetLatestArticle().Title {
-		println("No new headlines, latest is still: \"" + article.Title + "\"")
+		utils.SugarLogger.Infoln("No new headlines, latest is still: \"" + article.Title + "\"")
 		return article
 	}
 	_ = CreateArticle(article)

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"tepusquet/model"
-	"time"
+	"tepusquet/utils"
 )
 
 func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter string) []model.UserCourse {
@@ -20,19 +20,19 @@ func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter stri
 	page.MustElement("#pageContent_loginButton").MustClick()
 
 	page.Race().Element("#Li0 > a").MustHandle(func(e *rod.Element) {
-		println("Logged in successfully as " + credential.Username + "@ucsb.edu")
+		utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
 		page.MustWaitIdle().MustNavigate("https://my.sa.ucsb.edu/gold/StudentSchedule.aspx")
 		//page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
 		page.MustWaitIdle()
-		println("Found schedule grid")
+		utils.SugarLogger.Infoln("Found schedule grid")
 		page.Eval("$('#ctl00_pageContent_quarterDropDown option[value=\"" + quarter + "\"]').attr(\"selected\", \"selected\").change();")
 		//page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
 		page.MustWaitIdle()
-		println("Selected quarter " + quarter)
+		utils.SugarLogger.Infoln("Selected quarter " + quarter)
 		courseElements := page.MustElements("div.col-sm-3.col-xs-4")
-		println("Found " + strconv.Itoa(len(courseElements)) + " courses")
+		utils.SugarLogger.Infoln("Found " + strconv.Itoa(len(courseElements)) + " courses")
 		for _, courseElement := range courseElements {
-			println(courseElement.MustText())
+			utils.SugarLogger.Infoln(courseElement.MustText())
 			courses = append(courses, model.UserCourse{
 				UserID:   credential.UserID,
 				CourseID: courseElement.MustText(),
@@ -41,7 +41,7 @@ func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter stri
 		}
 	}).Element("#pageContent_errorLabel > ul").MustHandle(func(e *rod.Element) {
 		// Wrong username/password
-		println(e.MustText())
+		utils.SugarLogger.Infoln(e.MustText())
 		courses = append(courses, model.UserCourse{
 			UserID: "AUTH ERROR",
 		})

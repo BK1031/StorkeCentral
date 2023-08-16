@@ -4,18 +4,29 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"lacumbre/config"
 	"lacumbre/model"
 	"lacumbre/service"
+	"lacumbre/utils"
 	"net/http"
 )
 
 func GetFriendsForUser(c *gin.Context) {
+	// Start tracing span
+	span := utils.BuildSpan(c.Request.Context(), "GetFriendsForUser", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
 	result := service.GetFriendsForUser(c.Param("userID"))
 	c.JSON(http.StatusOK, result)
 }
 
 func CreateFriendRequest(c *gin.Context) {
+	// Start tracing span
+	span := utils.BuildSpan(c.Request.Context(), "CreateFriendRequest", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
 	var input model.Friend
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -25,7 +36,7 @@ func CreateFriendRequest(c *gin.Context) {
 	to := service.GetUserByID(input.ToUserID)
 	if from.ID != "" && to.ID != "" {
 		if service.GetFriendRequestByID(input.ID).ID != "" {
-			println("Friend request already exists, updating request in db...")
+			utils.SugarLogger.Errorln("Friend request already exists, updating request in db...")
 			if err := service.UpdateFriendRequest(input); err != nil {
 				c.JSON(http.StatusInternalServerError, err)
 				return
@@ -48,7 +59,7 @@ func CreateFriendRequest(c *gin.Context) {
 				service.SendMirandaNotification(mirandaBody)
 			}
 		} else {
-			println("Creating new friend request...")
+			utils.SugarLogger.Errorln("Creating new friend request...")
 			if err := service.CreateFriendRequest(input); err != nil {
 				c.JSON(http.StatusInternalServerError, err)
 				return
@@ -76,6 +87,10 @@ func CreateFriendRequest(c *gin.Context) {
 }
 
 func DeleteFriendRequest(c *gin.Context) {
+	// Start tracing span
+	span := utils.BuildSpan(c.Request.Context(), "DeleteFriendRequest", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
 	if err := service.DeleteFriendRequest(c.Param("requestID")); err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return

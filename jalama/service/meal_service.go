@@ -2,10 +2,10 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	resty "github.com/go-resty/resty/v2"
 	"jalama/config"
 	"jalama/model"
+	"jalama/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -55,11 +55,10 @@ func FetchAllMealsForDay(date string) []model.Meal {
 		EnableTrace().
 		SetHeader("ucsb-api-key", config.UcsbApiKey).
 		Get("https://api.ucsb.edu/dining/commons/v1/hours/" + queryDate)
-	fmt.Println("Response Info:")
-	fmt.Println("  Error      :", err)
-	fmt.Println("  Status Code:", resp.StatusCode())
-	fmt.Println("  Time       :", resp.Time())
-	fmt.Println()
+	utils.SugarLogger.Infoln("Response Info:")
+	utils.SugarLogger.Infoln("  Error      :", err)
+	utils.SugarLogger.Infoln("  Status Code:", resp.StatusCode())
+	utils.SugarLogger.Infoln("  Time       :", resp.Time())
 
 	var responseMap []map[string]interface{}
 	json.Unmarshal(resp.Body(), &responseMap)
@@ -110,22 +109,21 @@ func FetchAllMealsForDay(date string) []model.Meal {
 func FetchMenuForMeal(mealID string) {
 	meal := GetMealByID(mealID)
 	mealDate := strings.Split(mealID, meal.Name+"-")[1]
-	fmt.Println(mealDate)
+	utils.SugarLogger.Infoln(mealDate)
 	// mealDate in the format of "YYYY-MM-DD"
 	queryDate := strings.Split(mealDate, "-")[1] + "-" + strings.Split(mealDate, "-")[2] + "-" + strings.Split(mealDate, "-")[0]
 	// queryDate in the format of "MM-DD-YYYY"
-	fmt.Println(queryDate)
+	utils.SugarLogger.Infoln(queryDate)
 
 	client := resty.New()
 	resp, err := client.R().
 		EnableTrace().
 		SetHeader("ucsb-api-key", config.UcsbApiKey).
 		Get("https://api.ucsb.edu/dining/menu/v1/" + queryDate + "/" + meal.DiningHallID + "/" + meal.Name)
-	fmt.Println("Response Info:")
-	fmt.Println("  Error      :", err)
-	fmt.Println("  Status Code:", resp.StatusCode())
-	fmt.Println("  Time       :", resp.Time())
-	fmt.Println()
+	utils.SugarLogger.Infoln("Response Info:")
+	utils.SugarLogger.Infoln("  Error      :", err)
+	utils.SugarLogger.Infoln("  Status Code:", resp.StatusCode())
+	utils.SugarLogger.Infoln("  Time       :", resp.Time())
 
 	var responseMap []map[string]interface{}
 	json.Unmarshal(resp.Body(), &responseMap)

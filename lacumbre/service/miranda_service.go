@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"lacumbre/utils"
 	"net/http"
 )
 
@@ -10,8 +11,8 @@ func SendMirandaNotification(mirandaBody []byte) {
 	responseBody := bytes.NewBuffer(mirandaBody)
 	_, err := http.Post("http://miranda"+":"+"4007"+"/notifications", "application/json", responseBody)
 	if err != nil {
-		println("Error sending notification :(" + err.Error())
+		utils.SugarLogger.Errorln("Error sending notification :(" + err.Error())
 	} else {
-		println("Sent notification to Miranda!")
+		utils.SugarLogger.Infoln("Sent notification to Miranda!")
 	}
 }

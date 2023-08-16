@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
 	"tepusquet/config"
 	"tepusquet/model"
+	"tepusquet/utils"
 	"time"
 )
 
@@ -20,17 +20,16 @@ func InitializeDB() {
 	if err != nil {
 		if dbRetries < 15 {
 			dbRetries++
-			println("failed to connect database, retrying in 5s... ")
+			utils.SugarLogger.Errorln("failed to connect database, retrying in 5s... ")
 			time.Sleep(time.Second * 5)
 			InitializeDB()
 		} else {
-			println("failed to connect database after 15 attempts, terminating program...")
-			os.Exit(100)
+			utils.SugarLogger.Fatalln("failed to connect database after 15 attempts, terminating program...")
 		}
 	} else {
-		println("Connected to postgres database")
-		db.AutoMigrate(&model.UserCourse{}, &model.UserCredential{}, &model.UserScheduleItem{}, &model.UserUpNext{}, &model.UserPasstime{})
-		println("AutoMigration complete")
+		utils.SugarLogger.Infoln("Connected to postgres database")
+		db.AutoMigrate(&model.UserCourse{}, model.UserCredential{}, model.UserScheduleItem{})
+		utils.SugarLogger.Infoln("AutoMigration complete")
 		DB = db
 	}
 }

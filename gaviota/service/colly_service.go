@@ -1,20 +1,20 @@
 package service
 
 import (
-	"github.com/gocolly/colly/v2"
-	"log"
+	"gaviota/utils"
+	colly "github.com/gocolly/colly/v2"
 )
 
 var collyCollector = colly.NewCollector()
 
 func InitializeColly() {
 	collyCollector.OnRequest(func(r *colly.Request) {
-		log.Println("Visiting", r.URL.String())
+		utils.SugarLogger.Infoln("Visiting", r.URL.String())
 	})
 	collyCollector.OnResponse(func(r *colly.Response) {
-		log.Println("response received", r.StatusCode)
+		utils.SugarLogger.Infoln("response received", r.StatusCode)
 	})
 	collyCollector.OnError(func(r *colly.Response, err error) {
-		log.Println("error:", r.StatusCode, err)
+		utils.SugarLogger.Errorln("error:", r.StatusCode, err)
 	})
 }

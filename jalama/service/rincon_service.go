@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"jalama/config"
+	"jalama/utils"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
@@ -23,25 +23,28 @@ func RegisterRincon() {
 		"status_email": config.StatusEmail,
 	})
 	responseBody := bytes.NewBuffer(rinconBody)
-	_, err := http.Post(rinconHost+":"+config.RinconPort+"/services", "application/json", responseBody)
+	res, err := http.Post(rinconHost+":"+config.RinconPort+"/services", "application/json", responseBody)
 	if err != nil {
 		if rinconRetries < 15 {
 			rinconRetries++
 			if rinconRetries%2 == 0 {
 				rinconHost = "http://localhost"
-				println("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
+				utils.SugarLogger.Errorln("failed to register with rincon, retrying with \"http://localhost\" in 5s...")
 			} else {
 				rinconHost = "http://rincon"
-				println("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
+				utils.SugarLogger.Errorln("failed to register with rincon, retrying with \"http://rincon\" in 5s...")
 			}
 			time.Sleep(time.Second * 5)
 			RegisterRincon()
 		} else {
-			println("failed to register with rincon after 15 attempts, terminating program...")
-			os.Exit(100)
+			utils.SugarLogger.Fatalln("failed to register with rincon after 15 attempts, terminating program...")
 		}
 	} else {
-		println("Registered service with Rincon!")
+		defer res.Body.Close()
+		if res.StatusCode == 200 {
+			json.NewDecoder(res.Body).Decode(&config.Service)
+		}
+		utils.SugarLogger.Infoln("Registered service with Rincon! Service ID: " + strconv.Itoa(config.Service.ID))
 		RegisterRinconRoute("/jalama")
 		RegisterRinconRoute("/dining")
 	}
@@ -56,5 +59,5 @@ func RegisterRinconRoute(route string) {
 	_, err := http.Post(rinconHost+":"+config.RinconPort+"/routes", "application/json", responseBody)
 	if err != nil {
 	}
-	println("Registered route " + route)
+	utils.SugarLogger.Infoln("Registered route " + route)
 }

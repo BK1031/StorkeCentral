@@ -1,6 +1,9 @@
 package service
 
-import "arguello/model"
+import (
+	"arguello/model"
+	"arguello/utils"
+)
 
 func GetAllBuildings() []model.Building {
 	var buildings []model.Building
@@ -20,12 +23,12 @@ func GetBuildingByID(buildingID string) model.Building {
 
 func CreateBuilding(building model.Building) error {
 	if DB.Where("id = ?", building.ID).Updates(&building).RowsAffected == 0 {
-		println("New building created with id: " + building.ID)
+		utils.SugarLogger.Infoln("New building created with id: " + building.ID)
 		if result := DB.Create(&building); result.Error != nil {
 			return result.Error
 		}
 	} else {
-		println("Building with id: " + building.ID + " has been updated!")
+		utils.SugarLogger.Infoln("Building with id: " + building.ID + " has been updated!")
 	}
 	return nil
 }

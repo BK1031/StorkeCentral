@@ -5,6 +5,7 @@ import (
 	"rincon/config"
 	"rincon/controller"
 	"rincon/service"
+	"rincon/utils"
 )
 
 var router *gin.Engine
@@ -15,18 +16,24 @@ func setupRouter() *gin.Engine {
 	}
 	r := gin.Default()
 	r.Use(controller.RequestLogger())
+	r.Use(utils.JaegerPropogator())
 	return r
 }
 
 func main() {
+	utils.InitializeLogger()
+	defer utils.Logger.Sync()
+
 	router = setupRouter()
 	service.InitializeDB()
-	service.SetupGomailClient()
 	service.ConnectDiscord()
-	controller.InitializeRoutes(router)
 	controller.RegisterSelf()
+	service.SetupGomailClient()
 	if config.Env == "PROD" {
 		controller.RegisterStatusCronJob()
 	}
+	utils.InitializeJaeger()
+
+	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)
 }

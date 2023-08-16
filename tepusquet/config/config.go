@@ -1,13 +1,17 @@
 package config
 
-import "os"
+import (
+	"os"
+	"tepusquet/model"
+)
 
-var Version = "1.6.5"
+var Service = model.Service{}
+
+var Version = "1.5.2"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
-var CurrentQuarter = os.Getenv("CURRENT_QUARTER")
-var CurrentPassQuarter = os.Getenv("CURRENT_PASS_QUARTER")
+var JaegerPort = os.Getenv("JAEGER_PORT")
 
 var PostgresHost = os.Getenv("POSTGRES_HOST")
 var PostgresUser = os.Getenv("POSTGRES_USER")

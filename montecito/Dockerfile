@@ -1,13 +1,31 @@
-FROM maven:3.8.5-openjdk-17 as builder
+FROM golang:1.20-alpine3.17 as builder
 
-# Go to usr/local/app and copy files into it
-WORKDIR /usr/local/app
+ENV GOOS=linux
+
+RUN apk --no-cache add ca-certificates
+RUN apk add --no-cache tzdata
+
+WORKDIR /app
+
+COPY go.mod ./
+COPY go.sum ./
+
+RUN go mod download
+
 COPY . ./
 
-RUN mvn -Dmaven.test.skip=true package
+RUN go build -o /montecito
 
-FROM openjdk:17.0
-WORKDIR /usr/local/app
-COPY --from=builder /usr/local/app/target/montecito-1.0-SNAPSHOT-jar-with-dependencies.jar ./montecito.jar
+##
+## Deploy
+##
+FROM alpine:3.17
 
-CMD [ "java", "-jar", "montecito.jar" ]
+WORKDIR /
+
+COPY --from=builder /montecito /montecito
+
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=America/Los_Angeles
+
+ENTRYPOINT ["/montecito"]
