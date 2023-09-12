@@ -36,7 +36,7 @@ func InitializeDB() {
 
 func GetEmailFromID(userID string) string {
 	var email string
-	result := DB.Table("user").Where("user_id = ?", userID).Select("email").Row().Scan(&email)
+	result := DB.Table("user").Where("id = ?", userID).Select("email").Row().Scan(&email)
 	if result != nil {
 	}
 	return email
@@ -44,7 +44,7 @@ func GetEmailFromID(userID string) string {
 
 func GetUsernameFromID(userID string) string {
 	var username string
-	result := DB.Table("user").Where("user_id = ?", userID).Select("username").Row().Scan(&username)
+	result := DB.Table("user").Where("id = ?", userID).Select("username").Row().Scan(&username)
 	if result != nil {
 	}
 	return username
