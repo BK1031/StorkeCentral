@@ -20,7 +20,6 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/*all", GetProxy)
 	router.POST("/*all", PostProxy)
 	router.DELETE("/*all", DeleteProxy)
-	//router.GET("/montecito/ping", Ping)
 }
 
 func CorsHandler() gin.HandlerFunc {
@@ -69,16 +68,7 @@ func ResponseLogger() gin.HandlerFunc {
 func MontecitoRoutes() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.URL.String() == "/montecito/ping" {
-			startTime, _ := c.Get("startTime")
 			Ping(c)
-			c.AbortWithStatusJSON(200, model.Response{
-				Status:    "ERROR",
-				Ping:      strconv.FormatInt(time.Now().Sub(startTime.(time.Time)).Milliseconds(), 10) + "ms",
-				Gateway:   "Montecito v" + config.Version,
-				Service:   "Montecito v" + config.Version,
-				Timestamp: time.Now().Format("Mon Jan 02 15:04:05 MST 2006"),
-				Data:      json.RawMessage("{\"message\": \"Montecito v" + config.Version + " is online!\"}"),
-			})
 			return
 		}
 		c.Next()
@@ -87,6 +77,11 @@ func MontecitoRoutes() gin.HandlerFunc {
 
 func APIKeyChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if strings.HasSuffix(c.Request.URL.String(), "/ping") {
+			c.Next()
+			return
+		}
+
 		apiKey := service.VerifyAPIKey(c.GetHeader("SC-API-KEY"))
 
 		if apiKey.ID == "" {
@@ -126,7 +121,6 @@ func AuthChecker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var requestUserID string
-		// var requestUserRoles []string
 
 		ctx := context.Background()
 		client, err := service.FirebaseAdmin.Auth(ctx)
@@ -141,17 +135,12 @@ func AuthChecker() gin.HandlerFunc {
 			} else {
 				utils.SugarLogger.Infoln("Decoded User ID: " + token.UID)
 				requestUserID = token.UID
-				// TODO: Get user roles from lacumbre
-				// roles := service.GetRolesForUser(requestUserID)
-				// for _, role := range roles {
-				//	requestUserRoles = append(requestUserRoles, role.Role)
-				// }
 			}
 		} else {
 			utils.SugarLogger.Infoln("No user token provided")
 			requestUserID = "null"
 		}
-		utils.SugarLogger.Infoln("STUB: " + requestUserID)
+		c.Set("userID", requestUserID)
 		// The main authentication gateway per request path
 		// The requesting user's ID and roles are pulled and used below
 		// Any path can also be quickly halted if not ready for prod
