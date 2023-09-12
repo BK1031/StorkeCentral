@@ -20,8 +20,7 @@ func InitializeFirebase() {
 	}
 	ctx := context.Background()
 	conf := &firebase.Config{
-		DatabaseURL: "https://storke-central.firebaseio.com",
-		ProjectID:   "storke-central",
+		ProjectID: config.FirebaseProjectID,
 	}
 	opt := option.WithCredentialsJSON(decoded)
 	app, err := firebase.NewApp(ctx, conf, opt)
