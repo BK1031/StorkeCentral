@@ -47,6 +47,7 @@ func PostProxy(c *gin.Context) {
 				utils.SugarLogger.Errorln("Failed to read request body: " + err.Error())
 			}
 			proxyRequest.Body = io.NopCloser(bytes.NewBuffer(requestBodyBytes))
+			proxyRequest = proxyRequest.WithContext(oteltrace.ContextWithSpan(c.Request.Context(), span))
 			// Proxy the actual request
 			proxyResponse, err := proxyClient.Do(proxyRequest)
 			if err != nil {

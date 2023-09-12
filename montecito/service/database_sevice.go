@@ -33,3 +33,19 @@ func InitializeDB() {
 		DB = db
 	}
 }
+
+func GetEmailFromID(userID string) string {
+	var email string
+	result := DB.Table("user").Where("user_id = ?", userID).Select("email").Row().Scan(&email)
+	if result != nil {
+	}
+	return email
+}
+
+func GetUsernameFromID(userID string) string {
+	var username string
+	result := DB.Table("user").Where("user_id = ?", userID).Select("username").Row().Scan(&username)
+	if result != nil {
+	}
+	return username
+}

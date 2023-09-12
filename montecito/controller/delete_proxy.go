@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
@@ -39,6 +40,14 @@ func DeleteProxy(c *gin.Context) {
 					proxyRequest.Header.Add(header, value)
 				}
 			}
+			// Transfer body to proxy request
+			var requestBodyBytes []byte
+			requestBodyBytes, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				utils.SugarLogger.Errorln("Failed to read request body: " + err.Error())
+			}
+			proxyRequest.Body = io.NopCloser(bytes.NewBuffer(requestBodyBytes))
+			proxyRequest = proxyRequest.WithContext(oteltrace.ContextWithSpan(c.Request.Context(), span))
 			// Proxy the actual request
 			proxyResponse, err := proxyClient.Do(proxyRequest)
 			if err != nil {
