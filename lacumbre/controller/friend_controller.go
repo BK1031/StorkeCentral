@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
@@ -42,21 +41,21 @@ func CreateFriendRequest(c *gin.Context) {
 				return
 			}
 			if input.Status == "ACCEPTED" {
-				service.Discord.ChannelMessageSend(config.DiscordChannel, from.String()+" is now friends with "+to.String())
-				mirandaBody, _ := json.Marshal(map[string]interface{}{
-					"id":          uuid.New(),
-					"user_id":     from.ID,
-					"sender":      "Lacumbre",
-					"title":       "Friend request accepted!",
-					"body":        to.FirstName + " accepted your friend request!",
-					"picture_url": to.ProfilePictureURL,
-					"launch_url":  "",
-					"route":       "/profile/user/" + to.ID,
-					"priority":    "HIGH",
-					"push":        true,
-					"read":        false,
-				})
-				service.SendMirandaNotification(mirandaBody)
+				go service.Discord.ChannelMessageSend(config.DiscordChannel, from.String()+" is now friends with "+to.String())
+				notification := service.MirandaNotification{
+					ID:         uuid.New().String(),
+					UserID:     from.ID,
+					Sender:     config.Service.Name,
+					Title:      "Friend request accepted!",
+					Body:       to.FirstName + " accepted your friend request!",
+					PictureUrl: to.ProfilePictureURL,
+					LaunchUrl:  "",
+					Route:      "/profile/user/" + to.ID,
+					Priority:   "HIGH",
+					Push:       true,
+					Read:       false,
+				}
+				go service.SendMirandaNotification(notification, c.GetHeader("Request-ID"), "")
 			}
 		} else {
 			utils.SugarLogger.Errorln("Creating new friend request...")
@@ -64,25 +63,25 @@ func CreateFriendRequest(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, err)
 				return
 			}
-			service.Discord.ChannelMessageSend(config.DiscordChannel, from.String()+" just sent a friend request to "+to.String())
-			mirandaBody, _ := json.Marshal(map[string]interface{}{
-				"id":          uuid.New(),
-				"user_id":     to.ID,
-				"sender":      "Lacumbre",
-				"title":       "New friend request!",
-				"body":        from.FirstName + " just sent you a friend request!",
-				"picture_url": from.ProfilePictureURL,
-				"launch_url":  "",
-				"route":       "/profile/user/" + from.ID,
-				"priority":    "HIGH",
-				"push":        true,
-				"read":        false,
-			})
-			service.SendMirandaNotification(mirandaBody)
+			go service.Discord.ChannelMessageSend(config.DiscordChannel, from.String()+" just sent a friend request to "+to.String())
+			notification := service.MirandaNotification{
+				ID:         uuid.New().String(),
+				UserID:     to.ID,
+				Sender:     config.Service.Name,
+				Title:      "New friend request!",
+				Body:       from.FirstName + " just sent you a friend request!",
+				PictureUrl: from.ProfilePictureURL,
+				LaunchUrl:  "",
+				Route:      "/profile/user/" + from.ID,
+				Priority:   "HIGH",
+				Push:       true,
+				Read:       false,
+			}
+			go service.SendMirandaNotification(notification, c.GetHeader("Request-ID"), "")
 		}
 		c.JSON(http.StatusOK, service.GetFriendRequestByID(input.ID))
 	} else {
-		c.JSON(http.StatusNotFound, gin.H{"message": "One of more of the requested users do not exist!"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "One or more of the requested users do not exist!"})
 	}
 }
 

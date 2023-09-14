@@ -1,5 +1,10 @@
 package service
 
+import (
+	"github.com/go-resty/resty/v2"
+	"lacumbre/utils"
+)
+
 type MirandaNotification struct {
 	ID         string        `json:"id"`
 	UserID     string        `json:"user_id"`
@@ -15,7 +20,21 @@ type MirandaNotification struct {
 	Data       []interface{} `json:"data"`
 }
 
-func SendMirandaNotification(mirandaBody MirandaNotification) {
-	// TODO: Make this actually get the correct miranda dns value
-
+func SendMirandaNotification(mirandaBody MirandaNotification, requestID string, traceparent string) {
+	mappedService := MatchRoute("miranda", "", "")
+	if mappedService.ID != 0 {
+		client := resty.New()
+		resp, err := client.R().
+			SetBody(mirandaBody).
+			SetHeader("Request-ID", requestID).
+			SetHeader("traceparent", traceparent).
+			Post(mappedService.URL + "/notifications")
+		if err != nil {
+			utils.SugarLogger.Errorln("Failed to send miranda notification: " + err.Error())
+		} else {
+			utils.SugarLogger.Infoln("Sent miranda notification with response: " + resp.Status())
+		}
+	} else {
+		utils.SugarLogger.Errorln("Failed to send miranda notification, no miranda service found!")
+	}
 }
