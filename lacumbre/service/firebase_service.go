@@ -19,8 +19,7 @@ func InitializeFirebase() {
 	}
 	ctx := context.Background()
 	conf := &firebase.Config{
-		DatabaseURL: "https://storke-central.firebaseio.com",
-		ProjectID:   "storke-central",
+		ProjectID: config.FirebaseProjectID,
 	}
 	opt := option.WithCredentialsJSON(decoded)
 	app, err := firebase.NewApp(ctx, conf, opt)
@@ -35,7 +34,7 @@ func FirebaseDBTest() {
 	ctx := context.Background()
 	client, err := FirebaseAdmin.Firestore(ctx)
 	if err != nil {
-		utils.SugarLogger.Fatalln("An error has occurred: %s", err)
+		utils.SugarLogger.Errorln("An error has occurred: %s", err)
 	}
 	client.Collection("testing").Add(ctx, map[string]interface{}{
 		"message":   config.Service.Name + " v" + config.Version + " is online!",
