@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"arguello/model"
 	"arguello/service"
 	"arguello/utils"
 	"github.com/gin-gonic/gin"
@@ -29,4 +30,21 @@ func GetBuildingByID(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, result)
 	}
+}
+
+func CreateBuilding(c *gin.Context) {
+	// Start tracing span
+	span := utils.BuildSpan(c.Request.Context(), "CreateBuilding", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
+	var input model.Building
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	if err := service.CreateBuilding(input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, service.GetBuildingByID(input.ID))
 }

@@ -13,6 +13,7 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/arguello/ping", Ping)
 	router.GET("/maps/buildings", GetAllBuildings)
 	router.GET("/maps/buildings/:buildingID", GetBuildingByID)
+	router.POST("/maps/buildings/:buildingID", CreateBuilding)
 }
 
 func RequestLogger() gin.HandlerFunc {
