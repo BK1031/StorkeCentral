@@ -17,8 +17,10 @@ func InitializeRoutes(router *gin.Engine) {
 	router.GET("/users/:userID/roles", GetRolesForUser)
 	router.POST("/users/:userID/roles", SetRolesForUser)
 	router.GET("/users/:userID/friends", GetFriendsForUser)
-	router.POST("/users/:userID/friends", CreateFriendRequest)
-	router.DELETE("/users/:userID/friends/:requestID", DeleteFriendRequest)
+	router.GET("/users/:userID/friends/:friendID", GetFriendRequestByID)
+	router.POST("/users/:userID/friends/:friendID/request", CreateFriendRequest)
+	router.POST("/users/:userID/friends/:friendID/accept", AcceptFriendRequest)
+	router.DELETE("/users/:userID/friends/:friendID", DeleteFriendRequest)
 	router.GET("/users/:userID/logins", GetUserLogins)
 	router.POST("/users/:userID/logins", CreateUserLogin)
 }
