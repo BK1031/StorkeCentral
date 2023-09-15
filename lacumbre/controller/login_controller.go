@@ -28,7 +28,7 @@ func CreateUserLogin(c *gin.Context) {
 
 	var input model.Login
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	user := service.GetUserByID(input.UserID)

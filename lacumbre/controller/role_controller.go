@@ -26,7 +26,7 @@ func SetRolesForUser(c *gin.Context) {
 
 	var input []model.Role
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	if user := service.GetUserByID(c.Param("userID")); user.ID != "" {

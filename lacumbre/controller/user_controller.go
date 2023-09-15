@@ -39,7 +39,7 @@ func CreateUser(c *gin.Context) {
 
 	var input model.User
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	// Set the user id to ensure that the user can only modify their own account
