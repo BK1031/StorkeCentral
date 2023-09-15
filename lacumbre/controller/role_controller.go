@@ -31,7 +31,7 @@ func SetRolesForUser(c *gin.Context) {
 	}
 	if user := service.GetUserByID(c.Param("userID")); user.ID != "" {
 		if err := service.SetRolesForUser(c.Param("userID"), input); err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, service.GetRolesForUser(c.Param("userID")))

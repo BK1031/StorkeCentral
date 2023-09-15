@@ -45,7 +45,7 @@ func CreateUser(c *gin.Context) {
 	// Set the user id to ensure that the user can only modify their own account
 	input.ID = c.Param("userID")
 	if err := service.CreateUser(input); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, service.GetUserByID(input.ID))

@@ -36,7 +36,7 @@ func CreateUserLogin(c *gin.Context) {
 		utils.SugarLogger.Infoln("New user login recorded")
 		input.ID = uuid.New().String()
 		if err := service.CreateLogin(input); err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
 		go service.Discord.ChannelMessageSend(config.DiscordChannel, user.String()+" just logged in from "+input.DeviceName+" ("+input.DeviceVersion+") – "+input.AppVersion)
