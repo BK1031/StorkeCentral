@@ -33,7 +33,7 @@ func CreateUser(user model.User) error {
 		if result := DB.Create(&user); result.Error != nil {
 			return result.Error
 		}
-		DiscordLogNewUser(user)
+		go DiscordLogNewUser(user)
 	} else {
 		utils.SugarLogger.Infoln("User with id: " + user.ID + " has been updated!")
 	}

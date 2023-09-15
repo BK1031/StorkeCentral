@@ -39,7 +39,7 @@ func CreateUserLogin(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, err)
 			return
 		}
-		service.Discord.ChannelMessageSend(config.DiscordChannel, user.String()+" just logged in from "+input.DeviceName+" ("+input.DeviceVersion+") – "+input.AppVersion)
+		go service.Discord.ChannelMessageSend(config.DiscordChannel, user.String()+" just logged in from "+input.DeviceName+" ("+input.DeviceVersion+") – "+input.AppVersion)
 		c.JSON(http.StatusOK, service.GetLoginByID(input.ID))
 	} else {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Failed to find requested user!"})
