@@ -5,7 +5,7 @@ import (
 	"gaviota/service"
 	"gaviota/utils"
 	"github.com/gin-gonic/gin"
-	cron "github.com/robfig/cron/v3"
+	"github.com/robfig/cron/v3"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"net/http"
@@ -52,15 +52,19 @@ func FetchLatestArticle(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+type ArticleCronJob struct{}
+
+func (acj ArticleCronJob) Run() {
+	_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Article CRON Job")
+	utils.SugarLogger.Infoln("Starting Article CRON Job...")
+	service.FetchLatestArticle()
+	utils.SugarLogger.Infoln("Finished Article CRON Job!")
+	_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Fetched latest headlines!")
+}
+
 func RegisterArticleCronJob() {
 	c := cron.New()
-	entryID, err := c.AddJob(config.ArticleUpdateCron, func() {
-		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Article CRON Job")
-		utils.SugarLogger.Infoln("Starting Article CRON Job...")
-		service.FetchLatestArticle()
-		utils.SugarLogger.Infoln("Finished Article CRON Job!")
-		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Fetched latest headlines!")
-	})
+	entryID, err := c.AddJob(config.ArticleUpdateCron, ArticleCronJob{})
 	if err != nil {
 		utils.SugarLogger.Errorln("Failed to register CRON Job: " + err.Error())
 	}
