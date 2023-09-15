@@ -69,12 +69,13 @@ func RegisterRinconRoute(route string) {
 	utils.SugarLogger.Infoln("Registered route " + route)
 }
 
-func MatchRoute(route string, requestID string) model.Service {
+func MatchRoute(route string, requestID string, traceparent string) model.Service {
 	var service model.Service
 	queryRoute := strings.ReplaceAll(route, "/", "<->")
 	rinconClient := http.Client{}
 	req, _ := http.NewRequest("GET", rinconHost+"/routes/match/"+queryRoute, nil)
 	req.Header.Set("Request-ID", requestID)
+	req.Header.Set("traceparent", traceparent)
 	req.Header.Add("Content-Type", "application/json")
 	res, err := rinconClient.Do(req)
 	if err != nil {
