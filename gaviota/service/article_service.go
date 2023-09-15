@@ -1,10 +1,10 @@
 package service
 
 import (
-	"crypto/rand"
 	"gaviota/model"
 	"gaviota/utils"
 	colly "github.com/gocolly/colly/v2"
+	"github.com/google/uuid"
 )
 
 func GetAllArticles() []model.Article {
@@ -37,7 +37,7 @@ func CreateArticle(article model.Article) error {
 		if result := DB.Create(&article); result.Error != nil {
 			return result.Error
 		}
-		DiscordLogNewArticle(article)
+		go DiscordLogNewArticle(article)
 	} else {
 		utils.SugarLogger.Infoln("Article with id: " + article.ID + " has been updated!")
 	}
@@ -62,7 +62,7 @@ func FetchLatestArticle() model.Article {
 		article.Excerpt = e.ChildText("div.featured-excerpt")
 		article.Date = e.ChildText("div.featured-date-and-category")
 	})
-	article.ID = GenerateArticleID(10)
+	article.ID = uuid.New().String()
 	c.Visit("https://dailynexus.com/")
 	if article.Title == GetLatestArticle().Title {
 		utils.SugarLogger.Infoln("No new headlines, latest is still: \"" + article.Title + "\"")
@@ -70,21 +70,4 @@ func FetchLatestArticle() model.Article {
 	}
 	_ = CreateArticle(article)
 	return GetLatestArticle()
-}
-
-const idChars = "1234567890"
-
-func GenerateArticleID(length int) string {
-	buffer := make([]byte, length)
-	_, err := rand.Read(buffer)
-	if err != nil {
-		return ""
-	}
-
-	otpCharsLength := len(idChars)
-	for i := 0; i < length; i++ {
-		buffer[i] = idChars[int(buffer[i])%otpCharsLength]
-	}
-
-	return string(buffer)
 }

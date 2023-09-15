@@ -54,7 +54,7 @@ func FetchLatestArticle(c *gin.Context) {
 
 func RegisterArticleCronJob() {
 	c := cron.New()
-	entryID, err := c.AddFunc("@every "+config.ArticleUpdateDelay+"s", func() {
+	entryID, err := c.AddJob(config.ArticleUpdateCron, func() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Article CRON Job")
 		utils.SugarLogger.Infoln("Starting Article CRON Job...")
 		service.FetchLatestArticle()
@@ -62,8 +62,8 @@ func RegisterArticleCronJob() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Fetched latest headlines!")
 	})
 	if err != nil {
-		return
+		utils.SugarLogger.Errorln("Failed to register CRON Job: " + err.Error())
 	}
 	c.Start()
-	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled for every " + config.ArticleUpdateDelay + "s")
+	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled for every " + config.ArticleUpdateCron + "s")
 }
