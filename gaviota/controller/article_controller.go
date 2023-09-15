@@ -69,5 +69,5 @@ func RegisterArticleCronJob() {
 		utils.SugarLogger.Errorln("Failed to register CRON Job: " + err.Error())
 	}
 	c.Start()
-	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled for every " + config.ArticleUpdateCron + "s")
+	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled with cron expression: " + config.ArticleUpdateCron)
 }
