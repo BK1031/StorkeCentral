@@ -50,7 +50,7 @@ func GetServiceStatus(c *gin.Context) {
 
 func RegisterStatusCronJob() {
 	c := cron.New()
-	entryID, err := c.AddFunc("@every "+config.RegistryUpdateDelay+"s", func() {
+	entryID, err := c.AddFunc(config.RegistryUpdateCron, func() {
 		go service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Status CRON Job")
 		utils.SugarLogger.Infoln("Starting Status CRON Job...")
 		services := service.GetAllServices()
@@ -65,5 +65,5 @@ func RegisterStatusCronJob() {
 		return
 	}
 	c.Start()
-	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled for every " + config.RegistryUpdateDelay + "s")
+	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled with cron expression: " + config.RegistryUpdateCron)
 }

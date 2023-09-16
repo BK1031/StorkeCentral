@@ -13,7 +13,7 @@ var Service = model.Service{
 	Version:     Version,
 }
 
-var Version = "1.5.0"
+var Version = "1.5.1"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var JaegerPort = os.Getenv("JAEGER_PORT")
@@ -31,4 +31,4 @@ var DiscordGuild = os.Getenv("DISCORD_GUILD")
 var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
 var StatusChannel = os.Getenv("STATUS_CHANNEL")
 
-var RegistryUpdateDelay = os.Getenv("REGISTRY_UPDATE_DELAY")
+var RegistryUpdateCron = os.Getenv("REGISTRY_UPDATE_CRON")
