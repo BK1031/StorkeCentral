@@ -56,7 +56,6 @@ func CreateNotification(notification model.Notification) error {
 		// Create and send OneSignal notification if new notification is created
 		if notification.Push {
 			osNotification := onesignal.Notification{}
-			osNotification.SetAppId(config.OneSignalAppID)
 			osNotification.SetHeadings(onesignal.StringMap{En: &notification.Title})
 			osNotification.SetContents(onesignal.StringMap{En: &notification.Body})
 			// Transfer data from notification to osNotification
