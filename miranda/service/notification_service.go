@@ -29,6 +29,14 @@ func GetAllUnreadNotificationsForUser(userID string) []model.Notification {
 	return notifications
 }
 
+func GetUnreadNotificationCountForUser(userID string) int64 {
+	var count int64
+	result := DB.Table("notifications").Where("user_id = ? AND read = ?", userID, false).Count(&count)
+	if result.Error != nil {
+	}
+	return count
+}
+
 func GetNotificationByID(notificationID string) model.Notification {
 	var notification model.Notification
 	result := DB.Where("id = ?", notificationID).Find(&notification)
@@ -62,10 +70,14 @@ func CreateNotification(notification model.Notification) error {
 				osNotification.SetUrl(notification.LaunchURL)
 			}
 			osNotification.SetIncludePlayerIds([]string{GetPlayerIDForUser(notification.UserID)})
-			CreateOSNotification(&osNotification)
+			go CreateOSNotification(&osNotification, notification.UserID)
 		}
 	} else {
 		utils.SugarLogger.Infoln("Notification with id: " + notification.ID + " has been updated!")
+		if notification.Read {
+			utils.SugarLogger.Infoln("Notification with id: " + notification.ID + " has been marked as read, updating badge count...")
+			go UpdateUserBadgeCount(notification.UserID)
+		}
 	}
 	if len(notification.Data) > 0 {
 		utils.SugarLogger.Infoln("Notification with id: " + notification.ID + " has non-empty data, setting data in db...")
