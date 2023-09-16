@@ -94,6 +94,10 @@ func AcceptFriendRequest(c *gin.Context) {
 	request := service.GetFriendRequestByID(fromUserID, toUserID)
 	if request.FromUserID != "" {
 		// Friend request already exists
+		if request.FromUserID == fromUserID {
+			c.JSON(http.StatusConflict, gin.H{"message": "User cannot accept their own friend request!"})
+			return
+		}
 		request.Status = "ACCEPTED"
 		if err := service.UpdateFriendRequest(request); err != nil {
 			utils.SugarLogger.Errorln("Failed to update friend request: " + err.Error())
