@@ -89,7 +89,7 @@ func MatchRoute(traceparent string, route string, requestID string) model.Servic
 	var service model.Service
 	queryRoute := strings.ReplaceAll(route, "/", "<->")
 	rinconClient := http.Client{}
-	req, _ := http.NewRequest("GET", rinconHost+":"+config.RinconPort+"/routes/match/"+queryRoute, nil)
+	req, _ := http.NewRequest("GET", rinconHost+"/routes/match/"+queryRoute, nil)
 	req.Header.Set("Request-ID", requestID)
 	req.Header.Set("traceparent", traceparent)
 	req.Header.Add("Content-Type", "application/json")
