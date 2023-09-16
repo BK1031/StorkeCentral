@@ -64,7 +64,7 @@ func FetchMenuForMeal(c *gin.Context) {
 
 func RegisterMealCronJob() {
 	c := cron.New()
-	entryID, err := c.AddFunc("@every "+config.MealUpdateDelay+"s", func() {
+	entryID, err := c.AddFunc(config.MealUpdateCron, func() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Meal CRON Job")
 		utils.SugarLogger.Infoln("Starting Meal CRON Job...")
 		service.FetchAllMealsForDay(time.Now().Format("2006-01-02"))
@@ -76,5 +76,5 @@ func RegisterMealCronJob() {
 		return
 	}
 	c.Start()
-	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled for every " + config.MealUpdateDelay + "s")
+	utils.SugarLogger.Infoln("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled with cron expression: " + config.MealUpdateCron)
 }
