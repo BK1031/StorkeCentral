@@ -31,7 +31,7 @@ func GetAllUnreadNotificationsForUser(userID string) []model.Notification {
 
 func GetUnreadNotificationCountForUser(userID string) int64 {
 	var count int64
-	result := DB.Table("notifications").Where("user_id = ? AND read = ?", userID, false).Count(&count)
+	result := DB.Table("notification").Where("user_id = ? AND read = ?", userID, false).Count(&count)
 	if result.Error != nil {
 	}
 	return count

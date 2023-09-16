@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"miranda/model"
@@ -51,6 +52,9 @@ func CreateNotification(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
+	}
+	if input.ID == "" {
+		input.ID = uuid.New().String()
 	}
 	if err := service.CreateNotification(input); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
