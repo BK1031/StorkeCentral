@@ -3,12 +3,46 @@ package service
 import (
 	"fmt"
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/devices"
 	"github.com/go-rod/rod/lib/launcher"
 	"strconv"
 	"strings"
 	"tepusquet/model"
 	"tepusquet/utils"
+	"time"
 )
+
+func VerifyCredential(credential model.UserCredential, retry int) bool {
+	maxRetries := 25
+	validCredential := false
+	path, _ := launcher.LookPath()
+	url := launcher.New().
+		//Headless(false).
+		Bin(path).MustLaunch()
+	page := rod.New().ControlURL(url).MustConnect().MustPage("https://my.sa.ucsb.edu/gold/Login.aspx")
+	page.MustEmulate(devices.LaptopWithHiDPIScreen)
+	err := rod.Try(func() {
+		page.MustElement("#pageContent_userNameText").MustInput(credential.Username)
+		page.MustElement("#pageContent_passwordText").MustInput(credential.Password)
+		page.MustElement("#pageContent_loginButton").MustClick()
+		page.Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a > div").MustHandle(func(e *rod.Element) {
+			utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
+			validCredential = true
+		}).Element("#pageContent_errorLabel > ul").MustHandle(func(e *rod.Element) {
+			utils.SugarLogger.Infoln(e.MustText())
+		}).MustDo()
+	})
+	if err != nil {
+		if retry < maxRetries {
+			retry++
+			utils.SugarLogger.Infoln("WebDriver error, retrying " + strconv.Itoa(retry) + " of " + strconv.Itoa(maxRetries))
+			return VerifyCredential(credential, retry)
+		} else {
+			return false
+		}
+	}
+	return validCredential
+}
 
 func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter string) []model.UserCourse {
 	var courses []model.UserCourse

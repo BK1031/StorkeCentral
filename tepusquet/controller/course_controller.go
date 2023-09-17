@@ -34,7 +34,7 @@ func FetchCoursesForUserForQuarter(c *gin.Context) {
 
 	creds := service.GetCredentialForUser(c.Param("userID"))
 	if creds.Username == "" {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Credentials not found for user, please set them first"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Credentials not found for user, please set them first"})
 		return
 	}
 	courses := service.FetchCoursesForUserForQuarter(creds, c.Param("quarter"))

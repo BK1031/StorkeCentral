@@ -33,6 +33,11 @@ func SetCredentialForUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	// Check if credentials are valid
+	if !service.VerifyCredential(input, 0) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials"})
+		return
+	}
 	// Set the user id to ensure that the user can only set their own credentials
 	input.UserID = c.Param("userID")
 	if err := service.SetCredentialForUser(input); err != nil {

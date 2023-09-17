@@ -32,3 +32,6 @@ var CredEncryptionKey = os.Getenv("CRED_ENCRYPTION_KEY")
 
 var FirebaseProjectID = os.Getenv("FIREBASE_PROJECT_ID")
 var FirebaseServiceAccountEncoded = os.Getenv("FIREBASE_SERVICE_ACCOUNT")
+
+var CurrentQuarter = "20234"
+var UpNextUpdateDelay = "5"
