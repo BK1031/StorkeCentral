@@ -32,6 +32,7 @@ func main() {
 	service.ConnectDiscord()
 	utils.InitializeJaeger()
 	controller.RegisterUpNextCronJob()
+	controller.RegisterNotificationsCronJob()
 
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)

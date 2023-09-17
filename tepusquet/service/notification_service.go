@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-func CheckUpNextNotificationsForAllUsers() {
+func CheckUpNextNotificationsForAllUsers(og *sync.WaitGroup) {
+	defer og.Done()
 	var users []string
 	result := DB.Select("DISTINCT user_id").Where("quarter = ?", config.CurrentQuarter).Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
 	if result.Error != nil {
@@ -75,8 +76,8 @@ func CheckUpNextNotificationsForUserForQuarter(userID string, quarter string) bo
 	return sentNotif
 }
 
-func CheckPasstimeNotificationsForAllUsersForQuarter() {
-	notificationCount := 0
+func CheckPasstimeNotificationsForAllUsers(og *sync.WaitGroup) {
+	defer og.Done()
 	passtimes := GetAllPasstimesForQuarter(config.CurrentPasstimeQuarter)
 	var wg sync.WaitGroup
 	for _, p := range passtimes {
@@ -105,7 +106,6 @@ func CheckPasstimeNotificationsForAllUsersForQuarter() {
 					SendMirandaNotification(notification, "", "")
 					println(p.UserID + " Pass 1 at " + p.PassOneStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
 					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 1 at "+p.PassOneStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-					notificationCount++
 				}
 			} else if p.PassTwoStart.Add(time.Minute).After(time.Now()) {
 				delta := int(p.PassTwoStart.Sub(time.Now()).Minutes())
@@ -128,7 +128,6 @@ func CheckPasstimeNotificationsForAllUsersForQuarter() {
 					SendMirandaNotification(notification, "", "")
 					println(p.UserID + " Pass 2 at " + p.PassTwoStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
 					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 2 at "+p.PassTwoStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-					notificationCount++
 				}
 			} else if p.PassThreeStart.Add(time.Minute).After(time.Now()) {
 				delta := int(p.PassThreeStart.Sub(time.Now()).Minutes())
@@ -151,7 +150,6 @@ func CheckPasstimeNotificationsForAllUsersForQuarter() {
 					SendMirandaNotification(notification, "", "")
 					println(p.UserID + " Pass 3 at " + p.PassThreeStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
 					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 3 at "+p.PassThreeStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-					notificationCount++
 				}
 			}
 		}()

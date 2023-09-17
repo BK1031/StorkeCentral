@@ -13,7 +13,7 @@ var Service = model.Service{
 	Version:     Version,
 }
 
-var Version = "1.6.0"
+var Version = "1.7.0"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
@@ -36,4 +36,4 @@ var FirebaseServiceAccountEncoded = os.Getenv("FIREBASE_SERVICE_ACCOUNT")
 var CurrentQuarter = os.Getenv("CURRENT_QUARTER")
 var CurrentPasstimeQuarter = os.Getenv("CURRENT_PASSTIME_QUARTER")
 var UpNextUpdateCron = os.Getenv("UP_NEXT_UPDATE_CRON")
-var UpNextNotificationCron = os.Getenv("UP_NEXT_NOTIFICATION_CRON")
+var NotificationCron = os.Getenv("NOTIFICATION_CRON")
