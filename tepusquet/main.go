@@ -31,6 +31,7 @@ func main() {
 	service.InitializeFirebase()
 	service.ConnectDiscord()
 	utils.InitializeJaeger()
+	controller.RegisterUpNextCronJob()
 
 	controller.InitializeRoutes(router)
 	router.Run(":" + config.Port)

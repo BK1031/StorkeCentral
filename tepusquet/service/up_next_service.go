@@ -3,6 +3,7 @@ package service
 import (
 	"strconv"
 	"strings"
+	"sync"
 	"tepusquet/config"
 	"tepusquet/model"
 	"time"
@@ -35,9 +36,16 @@ func FetchUpNextForAllUsers() {
 	if result.Error != nil {
 	}
 	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Found "+strconv.Itoa(len(users))+" users with schedules this quarter")
+	var wg sync.WaitGroup
 	for _, id := range users {
-		FetchUpNextForUserForQuarter(id, config.CurrentQuarter)
+		wg.Add(1)
+		id := id
+		go func() {
+			defer wg.Done()
+			FetchUpNextForUserForQuarter(id, config.CurrentQuarter)
+		}()
 	}
+	wg.Wait()
 }
 
 func FetchUpNextForUserForQuarter(userID string, quarter string) {

@@ -1,17 +1,40 @@
 package service
 
 import (
-	"bytes"
-	"net/http"
+	resty "github.com/go-resty/resty/v2"
+	"tepusquet/utils"
 )
 
-func SendMirandaNotification(mirandaBody []byte) {
-	// TODO: Make this actually get the correct miranda dns value
-	responseBody := bytes.NewBuffer(mirandaBody)
-	_, err := http.Post("http://miranda"+":"+"4007"+"/notifications", "application/json", responseBody)
-	if err != nil {
-		println("Error sending notification :(" + err.Error())
+type MirandaNotification struct {
+	ID         string        `json:"id"`
+	UserID     string        `json:"user_id"`
+	Sender     string        `json:"sender"`
+	Title      string        `json:"title"`
+	Body       string        `json:"body"`
+	PictureUrl string        `json:"picture_url"`
+	LaunchUrl  string        `json:"launch_url"`
+	Route      string        `json:"route"`
+	Priority   string        `json:"priority"`
+	Push       bool          `json:"push"`
+	Read       bool          `json:"read"`
+	Data       []interface{} `json:"data"`
+}
+
+func SendMirandaNotification(mirandaBody MirandaNotification, requestID string, traceparent string) {
+	mappedService := MatchRoute("miranda", "", "")
+	if mappedService.ID != 0 {
+		client := resty.New()
+		resp, err := client.R().
+			SetBody(mirandaBody).
+			SetHeader("Request-ID", requestID).
+			SetHeader("traceparent", traceparent).
+			Post(mappedService.URL + "/notifications")
+		if err != nil {
+			utils.SugarLogger.Errorln("Failed to send miranda notification: " + err.Error())
+		} else {
+			utils.SugarLogger.Infoln("Sent miranda notification with response: " + resp.Status())
+		}
 	} else {
-		println("Sent notification to Miranda!")
+		utils.SugarLogger.Errorln("Failed to send miranda notification, no miranda service found!")
 	}
 }

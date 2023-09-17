@@ -16,7 +16,7 @@ func GetUpNextForUserForQuarter(c *gin.Context) {
 
 func RegisterUpNextCronJob() {
 	c := cron.New()
-	entryID, err := c.AddFunc("@every "+config.UpNextUpdateDelay+"s", func() {
+	entryID, err := c.AddFunc(config.UpNextUpdateCron, func() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Up Next CRON Job")
 		println("Starting Up Next CRON Job...")
 		service.FetchUpNextForAllUsers()
@@ -27,5 +27,5 @@ func RegisterUpNextCronJob() {
 		return
 	}
 	c.Start()
-	println("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled for every " + config.UpNextUpdateDelay + "s")
+	println("Registered CRON Job: " + strconv.Itoa(int(entryID)) + " scheduled with cron expression: " + config.UpNextUpdateCron)
 }
