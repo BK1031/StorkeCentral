@@ -22,7 +22,7 @@ func FetchPasstimeForUserForQuarter(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Credentials not found for user, please set them first"})
 		return
 	}
-	passtime := service.FetchPasstimeForUserForQuarter(creds, c.Param("quarter"))
+	passtime := service.FetchPasstimeForUserForQuarter(creds, c.Param("quarter"), 0)
 	if passtime.UserID == "AUTH ERROR" {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "You have entered an invalid UCSB NetID/Password combination, please re-enter and try again."})
 		return

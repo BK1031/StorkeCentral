@@ -37,10 +37,10 @@ func FetchCoursesForUserForQuarter(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Credentials not found for user, please set them first"})
 		return
 	}
-	courses := service.FetchCoursesForUserForQuarter(creds, c.Param("quarter"))
+	courses := service.FetchCoursesForUserForQuarter(creds, c.Param("quarter"), 0)
 	service.RemoveAllCoursesForUserForQuarter(c.Param("userID"), c.Param("quarter"))
 	if len(courses) == 1 && courses[0].UserID == "AUTH ERROR" {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "You have entered an invalid UCSB NetID/Password combination, please re-enter and try again."})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials."})
 		return
 	}
 	for _, course := range courses {
