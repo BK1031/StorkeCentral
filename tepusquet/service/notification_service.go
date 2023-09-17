@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"github.com/google/uuid"
 	"sort"
 	"strconv"
@@ -11,20 +10,23 @@ import (
 	"time"
 )
 
-func CheckUpNextNotificationsForAllUsers(wg *sync.WaitGroup) {
-	defer wg.Done()
+func CheckUpNextNotificationsForAllUsers() {
 	var users []string
 	result := DB.Select("DISTINCT user_id").Where("quarter = ?", config.CurrentQuarter).Find(&model.UserScheduleItem{}).Pluck("user_id", &users)
 	if result.Error != nil {
 	}
 	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Checking notifications for "+strconv.Itoa(len(users))+" users with schedules this quarter")
-	notificationCount := 0
+	var wg sync.WaitGroup
 	for _, id := range users {
-		if CheckUpNextNotificationsForUserForQuarter(id, config.CurrentQuarter) {
-			notificationCount++
-		}
+		wg.Add(1)
+		id := id
+		go func() {
+			defer wg.Done()
+			CheckUpNextNotificationsForUserForQuarter(id, config.CurrentQuarter)
+		}()
 	}
-	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Sent "+strconv.Itoa(notificationCount)+" schedule notifications")
+	wg.Wait()
+	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Finished sending schedule notifications")
 }
 
 func CheckUpNextNotificationsForUserForQuarter(userID string, quarter string) bool {
@@ -39,25 +41,29 @@ func CheckUpNextNotificationsForUserForQuarter(userID string, quarter string) bo
 			notificationSetting := GetNotificationSettingForUser(userID)
 			if notificationSetting != 0 {
 				if delta <= notificationSetting+1 && delta >= notificationSetting-1 {
-					mirandaBody, _ := json.Marshal(map[string]interface{}{
-						"id":          uuid.New(),
-						"user_id":     userID,
-						"sender":      "Tepusquet",
-						"title":       "Class in " + strconv.Itoa(delta) + " minutes",
-						"body":        "You have " + s.Title + " at " + s.StartTime.Format("3:04PM") + "!",
-						"picture_url": "",
-						"launch_url":  "",
-						"route":       "/schedule/view/" + s.Title,
-						"priority":    "HIGH",
-						"push":        true,
-						"read":        false,
-					})
-					SendMirandaNotification(mirandaBody)
+					notification := MirandaNotification{
+						ID:         uuid.New().String(),
+						UserID:     userID,
+						Sender:     config.Service.Name,
+						Title:      "Class in " + strconv.Itoa(delta) + " minutes",
+						Body:       "You have " + s.Title + " at " + s.StartTime.Format("3:04PM") + "!",
+						PictureUrl: "",
+						LaunchUrl:  "",
+						Route:      "/schedule/view/" + s.Title,
+						Priority:   "HIGH",
+						Push:       true,
+						Read:       false,
+					}
+					SendMirandaNotification(notification, "", "")
 					sentNotif = true
 				}
 			}
-			println(userID + " next class is " + s.Title + " at " + s.StartTime.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
-			_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+			println(userID + " next class is " + s.Title + " at " + s.StartTime.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)! Sent Notif: " + strconv.FormatBool(sentNotif))
+			if sentNotif {
+				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)! [SENT NOTIFICATION]")
+			} else {
+				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+			}
 			return sentNotif
 		} else if s.StartTime.Before(time.Now()) && s.EndTime.After(time.Now()) {
 			println(userID + " is in class " + s.Title + " until " + s.EndTime.Format("3:04PM"))
@@ -69,85 +75,88 @@ func CheckUpNextNotificationsForUserForQuarter(userID string, quarter string) bo
 	return sentNotif
 }
 
-func CheckPasstimeNotificationsForAllUsersForQuarter(quarter string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func CheckPasstimeNotificationsForAllUsersForQuarter() {
 	notificationCount := 0
-	passtimes := GetAllPasstimesForQuarter(quarter)
+	passtimes := GetAllPasstimesForQuarter(config.CurrentPasstimeQuarter)
+	var wg sync.WaitGroup
 	for _, p := range passtimes {
-		if p.PassOneStart.Add(time.Minute).After(time.Now()) {
-			delta := int(p.PassOneStart.Sub(time.Now()).Minutes())
-			// Will sequentially send notifications at 5 minute intervals from 15 minutes.
-			if delta <= 16 {
-				// 15 minute reminder
-				mirandaBody, _ := json.Marshal(map[string]interface{}{
-					"id":          uuid.New(),
-					"user_id":     p.UserID,
-					"sender":      "Tepusquet",
-					"title":       "Pass 1 in " + strconv.Itoa(delta) + " minutes",
-					"body":        "Your Registration Pass 1 starts at " + p.PassOneStart.Format("3:04PM") + "!",
-					"picture_url": "",
-					"launch_url":  "https://my.sa.ucsb.edu/gold/StudentSchedule.aspx",
-					"route":       "",
-					"priority":    "HIGH",
-					"push":        true,
-					"read":        false,
-				})
-				SendMirandaNotification(mirandaBody)
-				println(p.UserID + " Pass 1 at " + p.PassOneStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
-				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 1 at "+p.PassOneStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-				notificationCount++
+		wg.Add(1)
+		p := p
+		go func() {
+			defer wg.Done()
+			if p.PassOneStart.Add(time.Minute).After(time.Now()) {
+				delta := int(p.PassOneStart.Sub(time.Now()).Minutes())
+				// Will sequentially send notifications at 5 minute intervals from 15 minutes.
+				if delta <= 16 {
+					// 15 minute reminder
+					notification := MirandaNotification{
+						ID:         uuid.New().String(),
+						UserID:     p.UserID,
+						Sender:     config.Service.Name,
+						Title:      "Pass 1 in " + strconv.Itoa(delta) + " minutes",
+						Body:       "Your Registration Pass 1 starts at " + p.PassOneStart.Format("3:04PM") + "!",
+						PictureUrl: "",
+						LaunchUrl:  "https://my.sa.ucsb.edu/gold/StudentSchedule.aspx",
+						Route:      "",
+						Priority:   "HIGH",
+						Push:       true,
+						Read:       false,
+					}
+					SendMirandaNotification(notification, "", "")
+					println(p.UserID + " Pass 1 at " + p.PassOneStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
+					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 1 at "+p.PassOneStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+					notificationCount++
+				}
+			} else if p.PassTwoStart.Add(time.Minute).After(time.Now()) {
+				delta := int(p.PassTwoStart.Sub(time.Now()).Minutes())
+				// Will sequentially send notifications at 5 minute intervals from 15 minutes.
+				if delta <= 16 {
+					// 15 minute reminder
+					notification := MirandaNotification{
+						ID:         uuid.New().String(),
+						UserID:     p.UserID,
+						Sender:     config.Service.Name,
+						Title:      "Pass 2 in " + strconv.Itoa(delta) + " minutes",
+						Body:       "Your Registration Pass 2 starts at " + p.PassTwoStart.Format("3:04PM") + "!",
+						PictureUrl: "",
+						LaunchUrl:  "https://my.sa.ucsb.edu/gold/StudentSchedule.aspx",
+						Route:      "",
+						Priority:   "HIGH",
+						Push:       true,
+						Read:       false,
+					}
+					SendMirandaNotification(notification, "", "")
+					println(p.UserID + " Pass 2 at " + p.PassTwoStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
+					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 2 at "+p.PassTwoStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+					notificationCount++
+				}
+			} else if p.PassThreeStart.Add(time.Minute).After(time.Now()) {
+				delta := int(p.PassThreeStart.Sub(time.Now()).Minutes())
+				// Will sequentially send notifications at 5 minute intervals from 15 minutes.
+				if delta <= 16 {
+					// 15 minute reminder
+					notification := MirandaNotification{
+						ID:         uuid.New().String(),
+						UserID:     p.UserID,
+						Sender:     config.Service.Name,
+						Title:      "Pass 3 in " + strconv.Itoa(delta) + " minutes",
+						Body:       "Your Registration Pass 3 starts at " + p.PassThreeStart.Format("3:04PM") + "!",
+						PictureUrl: "",
+						LaunchUrl:  "https://my.sa.ucsb.edu/gold/StudentSchedule.aspx",
+						Route:      "",
+						Priority:   "HIGH",
+						Push:       true,
+						Read:       false,
+					}
+					SendMirandaNotification(notification, "", "")
+					println(p.UserID + " Pass 3 at " + p.PassThreeStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
+					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 3 at "+p.PassThreeStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+					notificationCount++
+				}
 			}
-		} else if p.PassTwoStart.Add(time.Minute).After(time.Now()) {
-			delta := int(p.PassTwoStart.Sub(time.Now()).Minutes())
-			// Will sequentially send notifications at 5 minute intervals from 15 minutes.
-			if delta <= 16 {
-				// 15 minute reminder
-				mirandaBody, _ := json.Marshal(map[string]interface{}{
-					"id":          uuid.New(),
-					"user_id":     p.UserID,
-					"sender":      "Tepusquet",
-					"title":       "Pass 2 in " + strconv.Itoa(delta) + " minutes",
-					"body":        "Your Registration Pass 2 starts at " + p.PassTwoStart.Format("3:04PM") + "!",
-					"picture_url": "",
-					"launch_url":  "https://my.sa.ucsb.edu/gold/StudentSchedule.aspx",
-					"route":       "",
-					"priority":    "HIGH",
-					"push":        true,
-					"read":        false,
-				})
-				SendMirandaNotification(mirandaBody)
-				println(p.UserID + " Pass 2 at " + p.PassTwoStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
-				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 2 at "+p.PassTwoStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-				notificationCount++
-			}
-		} else if p.PassThreeStart.Add(time.Minute).After(time.Now()) {
-			delta := int(p.PassThreeStart.Sub(time.Now()).Minutes())
-			// Will sequentially send notifications at 5 minute intervals from 15 minutes.
-			if delta <= 16 {
-				// 15 minute reminder
-				mirandaBody, _ := json.Marshal(map[string]interface{}{
-					"id":          uuid.New(),
-					"user_id":     p.UserID,
-					"sender":      "Tepusquet",
-					"title":       "Pass 3 in " + strconv.Itoa(delta) + " minutes",
-					"body":        "Your Registration Pass 3 starts at " + p.PassThreeStart.Format("3:04PM") + "!",
-					"picture_url": "",
-					"launch_url":  "https://my.sa.ucsb.edu/gold/StudentSchedule.aspx",
-					"route":       "",
-					"priority":    "HIGH",
-					"push":        true,
-					"read":        false,
-				})
-				SendMirandaNotification(mirandaBody)
-				println(p.UserID + " Pass 3 at " + p.PassThreeStart.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)!")
-				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 3 at "+p.PassThreeStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
-				notificationCount++
-			}
-		}
+		}()
 	}
-	if notificationCount != 0 {
-		_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Sent "+strconv.Itoa(notificationCount)+" passtime notifications")
-	}
+	wg.Wait()
 }
 
 func GetNotificationSettingForUser(userID string) int {
