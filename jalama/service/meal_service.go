@@ -40,21 +40,20 @@ func GetMenuForMeal(mealID string) []model.MenuItem {
 }
 
 func FetchAllMealsForDay(date string) []model.Meal {
-	// date will be in the format of "YYYY-MM-DD"
+	// date will be in the format of "MM-DD-YYYY"
 	// PST input date without time
 	t := time.Now()
 	dateSlice := strings.Split(date, "-")
-	month, _ := strconv.Atoi(dateSlice[1])
-	day, _ := strconv.Atoi(dateSlice[2])
-	year, _ := strconv.Atoi(dateSlice[0])
-	queryDate := strconv.Itoa(month) + "-" + strconv.Itoa(day) + "-" + strconv.Itoa(year)
+	month, _ := strconv.Atoi(dateSlice[0])
+	day, _ := strconv.Atoi(dateSlice[1])
+	year, _ := strconv.Atoi(dateSlice[2])
 	currentTime := time.Date(year, time.Month(month), day, 0, 0, 0, 0, t.Location())
 
 	client := resty.New()
 	resp, err := client.R().
 		EnableTrace().
 		SetHeader("ucsb-api-key", config.UcsbApiKey).
-		Get("https://api.ucsb.edu/dining/commons/v1/hours/" + queryDate)
+		Get("https://api.ucsb.edu/dining/commons/v1/hours/" + date)
 	utils.SugarLogger.Infoln("Response Info:")
 	utils.SugarLogger.Infoln("  Error      :", err)
 	utils.SugarLogger.Infoln("  Status Code:", resp.StatusCode())
@@ -74,7 +73,7 @@ func FetchAllMealsForDay(date string) []model.Meal {
 				hour += 12
 			}
 			openDate := currentTime.Add(time.Hour*time.Duration(hour) + time.Minute*time.Duration(minute))
-			openDateUTC := openDate.UTC()
+			//openDateUTC := openDate.UTC()
 
 			closeTime := meal["close"].(string)
 			closeTimeSegments := strings.Split(closeTime, " ")
@@ -86,14 +85,14 @@ func FetchAllMealsForDay(date string) []model.Meal {
 				hour += 12
 			}
 			closeDate := currentTime.Add(time.Hour*time.Duration(hour) + time.Minute*time.Duration(minute))
-			closeDateUTC := closeDate.UTC()
+			//closeDateUTC := closeDate.UTC()
 
 			diningMeal := model.Meal{
-				ID:           meal["diningCommonCode"].(string) + "-" + meal["mealCode"].(string) + "-" + meal["date"].(string),
+				ID:           meal["diningCommonCode"].(string) + "-" + meal["mealCode"].(string) + "-" + currentTime.Format("01-02-2006"),
 				Name:         meal["mealCode"].(string),
 				DiningHallID: meal["diningCommonCode"].(string),
-				Open:         openDateUTC,
-				Close:        closeDateUTC,
+				Open:         openDate,
+				Close:        closeDate,
 			}
 			// Save dining meal to database
 			if DB.Where("id = ?", diningMeal.ID).Updates(&diningMeal).RowsAffected == 0 {
@@ -108,12 +107,7 @@ func FetchAllMealsForDay(date string) []model.Meal {
 
 func FetchMenuForMeal(mealID string) {
 	meal := GetMealByID(mealID)
-	mealDate := strings.Split(mealID, meal.Name+"-")[1]
-	utils.SugarLogger.Infoln(mealDate)
-	// mealDate in the format of "YYYY-MM-DD"
-	queryDate := strings.Split(mealDate, "-")[1] + "-" + strings.Split(mealDate, "-")[2] + "-" + strings.Split(mealDate, "-")[0]
-	// queryDate in the format of "MM-DD-YYYY"
-	utils.SugarLogger.Infoln(queryDate)
+	queryDate := strings.Split(mealID, meal.Name+"-")[1]
 
 	client := resty.New()
 	resp, err := client.R().
