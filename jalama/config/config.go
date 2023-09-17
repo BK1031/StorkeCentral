@@ -13,7 +13,7 @@ var Service = model.Service{
 	Version:     Version,
 }
 
-var Version = "1.4.0"
+var Version = "1.4.1"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
@@ -30,6 +30,7 @@ var DiscordChannel = os.Getenv("DISCORD_CHANNEL")
 
 var UcsbApiKey = os.Getenv("UCSB_API_KEY")
 
+var MealUpdateDays = os.Getenv("MEAL_UPDATE_DAYS")
 var MealUpdateCron = os.Getenv("MEAL_UPDATE_CRON")
 
 var FirebaseProjectID = os.Getenv("FIREBASE_PROJECT_ID")

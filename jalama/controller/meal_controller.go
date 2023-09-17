@@ -67,10 +67,14 @@ func RegisterMealCronJob() {
 	entryID, err := c.AddFunc(config.MealUpdateCron, func() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Meal CRON Job")
 		utils.SugarLogger.Infoln("Starting Meal CRON Job...")
-		service.FetchAllMealsForDay(time.Now().Format("2006-01-02"))
-		service.FetchAllMealsForDay(time.Now().AddDate(0, 0, 1).Format("2006-01-02"))
+		days, _ := strconv.Atoi(config.MealUpdateDays)
+		for i := 0; i <= days; i++ {
+			queryDate := time.Now().AddDate(0, 0, i).Format("01-02-2006")
+			utils.SugarLogger.Infoln("Fetching meals for day: " + queryDate)
+			service.FetchAllMealsForDay(queryDate)
+		}
 		utils.SugarLogger.Infoln("Finished Meal CRON Job!")
-		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Fetched latest meals (today + tomorrow)!")
+		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Fetched latest meals (today + next "+config.MealUpdateDays+"days)!")
 	})
 	if err != nil {
 		return
