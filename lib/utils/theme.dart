@@ -30,10 +30,10 @@ final ThemeData lightTheme = ThemeData(
     primary: SB_NAVY,
     secondary: SB_NAVY,
     onSecondary: Colors.white,
+    background: lightBackgroundColor,
   ),
   fontFamily: "Product Sans",
   primaryColor: SB_NAVY,
-  backgroundColor: lightBackgroundColor,
   scaffoldBackgroundColor: lightBackgroundColor,
   cardColor: lightCardColor,
   cardTheme: CardTheme(
@@ -63,11 +63,11 @@ final ThemeData darkTheme = ThemeData(
   colorScheme: const ColorScheme.dark().copyWith(
     primary: SB_NAVY,
     secondary: SB_NAVY,
+    background: darkBackgroundColor,
   ),
   fontFamily: "Product Sans",
   primaryColor: SB_NAVY,
   canvasColor: darkCanvasColor,
-  backgroundColor: darkBackgroundColor,
   scaffoldBackgroundColor: darkBackgroundColor,
   cardColor: darkCardColor,
   cardTheme: CardTheme(

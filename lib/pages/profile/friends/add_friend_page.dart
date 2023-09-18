@@ -77,26 +77,24 @@ class _AddFriendPageState extends State<AddFriendPage> {
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() {
-      loadingList.add(user.id);
+      loadingList.add(friend.fromUserID);
     });
     await AuthService.getAuthToken();
-    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
+    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${friend.fromUserID}/accept"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
-      log("[add_friend_page] Friend request accepted!");
+      log("[friends_page] Friend request accepted!");
       setState(() {
-        requests.removeWhere((element) => element.id == friend.id);
-        friends.add(friend);
+        requests.removeWhere((element) => element.fromUserID == friend.fromUserID);
+        friends.add(Friend.fromJson(jsonDecode(response.body)["data"]));
       });
       updateUserFriendsList();
-      // ignore: use_build_context_synchronously
       AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
-      log("[add_friend_page] ${response.body}", LogLevel.error);
-      // ignore: use_build_context_synchronously
+      log("[friends_page] ${response.body}", LogLevel.error);
       AlertService.showErrorSnackbar(context, "Failed to send friend request");
     }
     setState(() {
-      loadingList.remove(user.id);
+      loadingList.remove(friend.fromUserID);
     });
     trace.stop();
   }
@@ -104,20 +102,15 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Future<void> requestFriend(User user) async {
     Trace trace = FirebasePerformance.instance.newTrace("requestFriend()");
     await trace.start();
-    Friend friend = Friend();
-    friend.id = "${currentUser.id}-${user.id}";
-    friend.fromUserID = currentUser.id;
-    friend.toUserID = user.id;
-    friend.status = "REQUESTED";
     setState(() {
       loadingList.add(user.id);
     });
     await AuthService.getAuthToken();
-    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
+    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${user.id}/request"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("[add_friend_page] Sent friend request");
       setState(() {
-        requests.add(friend);
+        requests.add(Friend.fromJson(jsonDecode(response.body)["data"]));
       });
       updateUserFriendsList();
       if (searchedUser.id != "") {
@@ -138,16 +131,41 @@ class _AddFriendPageState extends State<AddFriendPage> {
     trace.stop();
   }
 
+  Future<void> removeFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
+    setState(() {
+      friends.removeWhere((element) => element.fromUserID == user.id || element.toUserID == user.id);
+      requests.removeWhere((element) => element.fromUserID == user.id || element.toUserID == user.id);
+    });
+    await AuthService.getAuthToken();
+    var response = await http.delete(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${user.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    if (response.statusCode == 200) {
+      log("[friends_page] Friend removed!");
+      updateUserFriendsList();
+      AlertService.showSuccessSnackbar(context, "Removed friend!");
+    } else {
+      log("[friends_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to remove friend");
+    }
+    trace.stop();
+  }
+
   Future<void> updateUserFriendsList() async {
     Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
     await trace.start();
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    setState(() => refreshing = true);
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("[add_friend_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      var responseJson = jsonDecode(response.body);
+      // Persist friends list
+      List<dynamic> friendsDynamic = responseJson["data"].map((e) => jsonEncode(e).toString()).toList();
+      prefs.setStringList("CURRENT_USER_FRIENDS", friendsDynamic.map((e) => e.toString()).toList());
+
       for (int i = 0; i < responseJson["data"].length; i++) {
         Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
@@ -164,6 +182,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       log("[add_friend_page] ${response.body}", LogLevel.error);
       AlertService.showErrorSnackbar(context, "Failed to update friends list!");
     }
+    setState(() => refreshing = false);
     trace.stop();
   }
 
@@ -174,7 +193,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      // TODO: make this an actual mutual friends endpoint (once i learn graph shit from cs130a)
+      // TODO: make this an actual mutual friends endpoint
       log("[add_friend_page] Retrieved suggested users");
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
       for (int i = 0; i < responseJson["data"].length; i++) {
@@ -306,7 +325,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     ),
                                     Visibility(
                                       // Searched user is not current user, is not already requested, is not already friend
-                                      visible: searchedUser.id != currentUser.id && !requests.any((element) => element.id.contains(searchedUser.id)) && !friends.any((element) => element.id.contains(searchedUser.id)) && !loadingList.contains(searchedUser.id),
+                                      visible: searchedUser.id != currentUser.id && !requests.any((element) => element.user.id == searchedUser.id) && !friends.any((element) => element.user.id == searchedUser.id) && !loadingList.contains(searchedUser.id),
                                       child: CupertinoButton(
                                         padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                         color: SB_NAVY,
@@ -335,7 +354,11 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                             Text("Friends", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
                                           ],
                                         ),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          AlertService.showConfirmationDialog(context, "Remove Friend", "Are you sure you want to remove ${searchedUser.firstName} as a friend?", () {
+                                            removeFriend(searchedUser);
+                                          });
+                                        },
                                       ),
                                     ),
                                     // Searched user is not current user, is already requested
@@ -351,7 +374,11 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                             Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
                                           ],
                                         ),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          AlertService.showConfirmationDialog(context, "Cancel Friend Request", "Are you sure you want to cancel your friend request to ${searchedUser.firstName}?", () {
+                                            removeFriend(searchedUser);
+                                          });
+                                        },
                                       ),
                                     ),
                                     Visibility(
@@ -465,7 +492,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                   ),
                                   Visibility(
                                     // User is not current user, is not already requested, is not already friend
-                                    visible: suggestedFriends[index].id != currentUser.id && !requests.any((element) => element.id.contains(suggestedFriends[index].id)) && !friends.any((element) => element.id.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
+                                    visible: suggestedFriends[index].id != currentUser.id && !requests.any((element) => element.user.id == suggestedFriends[index].id) && !friends.any((element) => element.user.id == suggestedFriends[index].id) && !loadingList.contains(suggestedFriends[index].id),
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                       color: SB_NAVY,
@@ -494,7 +521,11 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                           Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
                                         ],
                                       ),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        AlertService.showConfirmationDialog(context, "Cancel Friend Request", "Are you sure you want to cancel your friend request to ${suggestedFriends[index].firstName}?", () {
+                                          removeFriend(suggestedFriends[index]);
+                                        });
+                                      },
                                     ),
                                   ),
                                   Visibility(
