@@ -1,9 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:card_loading/card_loading.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
@@ -24,6 +21,10 @@ import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/string_extension.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:storke_central/widgets/home/dining_placeholder.dart';
+import 'package:storke_central/widgets/home/headline_article_placeholder.dart';
+import 'package:storke_central/widgets/home/up_next_placeholder.dart';
+import 'package:storke_central/widgets/home/waitz_placeholder.dart';
 import 'package:weather_icons/weather_icons.dart';
 
 class HomePage extends StatefulWidget {
@@ -62,7 +63,7 @@ class _HomePageState extends State<HomePage> {
           await AuthService.getAuthToken();
           var response = await httpClient.get(Uri.parse("$API_HOST/news/latest"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
           setState(() {
-            headlineArticle = NewsArticle.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
+            headlineArticle = NewsArticle.fromJson(jsonDecode(response.body)["data"]);
           });
           lastHeadlineArticleFetch = DateTime.now();
           prefs.setString("HEADLINE_ARTICLE", jsonEncode(headlineArticle).toString());
@@ -72,7 +73,7 @@ class _HomePageState extends State<HomePage> {
         }
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch news headline!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch news headline!"));
       }
     } else {
       log("[home_page] Offline mode, searching cache for news...");
@@ -101,7 +102,7 @@ class _HomePageState extends State<HomePage> {
           await httpClient.get(Uri.parse("https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$WEATHER_API_KEY"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (value.statusCode == 200) {
               setState(() {
-                weather = Weather.fromJson(jsonDecode(utf8.decode(value.bodyBytes)));
+                weather = Weather.fromJson(jsonDecode(value.body));
               });
               lastWeatherFetch = DateTime.now();
             } else {
@@ -115,7 +116,7 @@ class _HomePageState extends State<HomePage> {
         }
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch weather!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch weather!"));
       }
     } else {
       log("[home_page] Offline mode, not displaying weather", LogLevel.warn);
@@ -129,8 +130,9 @@ class _HomePageState extends State<HomePage> {
         await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
         await httpClient.get(Uri.parse("$API_HOST/dining"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          log("[home_page] Fetched dining halls");
           setState(() {
-            diningHallList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
+            diningHallList = jsonDecode(value.body)["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
             for (int i = 0; i < diningHallList.length; i++) {
               diningHallList[i].distanceFromUser = Geolocator.distanceBetween(diningHallList[i].latitude, diningHallList[i].longitude, currentPosition!.latitude, currentPosition!.longitude);
             }
@@ -145,7 +147,7 @@ class _HomePageState extends State<HomePage> {
         trace.stop();
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch dining halls!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch dining halls!"));
       }
     } else {
       log("[home_page] Offline mode, searching cache for dining...");
@@ -160,15 +162,23 @@ class _HomePageState extends State<HomePage> {
         Trace trace = FirebasePerformance.instance.newTrace("getDiningMenus()");
         await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
-        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-YYYY").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          log("[home_page] Fetched today's dining meals");
           setState(() {
-            diningMealList = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
+            diningMealList = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
+          });
+        });
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-YYYY").format(queryDate.add(const Duration(days: 1)))}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          log("[home_page] Fetched tomorrow's dining meals");
+          setState(() {
+            List<DiningHallMeal> addMealList = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
+            diningMealList.addAll(addMealList);
           });
         });
         trace.stop();
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch dining hours!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch dining hours!"));
       }
     } else {
       log("[home_page] Offline mode, searching cache for dining...");
@@ -190,7 +200,6 @@ class _HomePageState extends State<HomePage> {
         return "${meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(meals[j].close.toLocal())}";
       }
     }
-    // TODO: Get next days breakfast
     return "Closed";
   }
 
@@ -325,8 +334,8 @@ class _HomePageState extends State<HomePage> {
                   getUpNextFriends();
                   router.pop(context);
                 },
-                child: const Text("Done"),
                 color: SB_NAVY,
+                child: const Text("Done"),
               ),
             )
           ],
@@ -352,7 +361,7 @@ class _HomePageState extends State<HomePage> {
         }
       } catch(e) {
         log("[home_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch waitz data!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch waitz data!"));
       }
     } else {
       log("[home_page] Offline mode, no waitz data to display!", LogLevel.warn);
@@ -368,50 +377,7 @@ class _HomePageState extends State<HomePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  headlineArticle.id == "" ? CardLoading(
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    height: 175,
-                    margin: const EdgeInsets.all(16),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: const [
-                              Card(
-                                child: SizedBox(
-                                  height: 20,
-                                  width: 30,
-                                ),
-                              ),
-                              Padding(padding: EdgeInsets.all(4)),
-                              Card(
-                                child: SizedBox(
-                                  height: 20,
-                                  width: 100,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Padding(padding: EdgeInsets.all(8)),
-                          const Card(
-                            child: SizedBox(
-                              height: 20,
-                              width: 500,
-                            ),
-                          ),
-                          const Card(
-                            child: SizedBox(
-                              height: 20,
-                              width: 200,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ) : Container(
+                  headlineArticle.id == "" ? const HeadlineArticlePlaceholder() : Container(
                     height: 175,
                     padding: const EdgeInsets.all(8),
                     child: Card(
@@ -452,24 +418,27 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ],
                                         ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            BoxedIcon(
-                                              WeatherIcons.fromString(weather.id != 0 ? "wi-${DateTime.now().hour > 6 && DateTime.now().hour < 20 ? "day" : "night"}-${weatherCodeToIcon[weather.id]}" : "wi-moon-new", fallback: WeatherIcons.day_sunny),
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                            const Padding(padding: EdgeInsets.all(2)),
-                                            Text(
-                                              weather.temp != 0.0 ? "${((weather.temp - 273.15) * 9/5 + 32).toStringAsFixed(1)} °F" : "– °F",
-                                              style: const TextStyle(fontSize: 17, color: Colors.white)
-                                            )
-                                          ],
+                                        Visibility(
+                                          visible: !offlineMode,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              BoxedIcon(
+                                                WeatherIcons.fromString(weather.id != 0 ? "wi-${DateTime.now().hour > 6 && DateTime.now().hour < 20 ? "day" : "night"}-${weatherCodeToIcon[weather.id]}" : "wi-moon-new", fallback: WeatherIcons.day_sunny),
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                              const Padding(padding: EdgeInsets.all(2)),
+                                              Text(
+                                                weather.temp != 0.0 ? "${((weather.temp - 273.15) * 9/5 + 32).toStringAsFixed(1)} °F" : "– °F",
+                                                style: const TextStyle(fontSize: 17, color: Colors.white)
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    Text(utf8.decode(headlineArticle.title.codeUnits), style: const TextStyle(color: Colors.white, fontSize: 20)),
+                                    Text(headlineArticle.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
                                   ],
                                 ),
                               ),
@@ -479,57 +448,17 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.fastfood),
                         Padding(padding: EdgeInsets.all(4)),
                         Text("Dining", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                       ],
                     ),
                   ),
-                  (diningHallList.isEmpty) ? SizedBox(
-                    height: 150,
-                    child: ListView.builder(
-                      itemCount: 4,
-                      itemBuilder: (BuildContext context, int i) {
-                        return Padding(
-                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                          child: SizedBox(
-                            width: 150,
-                            child: CardLoading(
-                              borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              height: 150,
-                              margin: const EdgeInsets.all(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Card(
-                                      child: SizedBox(
-                                        height: 20,
-                                        width: 75,
-                                      ),
-                                    ),
-                                    Card(
-                                      child: SizedBox(
-                                        height: 20,
-                                        width: 150,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      scrollDirection: Axis.horizontal,
-                    ),
-                  ) : SizedBox(
+                  (diningHallList.isEmpty) ? const DiningPlaceholder() : SizedBox(
                     height: 150,
                     child: ListView.builder(
                       itemCount: diningHallList.length,
@@ -609,11 +538,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Visibility(
-                    visible: friends.isNotEmpty,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                    visible: false,
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
                       child: Row(
-                        children: const [
+                        children: [
                           Icon(Icons.calendar_view_day_rounded),
                           Padding(padding: EdgeInsets.all(4)),
                           Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
@@ -622,62 +551,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Visibility(
-                    visible: friends.isNotEmpty,
-                    child: (upNextUserIDs.isNotEmpty && upNextSchedules.isEmpty) ? SizedBox(
-                      height: 100,
-                      child: ListView.builder(
-                        itemCount: 4,
-                        itemBuilder: (BuildContext context, int i) {
-                          return Padding(
-                            padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                            child: SizedBox(
-                              width: 175,
-                              child: CardLoading(
-                                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                height: 150,
-                                margin: const EdgeInsets.all(8),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: const [
-                                          Card(
-                                            shape: CircleBorder(),
-                                            child: SizedBox(
-                                              height: 25,
-                                              width: 25,
-                                            ),
-                                          ),
-                                          Padding(padding: EdgeInsets.all(4)),
-                                          Card(
-                                            child: SizedBox(
-                                              height: 20,
-                                              width: 75,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const Padding(padding: EdgeInsets.all(2)),
-                                      const Card(
-                                        child: SizedBox(
-                                          height: 20,
-                                          width: 75,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                        scrollDirection: Axis.horizontal,
-                      ),
-                    ) : (upNextUserIDs.isEmpty && upNextSchedules.isEmpty) ? SizedBox(
+                    visible: false,
+                    child: (upNextUserIDs.isNotEmpty && upNextSchedules.isEmpty) ? const UpNextPlaceholder() : (upNextUserIDs.isEmpty && upNextSchedules.isEmpty) ? SizedBox(
                       height: 100,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8.0, right: 8),
@@ -692,10 +567,10 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Image.asset("images/icons/new.png", height: 75, color: Colors.grey.withOpacity(0.6),),
                                 const Padding(padding: EdgeInsets.all(8)),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Click to add friends to your Up Next view.",
                                         style: TextStyle(fontSize: 18),
@@ -802,60 +677,17 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.menu_book_rounded),
                         Padding(padding: EdgeInsets.all(4)),
                         Text("Library", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                       ],
                     ),
                   ),
-                  (waitzBuildings.isEmpty) ? Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: Column(
-                      children: [0,1,2].map((e) => CardLoading(
-                        margin: const EdgeInsets.all(8),
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        height: 150,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    children: const [
-                                      Card(
-                                        child: SizedBox(
-                                          height: 25,
-                                          width: 200,
-                                        ),
-                                      ),
-                                      Card(
-                                        child: SizedBox(
-                                          height: 15,
-                                          width: 200,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Card(
-                                    child: SizedBox(
-                                      height: 30,
-                                      width: 40,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      )).toList()
-                    ),
-                  ) : Padding(
+                  (waitzBuildings.isEmpty) ? const WaitzPlaceholder() : Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                     child: Card(
                       child: Column(
@@ -948,22 +780,22 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => router.navigateTo(context, "/overdose-response", transition: TransitionType.native),
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: Row(
+                    child: const Row(
                       children: [
-                        const Icon(Icons.warning, color: Colors.white,),
-                        const Padding(padding: EdgeInsets.all(4)),
+                        Icon(Icons.warning, color: Colors.white,),
+                        Padding(padding: EdgeInsets.all(4)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text("Overdose Response", style: TextStyle(color: Colors.white, fontSize: 18),),
                               Padding(padding: EdgeInsets.all(2)),
                               Text("Stay safe out there! Check out the emergency response quick action guide.", style: TextStyle(color: Colors.white),)
                             ],
                           ),
                         ),
-                        const Padding(padding: EdgeInsets.all(4)),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.white,),
+                        Padding(padding: EdgeInsets.all(4)),
+                        Icon(Icons.arrow_forward_ios, color: Colors.white,),
                       ],
                     ),
                   ),

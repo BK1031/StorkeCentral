@@ -78,16 +78,18 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      log("[tab_bar_controller] App has been resumed");
-      AuthService.getUser(currentUser.id);
-      _determinePosition();
-      checkAppVersion();
-      if (!offlineMode) sendLoginEvent();
-    } else {
-      log("[tab_bar_controller] App has been backgrounded");
-      if (!offlineMode) setUserStatus("OFFLINE");
-      _positionStream?.cancel();
+    if (!kIsWeb) {
+      if (state == AppLifecycleState.resumed) {
+        log("[tab_bar_controller] App has been resumed");
+        AuthService.getUser(currentUser.id);
+        _determinePosition();
+        checkAppVersion();
+        if (!offlineMode) sendLoginEvent();
+      } else {
+        log("[tab_bar_controller] App has been backgrounded");
+        if (!offlineMode) setUserStatus("OFFLINE");
+        _positionStream?.cancel();
+      }
     }
   }
 
@@ -209,7 +211,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       await AuthService.getAuthToken();
       await httpClient.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
-          notifications = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
+          notifications = jsonDecode(value.body)["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         });
       });
@@ -259,8 +261,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
     if (kIsWeb) {
       login.appVersion = "StorkeCentral Web v${appVersion.toString()}";
-    } else if (Platform.isIOS) login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
-    else if (Platform.isAndroid) login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
+    } else if (Platform.isIOS) {
+      login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
+    } else if (Platform.isAndroid) {
+      login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
+    }
 
     if (!kIsWeb) {
       login.deviceName = Platform.localHostname;
@@ -344,8 +349,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   void setUserStatus(String status) {
-    currentUser.status = status;
-    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
+    if (!kIsWeb) {
+      currentUser.status = status;
+      FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
+    }
     AuthService.getAuthToken().then((_) {
       http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });
@@ -360,7 +367,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       log("[tab_bar_controller] Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      var responseJson = jsonDecode(response.body);
       // Persist friends list
       List<dynamic> friendsDynamic = responseJson["data"].map((e) => jsonEncode(e).toString()).toList();
       prefs.setStringList("CURRENT_USER_FRIENDS", friendsDynamic.map((e) => e.toString()).toList());
@@ -393,7 +400,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           await AuthService.getAuthToken();
           await httpClient.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             setState(() {
-              buildings = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<Building>((json) => Building.fromJson(json)).toList();
+              buildings = jsonDecode(value.body)["data"].map<Building>((json) => Building.fromJson(json)).toList();
             });
             lastBuildingFetch = DateTime.now();
           });
@@ -420,6 +427,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       setState(() {
         buildings = prefs.getStringList("BUILDINGS_LIST")!.map((e) => Building.fromJson(jsonDecode(e))).toList();
       });
+      log("[tab_bar_controller] Loaded ${buildings.length} buildings from cache");
     }
     trace.stop();
   }
