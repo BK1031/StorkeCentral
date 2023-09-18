@@ -33,9 +33,8 @@ late SharedPreferences prefs;
 Version appVersion = Version("2.5.0+1");
 Version stableVersion = Version("1.0.0+1");
 
-// String API_HOST = "https://api.storkecentr.al";
+String API_HOST = "https://api.storkecentr.al";
 // String API_HOST = "http://localhost:4001";
-String API_HOST = "https://66a7-98-45-23-168.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
