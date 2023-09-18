@@ -1,7 +1,6 @@
 import 'package:storke_central/models/user.dart';
 
 class Friend {
-  String id = "";
   String fromUserID = "";
   String toUserID = "";
   String status = "";
@@ -12,7 +11,6 @@ class Friend {
   Friend();
 
   Friend.fromJson(Map<String, dynamic> json) {
-    id = json["id"] ?? "";
     fromUserID = json["from_user_id"] ?? "";
     toUserID = json["to_user_id"] ?? "";
     status = json["status"] ?? "";
@@ -23,7 +21,6 @@ class Friend {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
       "from_user_id": fromUserID,
       "to_user_id": toUserID,
       "status": status,
@@ -36,7 +33,7 @@ class Friend {
   // Returns the friendship status with the [currentUser] using this list
   static String getFriendshipFromList(User user, List<Friend> friendList) {
     for (int i = 0; i < friendList.length; i++) {
-      if (friendList[i].id.contains(user.id)) return friendList[i].status;
+      if (friendList[i].fromUserID == user.id || friendList[i].toUserID == user.id) return friendList[i].status;
     }
     return "NULL";
   }

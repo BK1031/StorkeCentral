@@ -61,8 +61,6 @@ Future<void> main() async {
   log("Initialized default app $app");
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
-  // Remove this method to stop OneSignal Debugging
-  // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
   OneSignal.initialize(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS

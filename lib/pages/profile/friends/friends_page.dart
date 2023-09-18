@@ -49,14 +49,18 @@ class _FriendsPageState extends State<FriendsPage> {
   Future<void> updateUserFriendsList() async {
     Trace trace = FirebasePerformance.instance.newTrace("updateUserFriendsList()");
     await trace.start();
-    setState(() => refreshing = true);
     await AuthService.getAuthToken();
-    var response = await http.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    setState(() => refreshing = true);
+    var response = await httpClient.get(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       log("[friends_page] Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      var responseJson = jsonDecode(response.body);
+      // Persist friends list
+      List<dynamic> friendsDynamic = responseJson["data"].map((e) => jsonEncode(e).toString()).toList();
+      prefs.setStringList("CURRENT_USER_FRIENDS", friendsDynamic.map((e) => e.toString()).toList());
+
       for (int i = 0; i < responseJson["data"].length; i++) {
         Friend friend = Friend.fromJson(responseJson["data"][i]);
         if (friend.status == "REQUESTED") {
@@ -84,7 +88,7 @@ class _FriendsPageState extends State<FriendsPage> {
     await AuthService.getAuthToken();
     var response = await http.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
-      user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
+      user = User.fromJson(jsonDecode(response.body)["data"]);
     } else {
       log("[friends_page] Failed to retrieve friend with id: $id", LogLevel.error);
       log("[friends_page] ${response.body}", LogLevel.error);
@@ -101,27 +105,45 @@ class _FriendsPageState extends State<FriendsPage> {
     Friend friend = requests.where((element) => element.fromUserID == user.id).first;
     friend.status = "ACCEPTED";
     setState(() {
-      loadingList.add(friend.id);
+      loadingList.add(friend.fromUserID);
     });
     await AuthService.getAuthToken();
-    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
+    var response = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${friend.fromUserID}/accept"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(friend));
     if (response.statusCode == 200) {
       log("[friends_page] Friend request accepted!");
       setState(() {
-        requests.removeWhere((element) => element.id == friend.id);
-        friends.add(friend);
+        requests.removeWhere((element) => element.fromUserID == friend.fromUserID);
+        friends.add(Friend.fromJson(jsonDecode(response.body)["data"]));
       });
       updateUserFriendsList();
-      // ignore: use_build_context_synchronously
       AlertService.showSuccessSnackbar(context, "You are now friends with ${friend.user.firstName}!");
     } else {
       log("[friends_page] ${response.body}", LogLevel.error);
-      // ignore: use_build_context_synchronously
       AlertService.showErrorSnackbar(context, "Failed to send friend request");
     }
     setState(() {
-      loadingList.remove(friend.id);
+      loadingList.remove(friend.fromUserID);
     });
+    trace.stop();
+  }
+
+  Future<void> removeFriend(User user) async {
+    Trace trace = FirebasePerformance.instance.newTrace("acceptFriend()");
+    await trace.start();
+    setState(() {
+      friends.removeWhere((element) => element.fromUserID == user.id || element.toUserID == user.id);
+      requests.removeWhere((element) => element.fromUserID == user.id || element.toUserID == user.id);
+    });
+    await AuthService.getAuthToken();
+    var response = await http.delete(Uri.parse("$API_HOST/users/${currentUser.id}/friends/${user.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    if (response.statusCode == 200) {
+      log("[friends_page] Friend removed!");
+      updateUserFriendsList();
+      AlertService.showSuccessSnackbar(context, "Removed friend!");
+    } else {
+      log("[friends_page] ${response.body}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to remove friend");
+    }
     trace.stop();
   }
 
@@ -178,205 +200,207 @@ class _FriendsPageState extends State<FriendsPage> {
             ),
           ),
           Expanded(
-            child: Container(
-              child: PageView(
-                controller: pageController,
-                onPageChanged: (int page) {
-                  setState(() {
-                    currPage = page;
-                  });
-                },
-                children: [
-                  Column(
-                    children: [
-                      Visibility(
-                        visible: refreshing,
-                        child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Center(child: RefreshProgressIndicator(backgroundColor: SB_NAVY, color: Colors.white,))
+            child: PageView(
+              controller: pageController,
+              onPageChanged: (int page) {
+                setState(() {
+                  currPage = page;
+                });
+              },
+              children: [
+                Column(
+                  children: [
+                    Visibility(
+                      visible: refreshing,
+                      child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Center(child: RefreshProgressIndicator(backgroundColor: SB_NAVY, color: Colors.white,))
+                      ),
+                    ),
+                    friends.isEmpty ? Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(
+                              CupertinoIcons.person_crop_circle_badge_xmark,
+                              size: 100,
+                              color: Theme.of(context).textTheme.bodySmall!.color,
+                            ),
+                            const Padding(padding: EdgeInsets.all(4)),
+                            const Text("No friends 😔", style: TextStyle(fontSize: 16),),
+                          ],
                         ),
                       ),
-                      friends.isEmpty ? Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Icon(
-                                CupertinoIcons.person_crop_circle_badge_xmark,
-                                size: 100,
-                                color: Theme.of(context).textTheme.bodySmall!.color,
+                    ) : Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(8),
+                        itemCount: friends.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            child: InkWell(
+                              onTap: () {
+                                router.navigateTo(context, "/profile/user/${friends[index].user.id}", transition: TransitionType.native);
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      child: ExtendedImage.network(
+                                        friends[index].user.profilePictureURL,
+                                        height: 60,
+                                        width: 60,
+                                        fit: BoxFit.cover,
+                                        borderRadius: const BorderRadius.all(Radius.circular(125)),
+                                        shape: BoxShape.rectangle,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "${friends[index].user.firstName} ${friends[index].user.lastName}",
+                                            style: const TextStyle(fontSize: 18),
+                                          ),
+                                          Text(
+                                            "@${friends[index].user.userName}",
+                                            style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const Padding(padding: EdgeInsets.all(4)),
-                              const Text("No friends 😔", style: TextStyle(fontSize: 16),),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                refreshing ? const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Center(child: RefreshProgressIndicator())
+                ) :  requests.isEmpty ? Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Icon(
+                          CupertinoIcons.person_crop_circle_badge_xmark,
+                          size: 100,
+                          color: Theme.of(context).textTheme.bodySmall!.color,
+                        ),
+                        const Padding(padding: EdgeInsets.all(4)),
+                        const Text("No friend requests"),
+                      ],
+                    ),
+                  ),
+                ) : ListView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(8),
+                  itemCount: requests.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      child: InkWell(
+                        onTap: () {
+                          router.navigateTo(context, "/profile/user/${requests[index].user.id}", transition: TransitionType.native);
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                child: ExtendedImage.network(
+                                  requests[index].user.profilePictureURL,
+                                  height: 60,
+                                  width: 60,
+                                  fit: BoxFit.cover,
+                                  borderRadius: const BorderRadius.all(Radius.circular(125)),
+                                  shape: BoxShape.rectangle,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${requests[index].user.firstName} ${requests[index].user.lastName}",
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                    Text(
+                                      "@${requests[index].user.userName}",
+                                      style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Visibility(
+                                visible: loadingList.contains(requests[index].fromUserID),
+                                child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Center(child: RefreshProgressIndicator(
+                                      color: Colors.white,
+                                      backgroundColor: SB_NAVY
+                                    ))
+                                ),
+                              ),
+                              Visibility(
+                                visible: requests[index].fromUserID != currentUser.id && !loadingList.contains(requests[index].fromUserID),
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: SB_NAVY,
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.person_add, color: Colors.white),
+                                      Padding(padding: EdgeInsets.all(4)),
+                                      Text("Accept", style: TextStyle(color: Colors.white),),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    acceptFriend(requests[index].user);
+                                  },
+                                ),
+                              ),
+                              Visibility(
+                                visible: requests[index].fromUserID == currentUser.id,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                                  color: Theme.of(context).colorScheme.background,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
+                                      const Padding(padding: EdgeInsets.all(2)),
+                                      Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    AlertService.showConfirmationDialog(context, "Cancel Friend Request", "Are you sure you want to cancel your friend request to ${requests[index].user.firstName}?", () {
+                                      removeFriend(requests[index].user);
+                                    });
+                                  },
+                                ),
+                              )
                             ],
                           ),
                         ),
-                      ) : Expanded(
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          padding: const EdgeInsets.all(8),
-                          itemCount: friends.length,
-                          itemBuilder: (context, index) {
-                            return Card(
-                              child: InkWell(
-                                onTap: () {
-                                  router.navigateTo(context, "/profile/user/${friends[index].user.id}", transition: TransitionType.native);
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        child: ExtendedImage.network(
-                                          friends[index].user.profilePictureURL,
-                                          height: 60,
-                                          width: 60,
-                                          fit: BoxFit.cover,
-                                          borderRadius: BorderRadius.all(Radius.circular(125)),
-                                          shape: BoxShape.rectangle,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "${friends[index].user.firstName} ${friends[index].user.lastName}",
-                                              style: TextStyle(fontSize: 18),
-                                            ),
-                                            Text(
-                                              "@${friends[index].user.userName}",
-                                              style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
                       ),
-                    ],
-                  ),
-                  refreshing ? const Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Center(child: RefreshProgressIndicator())
-                  ) :  requests.isEmpty ? Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Icon(
-                            CupertinoIcons.person_crop_circle_badge_xmark,
-                            size: 100,
-                            color: Theme.of(context).textTheme.bodySmall!.color,
-                          ),
-                          const Padding(padding: EdgeInsets.all(4)),
-                          const Text("No friend requests"),
-                        ],
-                      ),
-                    ),
-                  ) : ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: requests.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        child: InkWell(
-                          onTap: () {
-                            router.navigateTo(context, "/profile/user/${requests[index].user.id}", transition: TransitionType.native);
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: ExtendedImage.network(
-                                    requests[index].user.profilePictureURL,
-                                    height: 60,
-                                    width: 60,
-                                    fit: BoxFit.cover,
-                                    borderRadius: BorderRadius.all(Radius.circular(125)),
-                                    shape: BoxShape.rectangle,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "${requests[index].user.firstName} ${requests[index].user.lastName}",
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                      Text(
-                                        "@${requests[index].user.userName}",
-                                        style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: loadingList.contains(requests[index].id),
-                                  child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Center(child: RefreshProgressIndicator(
-                                        color: Colors.white,
-                                        backgroundColor: SB_NAVY
-                                      ))
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: requests[index].fromUserID != currentUser.id && !loadingList.contains(requests[index].id),
-                                  child: CupertinoButton(
-                                    padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                    color: SB_NAVY,
-                                    child: Row(
-                                      children: const [
-                                        Icon(Icons.person_add, color: Colors.white),
-                                        Padding(padding: EdgeInsets.all(4)),
-                                        Text("Accept", style: TextStyle(color: Colors.white),),
-                                      ],
-                                    ),
-                                    onPressed: () {
-                                      acceptFriend(requests[index].user);
-                                    },
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: requests[index].fromUserID == currentUser.id,
-                                  child: CupertinoButton(
-                                    padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                    color: Theme.of(context).colorScheme.background,
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),
-                                        const Padding(padding: EdgeInsets.all(2)),
-                                        Text("Requested", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),),
-                                      ],
-                                    ),
-                                    onPressed: () {},
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                ],
-              )
+                    );
+                  },
+                )
+              ],
             ),
           ),
         ],

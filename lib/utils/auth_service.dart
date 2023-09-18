@@ -16,6 +16,7 @@ class AuthService {
     await trace.start();
     await AuthService.getAuthToken();
     var response = await httpClient.get(Uri.parse("$API_HOST/users/$id"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+    log("[auth_service] getUser($id) response: ${response.statusCode}");
     if (response.statusCode == 200) {
       currentUser = User.fromJson(jsonDecode(response.body)["data"]);
       log("====== USER DEBUG INFO ======");
@@ -37,7 +38,6 @@ class AuthService {
     currentUser = User();
     demoMode = false;
     appUnderReview = false;
-    anonMode = false;
     offlineMode = false;
     await prefs.clear();
   }
@@ -52,7 +52,7 @@ class AuthService {
   }
 
   static bool verifyUserSession(context, String path) {
-    if (!anonMode && !offlineMode && currentUser.id == "") {
+    if (!offlineMode && currentUser.id == "") {
       log("User info is missing, checking auth...");
       Future.delayed(Duration.zero, () {
         router.navigateTo(context, "/check-auth?route=${Uri.encodeComponent(path)}", clearStack: true, replace: true, transition: TransitionType.fadeIn);

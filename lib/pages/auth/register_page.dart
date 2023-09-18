@@ -20,6 +20,7 @@ import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -232,7 +233,8 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> loginAnon() async {
     fb.FirebaseAuth.instance.signInAnonymously().then((value) async {
       FirebaseAnalytics.instance.logSignUp(signUpMethod: "Anonymous");
-      router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+      await AuthService.getUser(appReviewUserID);
+      Future.delayed(Duration.zero, () => router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true));
     });
   }
 
@@ -444,18 +446,7 @@ class _RegisterPageState extends State<RegisterPage> {
             },
           ),
           const Padding(padding: EdgeInsets.all(8),),
-          const Text("–– OR ––"),
-          // Padding(padding: EdgeInsets.all(8),),
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: CupertinoButton(
-              onPressed: () {
-                loginAnon();
-              },
-              child: const Text("Continue as guest"),
-            ),
-          ),
-          const Padding(padding: EdgeInsets.all(8),),
+          Visibility(visible: appUnderReview, child: const Text("–– OR ––")),
           Visibility(
             visible: appUnderReview,
             child: SizedBox(
@@ -496,6 +487,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   if (code == "STORKE") {
                                     demoMode = true;
                                     loginAnon();
+                                  } else {
+                                    Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Invalid demo code"));
                                   }
                                 },
                                 child: const Text("Enter Demo Mode"),

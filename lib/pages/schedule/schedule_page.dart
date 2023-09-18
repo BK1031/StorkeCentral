@@ -63,22 +63,22 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   Future<void> getUserSchedule(String quarter) async {
     if (!offlineMode) {
       try {
-        // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
+        // Check if userScheduleItems is empty or if queried quarter is different from last item in userScheduleItems
         log("[schedule_page] ${userScheduleItems.length} existing userScheduleItems");
-        if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
+        if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != quarter) {
           Trace trace = FirebasePerformance.instance.newTrace("getUserSchedule()");
           await trace.start();
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
-            getPasstime();
+            // getPasstime();
           } else {
             // Only show the loading indicator if we're not loading from offline storage
             setState(() => loading = true);
           }
           await AuthService.getAuthToken();
-          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-            if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
+          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            if (jsonDecode(value.body)["data"].length == 0) {
               log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
@@ -90,7 +90,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               setState(() {
                 classesFound = true;
                 loading = false;
-                userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               if (quarter == currentQuarter.id) {
                 prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
@@ -104,14 +104,15 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           buildCalendar();
         }
       } catch(err) {
-        AlertService.showErrorSnackbar(context, "Failed to get schedule!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get schedule!"));
         log("[schedule_page] ${err.toString()}", LogLevel.error);
         setState(() => classesFound = true);
       }
     } else {
       log("[schedule_page] Offline mode, searching cache for schedule...");
-      loadOfflineSchedule();
-      AlertService.showSuccessSnackbar(context, "Loaded offline schedule!");
+      if (quarter == currentQuarter.id) {
+        loadOfflineSchedule();
+      }
     }
   }
 
@@ -124,6 +125,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       });
       log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
       buildCalendar();
+      if (offlineMode) {
+        Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline schedule!"));
+      }
     }
     trace.stop();
   }
@@ -252,49 +256,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   @override
   Widget build(BuildContext context) {
-    if (anonMode && !appUnderReview) {
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              children: [
-                Icon(Icons.lock_person_outlined, size: 100, color: Theme.of(context).textTheme.caption!.color,),
-                const Padding(padding: EdgeInsets.all(8),),
-                const Text("It looks like you are currently logged in as a guest.\n\nPlease login to view your class schedule!", style: TextStyle(fontSize: 16), textAlign: TextAlign.center,),
-                const Padding(padding: EdgeInsets.all(8),),
-                OutlinedButton(
-                  style: ButtonStyle(
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              side: const BorderSide(color: Colors.red)
-                          )
-                      )
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.asset("images/icons/google-icon.png", height: 25, width: 25,),
-                      ),
-                      const Padding(padding: EdgeInsets.all(4),),
-                      const Text("Sign in with Google", style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  onPressed: () {
-                    AuthService.signOut();
-                    router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
-                  },
-                ),
-              ],
-            ),
-          )
-        )
-      );
-    } else {
-      return Scaffold(
+    super.build(context);
+    return SafeArea(
+      child: Scaffold(
           floatingActionButton: Padding(
             padding: const EdgeInsets.only(left: 8.0, right: 8.0),
             child: Row(
@@ -303,93 +267,93 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               children: [
                 Expanded(
                   child: Visibility(
-                    visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeEnd.isAfter(DateTime.now()) && userPasstime.userID != "",
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Card(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              setState(() {
-                                passtimeExpanded = !passtimeExpanded;
-                              });
-                            },
-                            child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                padding: const EdgeInsets.all(8),
-                                height: passtimeExpanded ? 150 : 55,
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                            Text(
-                                                "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first.toLocal())}",
-                                                style: const TextStyle(fontSize: 14)
-                                            )
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                          child: Icon(
-                                            passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
-                                            color: passtimeExpanded ? SB_NAVY : Colors.grey,
-                                            size: 35,
+                      visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeStart.add(const Duration(days: 7)).isAfter(DateTime.now()) && userPasstime.userID != "",
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Card(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () {
+                                setState(() {
+                                  passtimeExpanded = !passtimeExpanded;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeInOut,
+                                  padding: const EdgeInsets.all(8),
+                                  height: passtimeExpanded ? 150 : 55,
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                              Text(
+                                                  "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first.toLocal())}",
+                                                  style: const TextStyle(fontSize: 14)
+                                              )
+                                            ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      children: passtimeExpanded ? [
-                                        const Padding(padding: EdgeInsets.all(4),),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text("Pass 1:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                            Text(
-                                                "${DateFormat("M/d h:mm a").format(userPasstime.passOneStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passOneEnd.toLocal())}",
-                                                style: const TextStyle(fontSize: 16)
-                                            )
-                                          ],
-                                        ),
-                                        const Padding(padding: EdgeInsets.all(4),),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text("Pass 2:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                            Text(
-                                                "${DateFormat("M/d h:mm a").format(userPasstime.passTwoStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passTwoEnd.toLocal())}",
-                                                style: const TextStyle(fontSize: 16)
-                                            )
-                                          ],
-                                        ),
-                                        const Padding(padding: EdgeInsets.all(4),),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text("Pass 3:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                            Text(
-                                                "${DateFormat("M/d h:mm a").format(userPasstime.passThreeStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passThreeEnd.toLocal())}",
-                                                style: const TextStyle(fontSize: 16)
-                                            )
-                                          ],
-                                        )
-                                      ] : [],
-                                    )
-                                  ],
-                                )
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                            child: Icon(
+                                              passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
+                                              color: passtimeExpanded ? SB_NAVY : Colors.grey,
+                                              size: 35,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: passtimeExpanded ? [
+                                          const Padding(padding: EdgeInsets.all(4),),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text("Pass 1:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                              Text(
+                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passOneStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passOneEnd.toLocal())}",
+                                                  style: const TextStyle(fontSize: 16)
+                                              )
+                                            ],
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4),),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text("Pass 2:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                              Text(
+                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passTwoStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passTwoEnd.toLocal())}",
+                                                  style: const TextStyle(fontSize: 16)
+                                              )
+                                            ],
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4),),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text("Pass 3:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                              Text(
+                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passThreeStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passThreeEnd.toLocal())}",
+                                                  style: const TextStyle(fontSize: 16)
+                                              )
+                                            ],
+                                          )
+                                        ] : [],
+                                      )
+                                    ],
+                                  )
+                              ),
                             ),
-                          ),
-                        )
-                      ],
-                    )
+                          )
+                        ],
+                      )
                   ),
                 ),
                 const Padding(padding: EdgeInsets.all(4),),
@@ -481,22 +445,21 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                   ),
                   Expanded(
                     child: SfCalendar(
-                      controller: _controller,
-                      // firstDayOfWeek: 1,
-                      view: CalendarView.week,
-                      timeSlotViewSettings: const TimeSlotViewSettings(
-                        timeIntervalHeight: 40,
-                        // timeInterval: Duration(minutes: 30),
-                        timeFormat: "h a",
-                        startHour: 7,
-                        endHour: 24,
-                      ),
-                      selectionDecoration: BoxDecoration(),
-                      allowDragAndDrop: false,
-                      dataSource: MeetingDataSource(calendarMeetings),
-                      cellEndPadding: 0,
-                      headerHeight: 0,
-                      appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
+                        controller: _controller,
+                        // firstDayOfWeek: 1,
+                        view: CalendarView.week,
+                        timeSlotViewSettings: const TimeSlotViewSettings(
+                          timeIntervalHeight: 40,
+                          timeFormat: "h a",
+                          startHour: 7,
+                          endHour: 24,
+                        ),
+                        selectionDecoration: const BoxDecoration(),
+                        allowDragAndDrop: false,
+                        dataSource: MeetingDataSource(calendarMeetings),
+                        cellEndPadding: 0,
+                        headerHeight: 0,
+                        appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
                           return InkWell(
                             onTap: () {
                               router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
@@ -512,8 +475,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                               child: Column(
                                 children: [
                                   FittedBox(
-                                    fit: BoxFit.fitWidth,
-                                    child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
+                                      fit: BoxFit.fitWidth,
+                                      child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
                                   ),
                                   FittedBox(
                                       fit: BoxFit.fitWidth,
@@ -523,7 +486,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                               ),
                             ),
                           );
-                      }
+                        }
                     ),
                   ),
                 ],
@@ -548,7 +511,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                             ),
                             const Padding(padding: EdgeInsets.all(4),),
                             const Text(
-                              "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
+                                "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
                             ),
                             const Padding(padding: EdgeInsets.all(8),),
                             SizedBox(
@@ -621,7 +584,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               ),
             ],
           )
-      );
-    }
+      ),
+    );
   }
 }

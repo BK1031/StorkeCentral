@@ -34,7 +34,8 @@ Version appVersion = Version("2.5.0+1");
 Version stableVersion = Version("1.0.0+1");
 
 // String API_HOST = "https://api.storkecentr.al";
-String API_HOST = "http://localhost:4001";
+// String API_HOST = "http://localhost:4001";
+String API_HOST = "https://66a7-98-45-23-168.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
@@ -50,11 +51,10 @@ String PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.bk103
 String TESTFLIGHT_URL = "https://beta.itunes.apple.com/v1/app/1594777645";
 
 bool offlineMode = false;
-bool anonMode = false;
 bool demoMode = false;
 
 bool appUnderReview = false;
-String appReviewUserID = "Xbq9Xf8kfjQzHsvTVds2E6kUD5F3";
+String appReviewUserID = "thomas-storke";
 
 String launchDynamicLink = "";
 
@@ -95,16 +95,14 @@ DateTime lastBuildingFetch = DateTime.now();
 Building selectedBuilding = Building();
 
 /// Units can be [m] or [ft]
-// ignore: non_constant_identifier_names
 String PREF_UNITS = "M";
-// ignore: non_constant_identifier_names
 Map<String, double> UNITS_CONVERSION = {
   "M": 1,
   "FT": 3.28084
 };
 
 // Quarter Information
-Quarter currentQuarter = spring23;
+Quarter currentQuarter = fall23;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [fall22, winter23, spring23, fall23];
 // Quarter for the next passtime
@@ -120,17 +118,17 @@ Quarter fall23 = Quarter.fromJson({
   "firstDayOfFinals": "2023-12-09 00:00:00.000",
   "lastDayOfFinals": "2023-12-15 00:00:00.000",
   "weeks": [
-    "2023-09-24 00:00:00.000",
-    "2023-10-01 00:00:00.000",
-    "2023-10-08 00:00:00.000",
-    "2023-10-15 00:00:00.000",
-    "2023-10-22 00:00:00.000",
-    "2023-10-29 00:00:00.000",
-    "2023-11-05 00:00:00.000",
-    "2023-11-12 00:00:00.000",
-    "2023-11-19 00:00:00.000",
-    "2023-11-26 00:00:00.000",
-    "2023-12-03 00:00:00.000",
+    "2023-09-24 00:00:00.000", // Week 0
+    "2023-10-01 00:00:00.000", // Week 1
+    "2023-10-08 00:00:00.000", // Week 2
+    "2023-10-15 00:00:00.000", // Week 3
+    "2023-10-22 00:00:00.000", // Week 4
+    "2023-10-29 00:00:00.000", // Week 5
+    "2023-11-05 00:00:00.000", // Week 6
+    "2023-11-12 00:00:00.000", // Week 7
+    "2023-11-19 00:00:00.000", // Week 8
+    "2023-11-26 00:00:00.000", // Week 9
+    "2023-12-03 00:00:00.000", // Week 10
   ]
 });
 

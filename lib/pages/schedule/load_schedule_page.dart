@@ -53,7 +53,19 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   @override
   void initState() {
     super.initState();
-    fetchGoldSchedule();
+    checkDeviceKey();
+  }
+
+  void checkDeviceKey() {
+    if (prefs.containsKey("CREDENTIALS_KEY")) {
+      log("[load_schedule_page] Found device key, fetching schedule");
+      fetchGoldSchedule();
+    } else {
+      log("[load_schedule_page] No device key found, launching login page", LogLevel.warn);
+      setState(() {
+        state = 1;
+      });
+    }
   }
 
   List<String> getListFromDayString(String days) {
@@ -88,7 +100,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       await AuthService.getAuthToken();
       await httpClient.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         if (value.statusCode == 200) {
-          userCourses = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
+          userCourses = jsonDecode(value.body)["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
           log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
           getCourseInformation(selectedQuarter.id);
         } else {
@@ -115,13 +127,16 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     });
     try {
       await AuthService.getAuthToken();
+      String encryptionKey = generateEncryptionKey();
       await http.post(Uri.parse("$API_HOST/users/credentials/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode({
         "user_id": currentUser.id,
         "username": usernameController.text,
         "password": passwordController.text,
-        "encryption_key": generateEncryptionKey()
+        "encryption_key": encryptionKey
       })).then((value) {
         if (value.statusCode == 200) {
+          log("[load_schedule_page] Encrypted credentials with device key ${encryptionKey.substring(0, 8)}...");
+          prefs.setString("CREDENTIALS_KEY", encryptionKey);
           fetchGoldSchedule();
         } else {
           log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
@@ -132,7 +147,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           CoolAlert.show(
             context: context,
             type: CoolAlertType.error,
-            title: "Error",
+            title: "GOLD Login Error",
             text: "Error saving credentials: ${jsonDecode(value.body)["data"]}",
             backgroundColor: SB_NAVY,
             confirmBtnColor: SB_RED,
@@ -150,10 +165,10 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   }
 
   String generateEncryptionKey() {
-    const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    Random _rnd = Random.secure();
+    const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random rnd = Random.secure();
     log("[load_schedule_page] Generated encryption key", LogLevel.info);
-    return String.fromCharCodes(Iterable.generate(32, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+    return String.fromCharCodes(Iterable.generate(32, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
   Future<void> getCourseInformation(String quarter) async {
@@ -262,14 +277,12 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       log("[load_schedule_page] Saving schedule to database...");
 
       await AuthService.getAuthToken();
-      await http.delete(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
-      await AuthService.getAuthToken();
       await http.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(userScheduleItems));
       log("[load_schedule_page] Saved schedule to database");
       setState(() {
         state = 6;
         // Set lastScheduleFetch to force a refresh
-        lastScheduleFetch = DateTime.now().subtract(const Duration(minutes: 200));
+        lastScheduleFetch = DateTime.now().subtract(const Duration(days: 7));
       });
       Future.delayed(const Duration(seconds: 1), () {
         router.pop(context);
@@ -343,7 +356,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                      Text("Invalid/Missing Credentials", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                      const Text("Invalid/Missing Credentials", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
                       const Padding(padding: EdgeInsets.all(4)),
                       const Text("Please login with your UCSB NetID to allow us to fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16),),
                       const Padding(padding: EdgeInsets.all(8)),
@@ -399,8 +412,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         ),
                       ),
                       ExpansionTile(
-                        title: Row(
-                          children: const [
+                        title: const Row(
+                          children: [
                             Icon(Icons.security),
                             Padding(padding: EdgeInsets.all(4)),
                             Text("Important Security Information", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
@@ -412,7 +425,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                           const Text("Your login credentials are encrypted using 256-bit AES encryption with a rolling key on device, and then once again encrypted on our backend for storage. Your credentials are never transmitted in plain text, and are never stored in plaintext.", style: TextStyle(fontSize: 16),),
                           const Padding(padding: EdgeInsets.all(4)),
                           const Text("Your privacy and security are always our number one priorities, so you can always take a look at our GitHub repository to see how your data is handled.", style: TextStyle(fontSize: 16),),
-                          CupertinoButton(child: Text("GitHub Repository"), onPressed: () => launchUrlString("https://github.com/BK1031/StorkeCentral")),
+                          CupertinoButton(child: const Text("GitHub Repository"), onPressed: () => launchUrlString("https://github.com/BK1031/StorkeCentral")),
                           const Text("StorkeCentral is not an official UCSB app, use at your own risk!", style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic), textAlign: TextAlign.center,),
                           const Padding(padding: EdgeInsets.all(8)),
                         ],

@@ -176,292 +176,298 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
             myLocationEnabled: true,
             dragEnabled: true,
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: Card(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                    height: searchResults.isEmpty ? 45 : searchResults.length * 58 + 50,
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 45,
-                          child: TextField(
-                            controller: _searchController,
-                            focusNode: _searchFocus,
-                            decoration: const InputDecoration(
-                              icon: Icon(Icons.search_rounded),
-                              border: InputBorder.none,
-                              hintText: "Search for building name",
+          SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Card(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                      height: searchResults.isEmpty ? 45 : searchResults.length * 58 + 50,
+                      padding: const EdgeInsets.only(left: 8, right: 8),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 45,
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocus,
+                              decoration: const InputDecoration(
+                                icon: Icon(Icons.search_rounded),
+                                border: InputBorder.none,
+                                hintText: "Search for building name",
+                              ),
+                              textCapitalization: TextCapitalization.words,
+                              keyboardType: TextInputType.name,
+                              // style: const TextStyle(fontSize: 14),
+                              onChanged: buildingSearch,
                             ),
-                            textCapitalization: TextCapitalization.words,
-                            keyboardType: TextInputType.name,
-                            // style: const TextStyle(fontSize: 14),
-                            onChanged: buildingSearch,
                           ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            child: ListView.builder(
-                              itemCount: searchResults.length,
-                              itemBuilder: (context, index) {
-                                return Card(
-                                  child: InkWell(
-                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                    onTap: () {
-                                      selectBuilding(searchResults[index]);
-                                    },
-                                    child: Row(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                          child: ExtendedImage.network(
-                                            searchResults[index].pictureURL,
-                                            fit: BoxFit.cover,
-                                            height: 50,
-                                            width: 50,
+                          Expanded(
+                            child: Container(
+                              child: ListView.builder(
+                                itemCount: searchResults.length,
+                                itemBuilder: (context, index) {
+                                  return Card(
+                                    child: InkWell(
+                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                      onTap: () {
+                                        selectBuilding(searchResults[index]);
+                                      },
+                                      child: Row(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                            child: ExtendedImage.network(
+                                              searchResults[index].pictureURL,
+                                              fit: BoxFit.cover,
+                                              height: 50,
+                                              width: 50,
+                                            ),
                                           ),
-                                        ),
-                                        const Padding(padding: EdgeInsets.all(4)),
-                                        Expanded(
-                                          child: Text(
-                                            searchResults[index].name,
-                                            style: const TextStyle(fontSize: 14),
+                                          const Padding(padding: EdgeInsets.all(4)),
+                                          Expanded(
+                                            child: Text(
+                                              searchResults[index].name,
+                                              style: const TextStyle(fontSize: 14),
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          "${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}",
-                                          style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.caption!.color),
-                                        ),
-                                        Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.caption!.color),
-                                      ],
+                                          Text(
+                                            "${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}",
+                                            style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.caption!.color),
+                                          ),
+                                          Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.caption!.color),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              )
-            ],
+                )
+              ],
+            ),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                height: _searching || _buildingSelected ? 0 : 162,
-                child: ListView.builder(
-                  itemCount: buildings.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Padding(
-                      padding: EdgeInsets.only(right: 4, left: (index == 0) ? 8 : 0, bottom: 12),
-                      child: SizedBox(
-                        width: 150,
-                        child: Card(
-                          child: GestureDetector(
-                            onTap: () {
-                              selectBuilding(buildings[index]);
-                            },
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              child: Stack(
-                                children: [
-                                  ExtendedImage.network(
-                                    buildings[index].pictureURL,
-                                    fit: BoxFit.cover,
-                                    height: 150,
-                                    width: 150,
-                                  ),
-                                  Container(
-                                    height: 350.0,
-                                    decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                            begin: FractionalOffset.topCenter,
-                                            end: FractionalOffset.bottomCenter,
-                                            colors: [
-                                              // Colors.grey.withOpacity(1.0),
-                                              Colors.grey.withOpacity(0.0),
-                                              Colors.black,
-                                            ],
-                                            stops: const [0, 1]
-                                        )
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(buildings[index].name, style: const TextStyle(color: Colors.white),),
-                                            ),
-                                          ],
-                                        ),
-                                        Text("${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: TextStyle(color: Colors.grey, fontSize: 12),)
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  scrollDirection: Axis.horizontal,
-                ),
-              )
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                height: !_searching && _buildingSelected ? 350 : 0,
-                padding: const EdgeInsets.all(8),
-                child: Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}", transition: TransitionType.native);
-                        },
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                          child: Stack(
-                            children: [
-                              Hero(
-                                tag: "${selectedBuilding.id}-image",
-                                child: ExtendedImage.network(
-                                  selectedBuilding.pictureURL,
-                                  fit: BoxFit.cover,
-                                  height: 125,
-                                  width: double.infinity,
-                                ),
-                              ),
-                              Container(
-                                height: 125,
-                                decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                        begin: FractionalOffset.topCenter,
-                                        end: FractionalOffset.bottomCenter,
-                                        colors: [
-                                          // Colors.grey.withOpacity(1.0),
-                                          Colors.grey.withOpacity(0.0),
-                                          Colors.black,
-                                        ],
-                                        stops: const [0, 1]
-                                    )
-                                ),
-                              ),
-                              Container(
-                                height: 125,
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  height: _searching || _buildingSelected ? 0 : 162,
+                  child: ListView.builder(
+                    itemCount: buildings.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Padding(
+                        padding: EdgeInsets.only(right: 4, left: (index == 0) ? 8 : 0, bottom: 12),
+                        child: SizedBox(
+                          width: 150,
+                          child: Card(
+                            child: GestureDetector(
+                              onTap: () {
+                                selectBuilding(buildings[index]);
+                              },
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                child: Stack(
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.close, color: Colors.white,),
-                                          padding: EdgeInsets.zero,
-                                          onPressed: () {
-                                            cancelBuildingSelection();
-                                          },
-                                        )
-                                      ],
+                                    ExtendedImage.network(
+                                      buildings[index].pictureURL,
+                                      fit: BoxFit.cover,
+                                      height: 150,
+                                      width: 150,
                                     ),
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Expanded(
-                                          child: Hero(
-                                            tag: "${selectedBuilding.id}-title",
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: Text(
-                                                selectedBuilding.name,
-                                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                                              ),
-                                            ),
+                                    Container(
+                                      height: 350.0,
+                                      decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                              begin: FractionalOffset.topCenter,
+                                              end: FractionalOffset.bottomCenter,
+                                              colors: [
+                                                // Colors.grey.withOpacity(1.0),
+                                                Colors.grey.withOpacity(0.0),
+                                                Colors.black,
+                                              ],
+                                              stops: const [0, 1]
                                           )
-                                        ),
-                                      ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(buildings[index].name, style: const TextStyle(color: Colors.white),),
+                                              ),
+                                            ],
+                                          ),
+                                          Text("${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: TextStyle(color: Colors.grey, fontSize: 12),)
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SingleChildScrollView(
-                            child: Text(
-                              selectedBuilding.description,
-                              // style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
-                        child: Row(
-                          children: [
-                            Text("Navigate me here (${(selectedBuilding.distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            const Padding(padding: EdgeInsets.all(4)),
-                            Expanded(
-                              child: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                color: SB_NAVY,
-                                onPressed: () {
-                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
-                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?walking", transition: TransitionType.native);
-                                },
-                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white,),
-                              ),
-                            ),
-                            const Padding(padding: EdgeInsets.all(4)),
-                            Expanded(
-                              child: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                color: SB_NAVY,
-                                onPressed: () {
-                                  // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
-                                  router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?cycling", transition: TransitionType.native);
-                                },
-                                child: const Icon(Icons.directions_bike_rounded, color: Colors.white,),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
+                      );
+                    },
+                    scrollDirection: Axis.horizontal,
                   ),
                 )
-              )
-            ],
+              ],
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  height: !_searching && _buildingSelected ? 350 : 0,
+                  padding: const EdgeInsets.all(8),
+                  child: Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}", transition: TransitionType.native);
+                          },
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.all(Radius.circular(8)),
+                            child: Stack(
+                              children: [
+                                Hero(
+                                  tag: "${selectedBuilding.id}-image",
+                                  child: ExtendedImage.network(
+                                    selectedBuilding.pictureURL,
+                                    fit: BoxFit.cover,
+                                    height: 125,
+                                    width: double.infinity,
+                                  ),
+                                ),
+                                Container(
+                                  height: 125,
+                                  decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                          begin: FractionalOffset.topCenter,
+                                          end: FractionalOffset.bottomCenter,
+                                          colors: [
+                                            // Colors.grey.withOpacity(1.0),
+                                            Colors.grey.withOpacity(0.0),
+                                            Colors.black,
+                                          ],
+                                          stops: const [0, 1]
+                                      )
+                                  ),
+                                ),
+                                Container(
+                                  height: 125,
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.close, color: Colors.white,),
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () {
+                                              cancelBuildingSelection();
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Expanded(
+                                            child: Hero(
+                                              tag: "${selectedBuilding.id}-title",
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: Text(
+                                                  selectedBuilding.name,
+                                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                                ),
+                                              ),
+                                            )
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SingleChildScrollView(
+                              child: Text(
+                                selectedBuilding.description,
+                                // style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Text("Navigate me here (${(selectedBuilding.distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              const Padding(padding: EdgeInsets.all(4)),
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  color: SB_NAVY,
+                                  onPressed: () {
+                                    // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                    router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?walking", transition: TransitionType.native);
+                                  },
+                                  child: const Icon(Icons.directions_walk_rounded, color: Colors.white,),
+                                ),
+                              ),
+                              const Padding(padding: EdgeInsets.all(4)),
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  color: SB_NAVY,
+                                  onPressed: () {
+                                    // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
+                                    router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?cycling", transition: TransitionType.native);
+                                  },
+                                  child: const Icon(Icons.directions_bike_rounded, color: Colors.white,),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                )
+              ],
+            ),
           ),
         ],
       ),

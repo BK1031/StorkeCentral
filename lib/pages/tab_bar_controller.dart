@@ -67,7 +67,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       // if (!kIsWeb) _registerOneSignalListeners();
       firebaseAnalytics();
       fetchBuildings();
-      if (!anonMode && !offlineMode) {
+      if (!offlineMode) {
         persistUser();
         sendLoginEvent();
         updateUserFriendsList();
@@ -78,16 +78,18 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      log("[tab_bar_controller] App has been resumed");
-      AuthService.getUser(currentUser.id);
-      _determinePosition();
-      checkAppVersion();
-      if (!anonMode && !offlineMode) sendLoginEvent();
-    } else {
-      log("[tab_bar_controller] App has been backgrounded");
-      if (!anonMode && !offlineMode) setUserStatus("OFFLINE");
-      _positionStream?.cancel();
+    if (!kIsWeb) {
+      if (state == AppLifecycleState.resumed) {
+        log("[tab_bar_controller] App has been resumed");
+        AuthService.getUser(currentUser.id);
+        _determinePosition();
+        checkAppVersion();
+        if (!offlineMode) sendLoginEvent();
+      } else {
+        log("[tab_bar_controller] App has been backgrounded");
+        if (!offlineMode) setUserStatus("OFFLINE");
+        _positionStream?.cancel();
+      }
     }
   }
 
@@ -209,7 +211,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       await AuthService.getAuthToken();
       await httpClient.get(Uri.parse("$API_HOST/notifications/user/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
         setState(() {
-          notifications = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
+          notifications = jsonDecode(value.body)["data"].map<sc.Notification>((json) => sc.Notification.fromJson(json)).toList();
           notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         });
       });
@@ -257,9 +259,13 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     Login login = Login();
     login.userID = currentUser.id;
 
-    if (kIsWeb) login.appVersion = "StorkeCentral Web v${appVersion.toString()}";
-    else if (Platform.isIOS) login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
-    else if (Platform.isAndroid) login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
+    if (kIsWeb) {
+      login.appVersion = "StorkeCentral Web v${appVersion.toString()}";
+    } else if (Platform.isIOS) {
+      login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
+    } else if (Platform.isAndroid) {
+      login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
+    }
 
     if (!kIsWeb) {
       login.deviceName = Platform.localHostname;
@@ -319,14 +325,21 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
     await AuthService.getAuthToken();
     var loginResponse = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/logins"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(login));
-    if (loginResponse.statusCode == 200) log("[tab_bar_controller] Sent login event: ${loginResponse.body}");
-    else log("[tab_bar_controller] Login event silently failed");
+    if (loginResponse.statusCode == 200) {
+      log("[tab_bar_controller] Sent login event: ${loginResponse.body}");
+    } else {
+      log("[tab_bar_controller] Login event silently failed");
+    }
 
     if (!kIsWeb) {
       // Don't change any onesignal shit on the web
       await requestNotifications();
       OneSignal.login(currentUser.id);
       OneSignal.User.addEmail(currentUser.email);
+      log("[tab_bar_controller] OneSignal DEBUG optedIn: ${OneSignal.User.pushSubscription.optedIn}");
+      log("[tab_bar_controller] OneSignal DEBUG id: ${OneSignal.User.pushSubscription.id}");
+      log("[tab_bar_controller] OneSignal DEBUG token: ${OneSignal.User.pushSubscription.token}");
+      log("[tab_bar_controller] OneSignal DEBUG: ${OneSignal.User.pushSubscription.toString()}");
       currentUser.privacy.pushNotificationToken = OneSignal.User.pushSubscription.id ?? "";
       currentUser.privacy.pushNotifications = OneSignal.User.pushSubscription.optedIn! ? "ENABLED" : "DISABLED";
     }
@@ -336,8 +349,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   void setUserStatus(String status) {
-    currentUser.status = status;
-    FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
+    if (!kIsWeb) {
+      currentUser.status = status;
+      FirebaseFirestore.instance.collection("status").doc(currentUser.id).set({"status": status, "timestamp": DateTime.now().toIso8601String()});
+    }
     AuthService.getAuthToken().then((_) {
       http.post(Uri.parse("$API_HOST/users/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(currentUser));
     });
@@ -352,7 +367,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       log("[tab_bar_controller] Successfully updated local friend list");
       friends.clear();
       requests.clear();
-      var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
+      var responseJson = jsonDecode(response.body);
       // Persist friends list
       List<dynamic> friendsDynamic = responseJson["data"].map((e) => jsonEncode(e).toString()).toList();
       prefs.setStringList("CURRENT_USER_FRIENDS", friendsDynamic.map((e) => e.toString()).toList());
@@ -378,19 +393,20 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   void fetchBuildings() async {
     if (!offlineMode) {
-      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 10080) {
+      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 80) {
         try {
           Trace trace = FirebasePerformance.instance.newTrace("fetchBuildings()");
           await trace.start();
           await AuthService.getAuthToken();
           await httpClient.get(Uri.parse("$API_HOST/maps/buildings"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             setState(() {
-              buildings = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<Building>((json) => Building.fromJson(json)).toList();
+              buildings = jsonDecode(value.body)["data"].map<Building>((json) => Building.fromJson(json)).toList();
             });
             lastBuildingFetch = DateTime.now();
           });
           prefs.setStringList("BUILDINGS_LIST", buildings.map((e) => jsonEncode(e).toString()).toList());
           prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toString());
+          log("[tab_bar_controller] Fetched ${buildings.length} buildings from server");
           trace.stop();
         } catch(err) {
           AlertService.showErrorSnackbar(context, "Failed to get buildings!");
@@ -412,6 +428,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       setState(() {
         buildings = prefs.getStringList("BUILDINGS_LIST")!.map((e) => Building.fromJson(jsonDecode(e))).toList();
       });
+      log("[tab_bar_controller] Loaded ${buildings.length} buildings from cache");
     }
     trace.stop();
   }
@@ -427,7 +444,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         ),
         actions: [
           Visibility(
-            visible: !anonMode,
+            visible: true,
             child: IconButton(
               icon: Badge(
                 isLabelVisible: notifications.where((element) => !element.read).isNotEmpty,
@@ -441,20 +458,17 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           )
         ],
       ),
+      extendBody: true,
       bottomNavigationBar: CurvedNavigationBar(
         animationDuration: const Duration(milliseconds: 200),
         backgroundColor: Colors.transparent,
         color: Theme.of(context).cardColor,
         index: _currPage,
-        items: !anonMode ? [
+        items: [
           Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/user-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-        ] : [
-          Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
         ],
         onTap: (index) {
           setState(() {
@@ -471,15 +485,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             _currPage = index;
           });
         },
-        children: !anonMode ? const [
+        children: const [
           HomePage(),
           SchedulePage(),
           MapsPage(),
           ProfilePage()
-        ] : const [
-          HomePage(),
-          SchedulePage(),
-          MapsPage(),
         ]
       ),
     );

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +9,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:storke_central/models/building.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/utils/alert_service.dart';
+import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
@@ -40,7 +45,10 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
     getScheduleItems();
   }
 
-  void getScheduleItems() {
+  Future<void> getScheduleItems() async {
+    if (userScheduleItems.isEmpty) {
+      await getUserSchedule(currentQuarter.id);
+    }
     for (UserScheduleItem item in userScheduleItems) {
       if (item.title == courseID) {
         setState(() {
@@ -50,6 +58,27 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
     }
     log("[schedule_course_page] Found ${scheduleItems.length} schedule items for this course");
     getBuildings();
+  }
+
+  Future<void> getUserSchedule(String quarter) async {
+    Trace trace = FirebasePerformance.instance.newTrace("getUserSchedule()");
+    await trace.start();
+    try {
+        await AuthService.getAuthToken();
+        await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          if (jsonDecode(value.body)["data"].length == 0) {
+            log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
+          } else {
+            setState(() {
+              userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+            });
+          }
+        });
+    } catch(err) {
+      Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get schedule!"));
+      log("[schedule_page] ${err.toString()}", LogLevel.error);
+    }
+    trace.stop();
   }
 
   void getBuildings() {
