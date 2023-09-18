@@ -44,7 +44,7 @@ func GetEmailFromID(userID string) string {
 
 func GetUsernameFromID(userID string) string {
 	var username string
-	result := DB.Table("user").Where("id = ?", userID).Select("username").Row().Scan(&username)
+	result := DB.Table("user").Where("id = ?", userID).Select("user_name").Row().Scan(&username)
 	if result != nil {
 	}
 	return username
