@@ -458,6 +458,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           )
         ],
       ),
+      extendBody: true,
       bottomNavigationBar: CurvedNavigationBar(
         animationDuration: const Duration(milliseconds: 200),
         backgroundColor: Colors.transparent,
