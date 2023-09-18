@@ -77,8 +77,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
             setState(() => loading = true);
           }
           await AuthService.getAuthToken();
-          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-            if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
+          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+            if (jsonDecode(value.body)["data"].length == 0) {
               log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
                 classesFound = false;
@@ -125,7 +125,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       });
       log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
       buildCalendar();
-      Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline schedule!"));
+      if (offlineMode) {
+        Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline schedule!"));
+      }
     }
     trace.stop();
   }
@@ -264,7 +266,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
             children: [
               Expanded(
                 child: Visibility(
-                    visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeEnd.isAfter(DateTime.now()) && userPasstime.userID != "",
+                    visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeStart.add(const Duration(days: 7)).isAfter(DateTime.now()) && userPasstime.userID != "",
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -447,12 +449,11 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                       view: CalendarView.week,
                       timeSlotViewSettings: const TimeSlotViewSettings(
                         timeIntervalHeight: 40,
-                        // timeInterval: Duration(minutes: 30),
                         timeFormat: "h a",
                         startHour: 7,
                         endHour: 24,
                       ),
-                      selectionDecoration: BoxDecoration(),
+                      selectionDecoration: const BoxDecoration(),
                       allowDragAndDrop: false,
                       dataSource: MeetingDataSource(calendarMeetings),
                       cellEndPadding: 0,

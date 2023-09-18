@@ -393,7 +393,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
   void fetchBuildings() async {
     if (!offlineMode) {
-      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 10080) {
+      if (buildings.isEmpty || DateTime.now().difference(lastBuildingFetch).inMinutes > 80) {
         try {
           Trace trace = FirebasePerformance.instance.newTrace("fetchBuildings()");
           await trace.start();
@@ -406,6 +406,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
           });
           prefs.setStringList("BUILDINGS_LIST", buildings.map((e) => jsonEncode(e).toString()).toList());
           prefs.setString("BUILDINGS_LAST_FETCH", lastBuildingFetch.toString());
+          log("[tab_bar_controller] Fetched ${buildings.length} buildings from server");
           trace.stop();
         } catch(err) {
           AlertService.showErrorSnackbar(context, "Failed to get buildings!");
