@@ -30,6 +30,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   User user = User();
 
   bool loading = false;
+  bool adminMode = false;
 
   _UserProfilePageState(this.userID);
 
@@ -60,7 +61,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
     if (response.statusCode == 200) {
       setState(() {
-        user = User.fromJson(jsonDecode(utf8.decode(response.bodyBytes))["data"]);
+        user = User.fromJson(jsonDecode(response.body)["data"]);
       });
       log("[user_profile_page] ====== USER PROFILE INFO ======");
       log("[user_profile_page] FIRST NAME: ${user.firstName}");
@@ -86,7 +87,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } else if (requests.any((element) => element.fromUserID == userID)) {
       status = "PENDING";
     }
-    log("[user_profile_page] FRIENDSHIP STATUS: $status");
     return status;
   }
 
@@ -96,6 +96,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
       if (user.privacy.pronouns == "PUBLIC") {
         return true;
       } else if (user.privacy.pronouns == "FRIENDS" && getFriendshipStatus() == "FRIEND") {
+        return true;
+      } else if (adminMode) {
         return true;
       }
     }
@@ -109,6 +111,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         return true;
       } else if (user.privacy.email == "FRIENDS" && getFriendshipStatus() == "FRIEND") {
         return true;
+      } else if (adminMode) {
+        return true;
       }
     }
     return false;
@@ -120,6 +124,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
       if (user.privacy.phoneNumber == "PUBLIC") {
         return true;
       } else if (user.privacy.phoneNumber == "FRIENDS" && getFriendshipStatus() == "FRIEND") {
+        return true;
+      } else if (adminMode) {
         return true;
       }
     }
@@ -295,9 +301,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   child: CupertinoButton(
                     padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                     color: SB_NAVY,
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.person_add, color: Colors.white),
                         Padding(padding: EdgeInsets.all(4)),
                         Text("Add Friend"),
@@ -345,9 +351,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   child: CupertinoButton(
                     padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                     color: SB_NAVY,
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.person_add, color: Colors.white),
                         Padding(padding: EdgeInsets.all(4)),
                         Text("Accept", style: TextStyle(color: Colors.white),),
@@ -407,7 +413,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
             ),
             Visibility(
-              visible: getFriendshipStatus() == "FRIEND",
+              visible: getFriendshipStatus() == "FRIEND" || adminMode,
               child: Card(
                 child: ListTile(
                   leading: const Icon(Icons.calendar_month_rounded),
@@ -418,7 +424,33 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   },
                 )
               ),
-            )
+            ),
+            Visibility(
+              visible: currentUser.roles.any((element) => element.role == "ADMIN"),
+              child: Container(
+                padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: CupertinoButton(
+                    padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+                    color: adminMode ? SB_GOLD.withOpacity(0.2) : SB_GOLD.withOpacity(0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.visibility_rounded, color: SB_GOLD),
+                        const Padding(padding: EdgeInsets.all(4)),
+                        Text("Admin View", style: TextStyle(color: SB_GOLD)),
+                      ],
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        adminMode = !adminMode;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

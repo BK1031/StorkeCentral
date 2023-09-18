@@ -329,8 +329,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       child: CupertinoButton(
                                         padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                         color: SB_NAVY,
-                                        child: Row(
-                                          children: const [
+                                        child: const Row(
+                                          children: [
                                             Icon(Icons.person_add, color: Colors.white),
                                             Padding(padding: EdgeInsets.all(4)),
                                             Text("Add"),
@@ -386,8 +386,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       child: CupertinoButton(
                                         padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                         color: SB_NAVY,
-                                        child: Row(
-                                          children: const [
+                                        child: const Row(
+                                          children: [
                                             Icon(Icons.person_add, color: Colors.white),
                                             Padding(padding: EdgeInsets.all(4)),
                                             Text("Accept", style: TextStyle(color: Colors.white),),
@@ -496,8 +496,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                       color: SB_NAVY,
-                                      child: Row(
-                                        children: const [
+                                      child: const Row(
+                                        children: [
                                           Icon(Icons.person_add, color: Colors.white),
                                           Padding(padding: EdgeInsets.all(4)),
                                           Text("Add"),
@@ -534,8 +534,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
                                       color: SB_NAVY,
-                                      child: Row(
-                                        children: const [
+                                      child: const Row(
+                                        children: [
                                           Icon(Icons.person_add, color: Colors.white),
                                           Padding(padding: EdgeInsets.all(4)),
                                           Text("Accept", style: TextStyle(color: Colors.white),),
