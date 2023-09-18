@@ -19,7 +19,16 @@ class ServerStatusPage extends StatefulWidget {
 
 class _ServerStatusPageState extends State<ServerStatusPage> {
 
-  Map<String, String> status = {};
+  Map<String, String> status = {
+    "montecito": "OFFLINE",
+    "rincon": "OFFLINE",
+    "lacumbre": "OFFLINE",
+    "gaviota": "OFFLINE",
+    "tepusquet": "OFFLINE",
+    "arguello": "OFFLINE",
+    "miranda": "OFFLINE",
+    "jalama": "OFFLINE",
+  };
   Timer? timer;
 
   @override
@@ -43,24 +52,18 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
   }
 
   void getAllServiceStatuses() {
-    getServiceStatus("montecito");
-    getServiceStatus("rincon");
-    getServiceStatus("lacumbre");
-    getServiceStatus("gaviota");
-    getServiceStatus("tepusquet");
-    getServiceStatus("arguello");
+    List<String> services = status.keys.toList();
+    services.forEach((s) {
+      if (status[s] == "OFFLINE") {
+        setState(() {
+          status[s] = "LOADING";
+        });
+      }
+      getServiceStatus(s);
+    });
   }
 
   Future<void> getServiceStatus(String service) async {
-    if (mounted) {
-      status.forEach((key, value) {
-        if (value == "OFFLINE") {
-          setState(() {
-            status[service] = "LOADING";
-          });
-        }
-      });
-    }
     try {
       var serviceStatus = await http.get(Uri.parse("$API_HOST/$service/ping"));
       log("[server_status_page] $service: ${serviceStatus.statusCode}");
@@ -71,11 +74,9 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
       }
     } catch (err) {
       log("[server_status_page] $service: $err");
-      if (mounted) {
-        setState(() {
-          status[service] = "OFFLINE";
-        });
-      }
+      setState(() {
+        status[service] = "OFFLINE";
+      });
     }
   }
 
@@ -122,15 +123,15 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
                   allSystemsOnline() ? Text("All Systems Online!", style: TextStyle(color: SB_GREEN, fontSize: 22),) : criticalSystemsOnline() ? Text("Critical Systems Online!", style: TextStyle(color: SB_GREEN, fontSize: 22),) : Text("Critical Systems Offline!", style: TextStyle(color: SB_RED, fontSize: 22),),
                   const Padding(padding: EdgeInsets.all(4),),
                   Column(
-                    children: status.entries.map((s) => Row(
+                    children: status.keys.map((s) => Row(
                       children: [
-                        s.value == "ONLINE" ?
+                        status[s] == "ONLINE" ?
                         Icon(Icons.check_circle, color: SB_GREEN, size: 40,)
-                        : s.value == "OFFLINE" ?
+                        : status[s] == "OFFLINE" ?
                         Icon(Icons.cancel, color: SB_RED, size: 40,)
                         : const RefreshProgressIndicator(),
                         const Padding(padding: EdgeInsets.all(8)),
-                        Text(s.key.capitalize(), style: const TextStyle(fontSize: 18),)
+                        Text(s.capitalize(), style: const TextStyle(fontSize: 18),)
                       ],
                     )).toList(),
                   ),

@@ -252,57 +252,16 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
 
   @override
   Widget build(BuildContext context) {
-    if (anonMode && !appUnderReview) {
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              children: [
-                Icon(Icons.lock_person_outlined, size: 100, color: Theme.of(context).textTheme.caption!.color,),
-                const Padding(padding: EdgeInsets.all(8),),
-                const Text("It looks like you are currently logged in as a guest.\n\nPlease login to view your class schedule!", style: TextStyle(fontSize: 16), textAlign: TextAlign.center,),
-                const Padding(padding: EdgeInsets.all(8),),
-                OutlinedButton(
-                  style: ButtonStyle(
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              side: const BorderSide(color: Colors.red)
-                          )
-                      )
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.asset("images/icons/google-icon.png", height: 25, width: 25,),
-                      ),
-                      const Padding(padding: EdgeInsets.all(4),),
-                      const Text("Sign in with Google", style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  onPressed: () {
-                    AuthService.signOut();
-                    router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
-                  },
-                ),
-              ],
-            ),
-          )
-        )
-      );
-    } else {
-      return Scaffold(
-          floatingActionButton: Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Visibility(
+    super.build(context);
+    return Scaffold(
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Visibility(
                     visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeEnd.isAfter(DateTime.now()) && userPasstime.userID != "",
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -390,97 +349,97 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                         )
                       ],
                     )
-                  ),
                 ),
-                const Padding(padding: EdgeInsets.all(4),),
-                FloatingActionButton(
-                  child: const Icon(Icons.refresh),
-                  onPressed: () {
-                    router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
-                  },
-                ),
-              ],
-            ),
+              ),
+              const Padding(padding: EdgeInsets.all(4),),
+              FloatingActionButton(
+                child: const Icon(Icons.refresh),
+                onPressed: () {
+                  router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+                },
+              ),
+            ],
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Card(
-                        color: SB_NAVY,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: MediaQuery.of(context).size.width,
-                          child: selectedQuarter.getWeek(getNextWeekDay(1)) > 0 ? Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  selectedQuarter.getWeek(getNextWeekDay(1)) <= 10 ? "Week ${selectedQuarter.getWeek(getNextWeekDay(1))}" : "Finals Week",
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                  textAlign: TextAlign.center,
-                                ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Card(
+                      color: SB_NAVY,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        width: MediaQuery.of(context).size.width,
+                        child: selectedQuarter.getWeek(getNextWeekDay(1)) > 0 ? Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                selectedQuarter.getWeek(getNextWeekDay(1)) <= 10 ? "Week ${selectedQuarter.getWeek(getNextWeekDay(1))}" : "Finals Week",
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                textAlign: TextAlign.center,
                               ),
-                              const Icon(Icons.circle, color: Colors.white, size: 8,),
-                              const Padding(padding: EdgeInsets.all(8),),
-                              Expanded(
-                                child: DropdownButton<String>(
-                                  value: selectedQuarter.id,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                    });
-                                    getUserSchedule(selectedQuarter.id);
-                                  },
-                                  borderRadius: BorderRadius.circular(8),
-                                  underline: Container(),
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                  dropdownColor: SB_NAVY,
-                                  isDense: true,
-                                  alignment: Alignment.centerRight,
-                                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                                  items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                    return DropdownMenuItem<String>(
-                                        value: quarter.id,
-                                        child: Text(quarter.name)
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ) : Center(
-                            child: DropdownButton<String>(
-                              value: selectedQuarter.id,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                });
-                                getUserSchedule(selectedQuarter.id);
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              underline: Container(),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              dropdownColor: SB_NAVY,
-                              isDense: true,
-                              alignment: Alignment.center,
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                return DropdownMenuItem<String>(
-                                  value: quarter.id,
-                                  child: Text(quarter.name),
-                                );
-                              }).toList(),
                             ),
+                            const Icon(Icons.circle, color: Colors.white, size: 8,),
+                            const Padding(padding: EdgeInsets.all(8),),
+                            Expanded(
+                              child: DropdownButton<String>(
+                                value: selectedQuarter.id,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                  });
+                                  getUserSchedule(selectedQuarter.id);
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                underline: Container(),
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                dropdownColor: SB_NAVY,
+                                isDense: true,
+                                alignment: Alignment.centerRight,
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                                items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                  return DropdownMenuItem<String>(
+                                      value: quarter.id,
+                                      child: Text(quarter.name)
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ],
+                        ) : Center(
+                          child: DropdownButton<String>(
+                            value: selectedQuarter.id,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                              });
+                              getUserSchedule(selectedQuarter.id);
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            underline: Container(),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            dropdownColor: SB_NAVY,
+                            isDense: true,
+                            alignment: Alignment.center,
+                            icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                            items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                              return DropdownMenuItem<String>(
+                                value: quarter.id,
+                                child: Text(quarter.name),
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: SfCalendar(
+                ),
+                Expanded(
+                  child: SfCalendar(
                       controller: _controller,
                       // firstDayOfWeek: 1,
                       view: CalendarView.week,
@@ -497,131 +456,130 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                       cellEndPadding: 0,
                       headerHeight: 0,
                       appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
-                          return InkWell(
-                            onTap: () {
-                              router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
-                            },
-                            borderRadius: BorderRadius.circular(4),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: details.appointments.first.background.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              width: details.bounds.width,
-                              height: details.bounds.height,
-                              child: Column(
-                                children: [
-                                  FittedBox(
+                        return InkWell(
+                          onTap: () {
+                            router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: details.appointments.first.background.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            width: details.bounds.width,
+                            height: details.bounds.height,
+                            child: Column(
+                              children: [
+                                FittedBox(
                                     fit: BoxFit.fitWidth,
                                     child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
-                                  ),
-                                  FittedBox(
-                                      fit: BoxFit.fitWidth,
-                                      child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
-                                  ),
-                                ],
-                              ),
+                                ),
+                                FittedBox(
+                                    fit: BoxFit.fitWidth,
+                                    child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
+                                ),
+                              ],
                             ),
-                          );
+                          ),
+                        );
                       }
-                    ),
                   ),
-                ],
-              ),
-              Visibility(
-                visible: !classesFound,
-                child: Container(
-                  color: Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: Card(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        width: 250,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.event_busy, size: 65, color: Theme.of(context).textTheme.caption!.color,),
-                            const Padding(padding: EdgeInsets.all(4),),
-                            const Text(
-                              "No Classes Found",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Padding(padding: EdgeInsets.all(4),),
-                            const Text(
+                ),
+              ],
+            ),
+            Visibility(
+              visible: !classesFound,
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                child: Center(
+                  child: Card(
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      width: 250,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.event_busy, size: 65, color: Theme.of(context).textTheme.caption!.color,),
+                          const Padding(padding: EdgeInsets.all(4),),
+                          const Text(
+                            "No Classes Found",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const Padding(padding: EdgeInsets.all(4),),
+                          const Text(
                               "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
+                          ),
+                          const Padding(padding: EdgeInsets.all(8),),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              color: SB_NAVY,
+                              onPressed: () {
+                                router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
+                              },
+                              child: const Text("Sync Classes", style: TextStyle(color: Colors.white),),
                             ),
-                            const Padding(padding: EdgeInsets.all(8),),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              child: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                color: SB_NAVY,
-                                onPressed: () {
-                                  router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
-                                },
-                                child: const Text("Sync Classes", style: TextStyle(color: Colors.white),),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              Visibility(
-                visible: !classesFound,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    children: [
-                      Card(
-                        color: SB_NAVY,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: MediaQuery.of(context).size.width,
-                          child: Center(
-                            child: DropdownButton<String>(
-                              value: selectedQuarter.id,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                });
-                                getUserSchedule(selectedQuarter.id);
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              underline: Container(),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              dropdownColor: SB_NAVY,
-                              isDense: true,
-                              alignment: Alignment.center,
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                return DropdownMenuItem<String>(
-                                  value: quarter.id,
-                                  child: Text(quarter.name),
-                                );
-                              }).toList(),
-                            ),
+            ),
+            Visibility(
+              visible: !classesFound,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  children: [
+                    Card(
+                      color: SB_NAVY,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        width: MediaQuery.of(context).size.width,
+                        child: Center(
+                          child: DropdownButton<String>(
+                            value: selectedQuarter.id,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                              });
+                              getUserSchedule(selectedQuarter.id);
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            underline: Container(),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            dropdownColor: SB_NAVY,
+                            isDense: true,
+                            alignment: Alignment.center,
+                            icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                            items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                              return DropdownMenuItem<String>(
+                                value: quarter.id,
+                                child: Text(quarter.name),
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Visibility(
-                visible: loading,
-                child: Center(
-                  child: RefreshProgressIndicator(
-                    backgroundColor: SB_NAVY,
-                    color: Colors.white,
-                  ),
+            ),
+            Visibility(
+              visible: loading,
+              child: Center(
+                child: RefreshProgressIndicator(
+                  backgroundColor: SB_NAVY,
+                  color: Colors.white,
                 ),
               ),
-            ],
-          )
-      );
-    }
+            ),
+          ],
+        )
+    );
   }
 }

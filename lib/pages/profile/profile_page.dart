@@ -154,7 +154,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
               ),
             ),
             Visibility(
-              visible: !anonMode,
+              visible: true,
               child: Container(
                 padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
                 child: Card(

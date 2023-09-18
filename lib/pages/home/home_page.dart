@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:card_loading/card_loading.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
@@ -201,13 +200,13 @@ class _HomePageState extends State<HomePage> {
         upNextSchedules.clear();
         upNextUserIDs.clear();
         // Get up next user ids for current user
-        await FirebaseFirestore.instance.doc("users/${currentUser.id}").collection("up-next").get().then((value) async {
-          for (var element in value.docs) {
-            setState(() {
-              upNextUserIDs.add(element.id);
-            });
-          }
-        });
+        // await FirebaseFirestore.instance.doc("users/${currentUser.id}").collection("up-next").get().then((value) async {
+        //   for (var element in value.docs) {
+        //     setState(() {
+        //       upNextUserIDs.add(element.id);
+        //     });
+        //   }
+        // });
         // Handle current users up next items
         await getUserUpNext(currentUser.id).then((items) async {
           UpNextScheduleItem scheduleItem = getNextClass(items);

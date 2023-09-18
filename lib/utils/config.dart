@@ -34,7 +34,8 @@ Version appVersion = Version("2.5.0+1");
 Version stableVersion = Version("1.0.0+1");
 
 // String API_HOST = "https://api.storkecentr.al";
-String API_HOST = "http://localhost:4001";
+// String API_HOST = "http://localhost:4001";
+String API_HOST = "https://66a7-98-45-23-168.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
@@ -50,7 +51,6 @@ String PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.bk103
 String TESTFLIGHT_URL = "https://beta.itunes.apple.com/v1/app/1594777645";
 
 bool offlineMode = false;
-bool anonMode = false;
 bool demoMode = false;
 
 bool appUnderReview = false;

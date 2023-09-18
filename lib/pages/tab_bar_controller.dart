@@ -67,7 +67,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       // if (!kIsWeb) _registerOneSignalListeners();
       firebaseAnalytics();
       fetchBuildings();
-      if (!anonMode && !offlineMode) {
+      if (!offlineMode) {
         persistUser();
         sendLoginEvent();
         updateUserFriendsList();
@@ -83,10 +83,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       AuthService.getUser(currentUser.id);
       _determinePosition();
       checkAppVersion();
-      if (!anonMode && !offlineMode) sendLoginEvent();
+      if (!offlineMode) sendLoginEvent();
     } else {
       log("[tab_bar_controller] App has been backgrounded");
-      if (!anonMode && !offlineMode) setUserStatus("OFFLINE");
+      if (!offlineMode) setUserStatus("OFFLINE");
       _positionStream?.cancel();
     }
   }
@@ -257,8 +257,9 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     Login login = Login();
     login.userID = currentUser.id;
 
-    if (kIsWeb) login.appVersion = "StorkeCentral Web v${appVersion.toString()}";
-    else if (Platform.isIOS) login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
+    if (kIsWeb) {
+      login.appVersion = "StorkeCentral Web v${appVersion.toString()}";
+    } else if (Platform.isIOS) login.appVersion = "StorkeCentral iOS v${appVersion.toString()}";
     else if (Platform.isAndroid) login.appVersion = "StorkeCentral Android v${appVersion.toString()}";
 
     if (!kIsWeb) {
@@ -319,14 +320,21 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
 
     await AuthService.getAuthToken();
     var loginResponse = await http.post(Uri.parse("$API_HOST/users/${currentUser.id}/logins"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(login));
-    if (loginResponse.statusCode == 200) log("[tab_bar_controller] Sent login event: ${loginResponse.body}");
-    else log("[tab_bar_controller] Login event silently failed");
+    if (loginResponse.statusCode == 200) {
+      log("[tab_bar_controller] Sent login event: ${loginResponse.body}");
+    } else {
+      log("[tab_bar_controller] Login event silently failed");
+    }
 
     if (!kIsWeb) {
       // Don't change any onesignal shit on the web
       await requestNotifications();
       OneSignal.login(currentUser.id);
       OneSignal.User.addEmail(currentUser.email);
+      log("[tab_bar_controller] OneSignal DEBUG optedIn: ${OneSignal.User.pushSubscription.optedIn}");
+      log("[tab_bar_controller] OneSignal DEBUG id: ${OneSignal.User.pushSubscription.id}");
+      log("[tab_bar_controller] OneSignal DEBUG token: ${OneSignal.User.pushSubscription.token}");
+      log("[tab_bar_controller] OneSignal DEBUG: ${OneSignal.User.pushSubscription.toString()}");
       currentUser.privacy.pushNotificationToken = OneSignal.User.pushSubscription.id ?? "";
       currentUser.privacy.pushNotifications = OneSignal.User.pushSubscription.optedIn! ? "ENABLED" : "DISABLED";
     }
@@ -427,7 +435,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         ),
         actions: [
           Visibility(
-            visible: !anonMode,
+            visible: true,
             child: IconButton(
               icon: Badge(
                 isLabelVisible: notifications.where((element) => !element.read).isNotEmpty,
@@ -446,15 +454,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         backgroundColor: Colors.transparent,
         color: Theme.of(context).cardColor,
         index: _currPage,
-        items: !anonMode ? [
+        items: [
           Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
           Image.asset("images/icons/user-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-        ] : [
-          Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
         ],
         onTap: (index) {
           setState(() {
@@ -471,15 +475,11 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
             _currPage = index;
           });
         },
-        children: !anonMode ? const [
+        children: const [
           HomePage(),
           SchedulePage(),
           MapsPage(),
           ProfilePage()
-        ] : const [
-          HomePage(),
-          SchedulePage(),
-          MapsPage(),
         ]
       ),
     );

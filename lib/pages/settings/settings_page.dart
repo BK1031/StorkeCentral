@@ -301,10 +301,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           trailing: Text(offlineMode.toString())
                       ),
                       ListTile(
-                          title: const Text("Anon Mode"),
-                          trailing: Text(anonMode.toString())
-                      ),
-                      ListTile(
                         title: const Text("Session Logs"),
                         trailing: const Icon(Icons.arrow_forward_ios_rounded),
                         onTap: () {

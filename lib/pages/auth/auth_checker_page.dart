@@ -75,7 +75,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     } catch (err) {
       offlineMode = true;
     }
-    if (mounted) setState(() {percent = 0.45;});
+    setState(() {percent = 0.45;});
     trace.stop();
   }
 
@@ -83,7 +83,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     Trace trace = FirebasePerformance.instance.newTrace("checkAuthState()");
     await trace.start();
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) setState(() {percent = 1;});
+      setState(() {percent = 1;});
     });
     _fbAuthSubscription = FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
@@ -108,53 +108,48 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
         }
       } else {
         // User logged in
-        anonMode = user.isAnonymous;
-        log("[auth_checker_page] anonMode: $anonMode");
+        log("[auth_checker_page] User session detected: ${user.uid}");
+        if (user.isAnonymous) {
+          // If user was previously signed in anonymously, reset authentication state
+          log("[auth_checker_page] User was previously signed in anonymously, signing out...");
+          await AuthService.signOut();
+          router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          return;
+        }
         try {
-          if (!anonMode) {
-            // User is not anonymous
-            if (offlineMode) {
-              // Server is offline, use cached data
-              await loadPreferences();
-              await loadOfflineMode();
-              router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
-              trace.stop();
-              return;
-            } else {
-              // Server is online, get user data
-              bool userCached = await loadOfflineUser();
-              if (!userCached) {
-                // User data not cached, get from server
-                await AuthService.getUser(user.uid);
-                if (currentUser.id == "") {
-                  // Failed to get user data from server, go to register page
-                  if (launchDynamicLink.contains("/#/register")) {
-                    Future.delayed(const Duration(milliseconds: 0), () {
-                      router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
-                      launchDynamicLink = "";
-                    });
-                    trace.stop();
-                    return;
-                  }
-                  router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          if (offlineMode) {
+            // Server is offline, use cached data
+            log("[auth_checker_page] Server is offline, attempting to enter offline mode...");
+            await loadPreferences();
+            await loadOfflineMode();
+            trace.stop();
+            return;
+          } else {
+            // Server is online, get user data
+            bool userCached = await loadOfflineUser();
+            if (!userCached) {
+              // User data not cached, get from server
+              await AuthService.getUser(user.uid);
+              if (currentUser.id == "") {
+                // Failed to get user data from server, go to register page
+                if (launchDynamicLink.contains("/#/register")) {
+                  Future.delayed(const Duration(milliseconds: 0), () {
+                    router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
+                    launchDynamicLink = "";
+                  });
                   trace.stop();
                   return;
                 }
-              }
-              FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
-              bool friendsCached = await loadOfflineFriendsList();
-              if (!friendsCached) {
-                // Friends list not cached, get from server
-                await updateUserFriendsList();
+                router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+                trace.stop();
+                return;
               }
             }
-          } else {
-            // User is anonymous
-            FirebaseAnalytics.instance.logLogin(loginMethod: "Anonymous");
-            if (demoMode) {
-              anonMode = false;
-              log("[auth_checker_page] App is currently in demo mode, logging in as $appReviewUserID, certain features may be disabled in this mode.", LogLevel.warn);
-              await AuthService.getUser(appReviewUserID);
+            FirebaseAnalytics.instance.logLogin(loginMethod: "Google");
+            bool friendsCached = await loadOfflineFriendsList();
+            if (!friendsCached) {
+              // Friends list not cached, get from server
+              await updateUserFriendsList();
             }
           }
           await loadPreferences();
@@ -170,9 +165,9 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
             return;
           }
         } catch (err) {
-          log("[auth_checker_page] $err", LogLevel.error);
+          log("[auth_checker_page] Exception caught on checkAuthState(): $err", LogLevel.error);
           // loadOfflineMode();
-          router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+          // router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
           trace.stop();
           return;
         }
@@ -194,9 +189,15 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     // Load specifc user information that was cached
     // App will never enter offline mode if user was not logged in before!
     log("[auth_checker_page] Failed to reach server, entering offline mode!");
-    loadOfflineUser();
+    bool userCached = await loadOfflineUser();
+    if (!userCached) {
+      log("[auth_checker_page] Failed to load offline user, going to server status page");
+      router.navigateTo(context, "/server-status", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+      return;
+    }
     loadOfflineFriendsList();
     offlineMode = true;
+    router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
   }
 
   void loadOfflineBuildings() async {
@@ -206,6 +207,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       setState(() {
         buildings = prefs.getStringList("BUILDINGS_LIST")!.map((e) => Building.fromJson(jsonDecode(e))).toList();
       });
+      log("[auth_checker_page] Successfully loaded cached buildings list");
     }
     trace.stop();
   }
@@ -219,7 +221,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
         setState(() {
           currentUser = sc.User.fromJson(jsonDecode(prefs.getString("CURRENT_USER")!));
         });
-        log("[auth_checker_page] Successfully loaded offline user");
+        log("[auth_checker_page] Successfully loaded cached user");
         success = true;
       } else {
         log("[auth_checker_page] No offline user cached");
@@ -253,7 +255,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
           friends.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
           requests.sort((a, b) => a.toUserID == currentUser.id ? -1 : 1);
         });
-        log("[auth_checker_page] Successfully loaded offline friends list");
+        log("[auth_checker_page] Successfully loaded cached friends list");
         success = true;
       } else {
         log("[auth_checker_page] No offline friends list cached");
