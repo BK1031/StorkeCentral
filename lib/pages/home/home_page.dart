@@ -370,440 +370,443 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  headlineArticle.id == "" ? const HeadlineArticlePlaceholder() : Container(
-                    height: 175,
-                    padding: const EdgeInsets.all(8),
-                    child: Card(
-                      child: GestureDetector(
-                        onTap: () {
-                          router.navigateTo(context, "/news/selected", transition: TransitionType.native);
-                        },
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                          child: Stack(
-                            children: [
-                              headlineArticle.pictureUrl != "" ? ExtendedImage.network(
-                                headlineArticle.pictureUrl,
-                                fit: BoxFit.cover,
-                                height: 175,
-                                width: MediaQuery.of(context).size.width,
-                              ) : Container(color: Colors.black.withOpacity(0.8)),
-                              Container(
-                                color: Colors.black.withOpacity(0.4),
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            ExtendedImage.network(
-                                              "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
-                                              height: 35,
-                                            ),
-                                            const Padding(padding: EdgeInsets.all(4)),
-                                            Text(
-                                              "NEWS | ${DateFormat("MMMM d, yyyy").format(DateTime.now())}",
-                                              style: const TextStyle(color: Colors.white, fontSize: 17)
-                                            ),
-                                          ],
-                                        ),
-                                        Visibility(
-                                          visible: !offlineMode,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    headlineArticle.id == "" ? const HeadlineArticlePlaceholder() : Container(
+                      height: 175,
+                      padding: const EdgeInsets.all(8),
+                      child: Card(
+                        child: GestureDetector(
+                          onTap: () {
+                            router.navigateTo(context, "/news/selected", transition: TransitionType.native);
+                          },
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.all(Radius.circular(8)),
+                            child: Stack(
+                              children: [
+                                headlineArticle.pictureUrl != "" ? ExtendedImage.network(
+                                  headlineArticle.pictureUrl,
+                                  fit: BoxFit.cover,
+                                  height: 175,
+                                  width: MediaQuery.of(context).size.width,
+                                ) : Container(color: Colors.black.withOpacity(0.8)),
+                                Container(
+                                  color: Colors.black.withOpacity(0.4),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
                                             children: [
-                                              BoxedIcon(
-                                                WeatherIcons.fromString(weather.id != 0 ? "wi-${DateTime.now().hour > 6 && DateTime.now().hour < 20 ? "day" : "night"}-${weatherCodeToIcon[weather.id]}" : "wi-moon-new", fallback: WeatherIcons.day_sunny),
-                                                color: Colors.white,
-                                                size: 20,
+                                              ExtendedImage.network(
+                                                "https://dailynexus.com/wp-content/themes/dailynexus/graphics/nexuslogo.png",
+                                                height: 35,
                                               ),
-                                              const Padding(padding: EdgeInsets.all(2)),
+                                              const Padding(padding: EdgeInsets.all(4)),
                                               Text(
-                                                weather.temp != 0.0 ? "${((weather.temp - 273.15) * 9/5 + 32).toStringAsFixed(1)} °F" : "– °F",
-                                                style: const TextStyle(fontSize: 17, color: Colors.white)
-                                              )
+                                                "NEWS | ${DateFormat("MMMM d, yyyy").format(DateTime.now())}",
+                                                style: const TextStyle(color: Colors.white, fontSize: 17)
+                                              ),
                                             ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(headlineArticle.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
-                    child: Row(
-                      children: [
-                        Icon(Icons.fastfood),
-                        Padding(padding: EdgeInsets.all(4)),
-                        Text("Dining", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                      ],
-                    ),
-                  ),
-                  (diningHallList.isEmpty) ? const DiningPlaceholder() : SizedBox(
-                    height: 150,
-                    child: ListView.builder(
-                      itemCount: diningHallList.length,
-                      itemBuilder: (BuildContext context, int i) {
-                        return Padding(
-                          padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                          child: SizedBox(
-                            width: 150,
-                            child: Card(
-                              child: InkWell(
-                                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                onTap: () {
-                                  selectedDiningHall = diningHallList[i];
-                                  router.navigateTo(context, "/dining/${diningHallList[i].id}", transition: TransitionType.native);
-                                },
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                  child: Stack(
-                                    children: [
-                                      Hero(
-                                        tag: "${diningHallList[i].id}-image",
-                                        child: Image.asset(
-                                          "images/${diningHallList[i].id}.jpeg",
-                                          fit: BoxFit.cover,
-                                          height: 150,
-                                          width: 150,
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 350.0,
-                                        decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                                begin: FractionalOffset.topCenter,
-                                                end: FractionalOffset.bottomCenter,
-                                                colors: [
-                                                  // Colors.grey.withOpacity(1.0),
-                                                  Colors.grey.withOpacity(0.0),
-                                                  Colors.black,
-                                                ],
-                                                stops: const [0, 1]
-                                            )
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
+                                          Visibility(
+                                            visible: !offlineMode,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                               children: [
-                                                Expanded(
-                                                  child: Hero(
-                                                      tag: "${diningHallList[i].id}-title",
-                                                      child: Material(
-                                                        color: Colors.transparent,
-                                                        child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white))
-                                                      )
-                                                  ),
+                                                BoxedIcon(
+                                                  WeatherIcons.fromString(weather.id != 0 ? "wi-${DateTime.now().hour > 6 && DateTime.now().hour < 20 ? "day" : "night"}-${weatherCodeToIcon[weather.id]}" : "wi-moon-new", fallback: WeatherIcons.day_sunny),
+                                                  color: Colors.white,
+                                                  size: 20,
                                                 ),
-                                                Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)
+                                                const Padding(padding: EdgeInsets.all(2)),
+                                                Text(
+                                                  weather.temp != 0.0 ? "${((weather.temp - 273.15) * 9/5 + 32).toStringAsFixed(1)} °F" : "– °F",
+                                                  style: const TextStyle(fontSize: 17, color: Colors.white)
+                                                )
                                               ],
                                             ),
-                                            Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
+                                      Text(headlineArticle.title, style: const TextStyle(color: Colors.white, fontSize: 20)),
                                     ],
                                   ),
                                 ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      scrollDirection: Axis.horizontal,
-                    ),
-                  ),
-                  Visibility(
-                    visible: false,
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
-                      child: Row(
-                        children: [
-                          Icon(Icons.calendar_view_day_rounded),
-                          Padding(padding: EdgeInsets.all(4)),
-                          Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                    visible: false,
-                    child: (upNextUserIDs.isNotEmpty && upNextSchedules.isEmpty) ? const UpNextPlaceholder() : (upNextUserIDs.isEmpty && upNextSchedules.isEmpty) ? SizedBox(
-                      height: 100,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 8),
-                        child: InkWell(
-                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                          onTap: () {
-                            showAddUpNextDialog();
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8.0, right: 8),
-                            child: Row(
-                              children: [
-                                Image.asset("images/icons/new.png", height: 75, color: Colors.grey.withOpacity(0.6),),
-                                const Padding(padding: EdgeInsets.all(8)),
-                                const Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "Click to add friends to your Up Next view.",
-                                        style: TextStyle(fontSize: 18),
-                                      )
-                                    ],
-                                  ),
-                                )
                               ],
                             ),
                           ),
                         ),
                       ),
-                    ) : SizedBox(
-                      height: 100,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.fastfood),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Text("Dining", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        ],
+                      ),
+                    ),
+                    (diningHallList.isEmpty) ? const DiningPlaceholder() : SizedBox(
+                      height: 150,
                       child: ListView.builder(
-                        itemCount: upNextSchedules.length + 1,
+                        itemCount: diningHallList.length,
                         itemBuilder: (BuildContext context, int i) {
-                          if (i == upNextSchedules.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SizedBox(
-                                width: 100,
+                          return Padding(
+                            padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                            child: SizedBox(
+                              width: 150,
+                              child: Card(
                                 child: InkWell(
                                   borderRadius: const BorderRadius.all(Radius.circular(8)),
                                   onTap: () {
-                                    showAddUpNextDialog();
+                                    selectedDiningHall = diningHallList[i];
+                                    router.navigateTo(context, "/dining/${diningHallList[i].id}", transition: TransitionType.native);
                                   },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Center(
-                                      child: Image.asset(
-                                        "images/icons/new.png",
-                                        color: Colors.grey.withOpacity(0.6),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          } else {
-                            return Padding(
-                              padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                              child: SizedBox(
-                                width: 175,
-                                child: Card(
-                                  child: InkWell(
+                                  child: ClipRRect(
                                     borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                    onTap: () {
-                                      if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
-                                        router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
-                                      } else {
-                                        router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius: const BorderRadius.all(Radius.circular(64)),
-                                                child: ExtendedImage.network(
-                                                  upNextSchedules[i].user.profilePictureURL,
-                                                  height: 30,
-                                                ),
-                                              ),
-                                              const Padding(padding: EdgeInsets.all(4)),
-                                              Text(
-                                                upNextSchedules[i].user.id == currentUser.id ?
-                                                "Me" : upNextSchedules[i].user.firstName,
-                                                style: const TextStyle(fontSize: 18),
+                                    child: Stack(
+                                      children: [
+                                        Hero(
+                                          tag: "${diningHallList[i].id}-image",
+                                          child: Image.asset(
+                                            "images/${diningHallList[i].id}.jpeg",
+                                            fit: BoxFit.cover,
+                                            height: 150,
+                                            width: 150,
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 350.0,
+                                          decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                  begin: FractionalOffset.topCenter,
+                                                  end: FractionalOffset.bottomCenter,
+                                                  colors: [
+                                                    // Colors.grey.withOpacity(1.0),
+                                                    Colors.grey.withOpacity(0.0),
+                                                    Colors.black,
+                                                  ],
+                                                  stops: const [0, 1]
                                               )
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Hero(
+                                                        tag: "${diningHallList[i].id}-title",
+                                                        child: Material(
+                                                          color: Colors.transparent,
+                                                          child: Text(diningHallList[i].name, style: const TextStyle(color: Colors.white))
+                                                        )
+                                                    ),
+                                                  ),
+                                                  Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)
+                                                ],
+                                              ),
+                                              Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
                                             ],
                                           ),
-                                          const Padding(padding: EdgeInsets.all(4)),
-                                          upNextSchedules[i].status != "done" ?
-                                          Text(
-                                            upNextSchedules[i].title,
-                                          ) : const Text(
-                                              "Done for the day! 🎉",
-                                              style: TextStyle(color: Colors.green)
-                                          ),
-                                          Visibility(
-                                            visible: upNextSchedules[i].status != "done",
-                                            child: Text(
-                                              upNextSchedules[i].status == "until" ?
-                                              "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
-                                              style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
-                                            ),
-                                          )
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                            );
-                          }
+                            ),
+                          );
                         },
                         scrollDirection: Axis.horizontal,
                       ),
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
-                    child: Row(
-                      children: [
-                        Icon(Icons.menu_book_rounded),
-                        Padding(padding: EdgeInsets.all(4)),
-                        Text("Library", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                      ],
+                    Visibility(
+                      visible: false,
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.calendar_view_day_rounded),
+                            Padding(padding: EdgeInsets.all(4)),
+                            Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  (waitzBuildings.isEmpty) ? const WaitzPlaceholder() : Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: Card(
-                      child: Column(
-                        children: waitzBuildings.map((b) => ExpansionTile(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                          ),
-                          tilePadding: const EdgeInsets.all(8),
-                          childrenPadding: const EdgeInsets.all(8),
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                    Visibility(
+                      visible: false,
+                      child: (upNextUserIDs.isNotEmpty && upNextSchedules.isEmpty) ? const UpNextPlaceholder() : (upNextUserIDs.isEmpty && upNextSchedules.isEmpty) ? SizedBox(
+                        height: 100,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8.0, right: 8),
+                          child: InkWell(
+                            borderRadius: const BorderRadius.all(Radius.circular(8)),
+                            onTap: () {
+                              showAddUpNextDialog();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8.0, right: 8),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    b.name,
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                  ),
-                                  const Padding(padding: EdgeInsets.all(2)),
-                                  Text(
-                                    "Capacity: ${b.people} / ${b.capacity}",
-                                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                b.summary,
-                                style: TextStyle(fontSize: 18, color: b.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : b.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
-                              )
-                            ],
-                          ),
-                          children: b.floors.map((e) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                  Image.asset("images/icons/new.png", height: 75, color: Colors.grey.withOpacity(0.6),),
+                                  const Padding(padding: EdgeInsets.all(8)),
+                                  const Expanded(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          e.name,
-                                          style: const TextStyle(fontSize: 16),
-                                        ),
-                                        Text(
-                                          "Capacity: ${e.people} / ${e.capacity}",
-                                          style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                        ),
+                                          "Click to add friends to your Up Next view.",
+                                          style: TextStyle(fontSize: 18),
+                                        )
                                       ],
                                     ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ) : SizedBox(
+                        height: 100,
+                        child: ListView.builder(
+                          itemCount: upNextSchedules.length + 1,
+                          itemBuilder: (BuildContext context, int i) {
+                            if (i == upNextSchedules.length) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: SizedBox(
+                                  width: 100,
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    onTap: () {
+                                      showAddUpNextDialog();
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Center(
+                                        child: Image.asset(
+                                          "images/icons/new.png",
+                                          color: Colors.grey.withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return Padding(
+                                padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
+                                child: SizedBox(
+                                  width: 175,
+                                  child: Card(
+                                    child: InkWell(
+                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                      onTap: () {
+                                        if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
+                                          router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
+                                        } else {
+                                          router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius: const BorderRadius.all(Radius.circular(64)),
+                                                  child: ExtendedImage.network(
+                                                    upNextSchedules[i].user.profilePictureURL,
+                                                    height: 30,
+                                                  ),
+                                                ),
+                                                const Padding(padding: EdgeInsets.all(4)),
+                                                Text(
+                                                  upNextSchedules[i].user.id == currentUser.id ?
+                                                  "Me" : upNextSchedules[i].user.firstName,
+                                                  style: const TextStyle(fontSize: 18),
+                                                )
+                                              ],
+                                            ),
+                                            const Padding(padding: EdgeInsets.all(4)),
+                                            upNextSchedules[i].status != "done" ?
+                                            Text(
+                                              upNextSchedules[i].title,
+                                            ) : const Text(
+                                                "Done for the day! 🎉",
+                                                style: TextStyle(color: Colors.green)
+                                            ),
+                                            Visibility(
+                                              visible: upNextSchedules[i].status != "done",
+                                              child: Text(
+                                                upNextSchedules[i].status == "until" ?
+                                                "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
+                                                style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          scrollDirection: Axis.horizontal,
+                        ),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.menu_book_rounded),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Text("Library", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        ],
+                      ),
+                    ),
+                    (waitzBuildings.isEmpty) ? const WaitzPlaceholder() : Padding(
+                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                      child: Card(
+                        child: Column(
+                          children: waitzBuildings.map((b) => ExpansionTile(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                            ),
+                            tilePadding: const EdgeInsets.all(8),
+                            childrenPadding: const EdgeInsets.all(8),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      "${e.busyness}%",
-                                      style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
-                                    )
+                                      b.name,
+                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    const Padding(padding: EdgeInsets.all(2)),
+                                    Text(
+                                      "Capacity: ${b.people} / ${b.capacity}",
+                                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                    ),
                                   ],
                                 ),
-                                const Padding(padding: EdgeInsets.all(2)),
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                  child: LinearProgressIndicator(
-                                    color: e.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
-                                    value: e.busyness / 100,
-                                  ),
+                                Text(
+                                  b.summary,
+                                  style: TextStyle(fontSize: 18, color: b.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : b.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
                                 )
                               ],
                             ),
-                          )).toList(),
-                        )).toList()
+                            children: b.floors.map((e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            e.name,
+                                            style: const TextStyle(fontSize: 16),
+                                          ),
+                                          Text(
+                                            "Capacity: ${e.people} / ${e.capacity}",
+                                            style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        "${e.busyness}%",
+                                        style: TextStyle(fontSize: 16, color: e.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER),
+                                      )
+                                    ],
+                                  ),
+                                  const Padding(padding: EdgeInsets.all(2)),
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    child: LinearProgressIndicator(
+                                      color: e.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : e.summary.contains("Not Busy") ? Colors.green : SB_AMBER,
+                                      value: e.busyness / 100,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            )).toList(),
+                          )).toList()
+                        ),
                       ),
                     ),
-                  )
-                ],
+                    const SizedBox(height: 20)
+                  ],
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: false,
-            // visible: (DateTime.now().hour > 17 || DateTime.now().hour < 3) && (DateTime.now().weekday == 5 || DateTime.now().weekday == 6),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Card(
-                color: SB_RED,
-                child: InkWell(
-                  onTap: () => router.navigateTo(context, "/overdose-response", transition: TransitionType.native),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.warning, color: Colors.white,),
-                        Padding(padding: EdgeInsets.all(4)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Overdose Response", style: TextStyle(color: Colors.white, fontSize: 18),),
-                              Padding(padding: EdgeInsets.all(2)),
-                              Text("Stay safe out there! Check out the emergency response quick action guide.", style: TextStyle(color: Colors.white),)
-                            ],
+            Visibility(
+              visible: false,
+              // visible: (DateTime.now().hour > 17 || DateTime.now().hour < 3) && (DateTime.now().weekday == 5 || DateTime.now().weekday == 6),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Card(
+                  color: SB_RED,
+                  child: InkWell(
+                    onTap: () => router.navigateTo(context, "/overdose-response", transition: TransitionType.native),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.warning, color: Colors.white,),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Overdose Response", style: TextStyle(color: Colors.white, fontSize: 18),),
+                                Padding(padding: EdgeInsets.all(2)),
+                                Text("Stay safe out there! Check out the emergency response quick action guide.", style: TextStyle(color: Colors.white),)
+                              ],
+                            ),
                           ),
-                        ),
-                        Padding(padding: EdgeInsets.all(4)),
-                        Icon(Icons.arrow_forward_ios, color: Colors.white,),
-                      ],
+                          Padding(padding: EdgeInsets.all(4)),
+                          Icon(Icons.arrow_forward_ios, color: Colors.white,),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
