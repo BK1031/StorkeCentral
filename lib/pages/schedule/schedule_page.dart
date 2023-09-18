@@ -63,21 +63,21 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   Future<void> getUserSchedule(String quarter) async {
     if (!offlineMode) {
       try {
-        // Check if userScheduleItems is empty or if selectedQuarter is different from last item in userScheduleItems
+        // Check if userScheduleItems is empty or if queried quarter is different from last item in userScheduleItems
         log("[schedule_page] ${userScheduleItems.length} existing userScheduleItems");
-        if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != selectedQuarter.id) {
+        if (userScheduleItems.isEmpty || userScheduleItems.last.quarter != quarter) {
           Trace trace = FirebasePerformance.instance.newTrace("getUserSchedule()");
           await trace.start();
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
-            getPasstime();
+            // getPasstime();
           } else {
             // Only show the loading indicator if we're not loading from offline storage
             setState(() => loading = true);
           }
           await AuthService.getAuthToken();
-          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+          await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
             if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length == 0) {
               log("[schedule_page] No schedule items found in db for this quarter.", LogLevel.warn);
               setState(() {
@@ -90,7 +90,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               setState(() {
                 classesFound = true;
                 loading = false;
-                userScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+                userScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               if (quarter == currentQuarter.id) {
                 prefs.setStringList("USER_SCHEDULE_ITEMS", userScheduleItems.map((e) => jsonEncode(e).toString()).toList());
@@ -104,14 +104,15 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           buildCalendar();
         }
       } catch(err) {
-        AlertService.showErrorSnackbar(context, "Failed to get schedule!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get schedule!"));
         log("[schedule_page] ${err.toString()}", LogLevel.error);
         setState(() => classesFound = true);
       }
     } else {
       log("[schedule_page] Offline mode, searching cache for schedule...");
-      loadOfflineSchedule();
-      AlertService.showSuccessSnackbar(context, "Loaded offline schedule!");
+      if (quarter == currentQuarter.id) {
+        loadOfflineSchedule();
+      }
     }
   }
 
@@ -124,6 +125,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       });
       log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
       buildCalendar();
+      Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline schedule!"));
     }
     trace.stop();
   }
