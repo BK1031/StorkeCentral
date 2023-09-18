@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 Color SB_NAVY = const Color(0xFF003660);
 Color SB_GOLD = const Color(0xFFfebc11);
@@ -34,7 +32,6 @@ final ThemeData lightTheme = ThemeData(
     onSecondary: Colors.white,
   ),
   fontFamily: "Product Sans",
-  accentColor: SB_NAVY,
   primaryColor: SB_NAVY,
   backgroundColor: lightBackgroundColor,
   scaffoldBackgroundColor: lightBackgroundColor,
@@ -68,7 +65,6 @@ final ThemeData darkTheme = ThemeData(
     secondary: SB_NAVY,
   ),
   fontFamily: "Product Sans",
-  accentColor: SB_NAVY,
   primaryColor: SB_NAVY,
   canvasColor: darkCanvasColor,
   backgroundColor: darkBackgroundColor,

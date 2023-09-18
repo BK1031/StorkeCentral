@@ -64,7 +64,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
       checkAppVersion();
       _determinePosition();
       if (!kIsWeb) _registerFirebaseDynamicLinkListener();
-      if (!kIsWeb) _registerOneSignalListeners();
+      // if (!kIsWeb) _registerOneSignalListeners();
       firebaseAnalytics();
       fetchBuildings();
       if (!anonMode && !offlineMode) {
@@ -188,19 +188,19 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     });
   }
 
-  void _registerOneSignalListeners() {
-    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
-      log("[tab_bar_controller] OneSignal notification received: ${event.notification.notificationId}");
-      fetchNotifications().then((value) {
-        log("[tab_bar_controller] You now have ${notifications.where((element) => !element.read).length} unread notifications");
-      });
-      event.complete(event.notification);
-    });
-    OneSignal.shared.setNotificationOpenedHandler((result) {
-      log("[tab_bar_controller] OneSignal notification opened: ${result.notification.notificationId}");
-      router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
-    });
-  }
+  // void _registerOneSignalListeners() {
+  //   OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
+  //     log("[tab_bar_controller] OneSignal notification received: ${event.notification.notificationId}");
+  //     fetchNotifications().then((value) {
+  //       log("[tab_bar_controller] You now have ${notifications.where((element) => !element.read).length} unread notifications");
+  //     });
+  //     event.complete(event.notification);
+  //   });
+  //   OneSignal.Notifications.setNotificationOpenedHandler((result) {
+  //     log("[tab_bar_controller] OneSignal notification opened: ${result.notification.notificationId}");
+  //     router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
+  //   });
+  // }
 
   Future<void> fetchNotifications() async {
     Trace trace = FirebasePerformance.instance.newTrace("fetchNotifications()");
@@ -221,13 +221,13 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   }
 
   Future<void> requestNotifications() async {
-    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+    OneSignal.Notifications.requestPermission(true).then((accepted) {
       log("[tab_bar_controller] Accepted notification permissions: $accepted");
       if (mounted) {
         setState(() {
           currentUser.privacy.pushNotifications = accepted ? "ENABLED" : "DISABLED";
         });
-        if (currentUser.privacy.pushNotifications == "DISABLED") showNotificationsDisabledAlert();
+        if (!accepted) showNotificationsDisabledAlert();
       }
     });
   }
@@ -325,11 +325,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (!kIsWeb) {
       // Don't change any onesignal shit on the web
       await requestNotifications();
-      OneSignal.shared.setExternalUserId(currentUser.id);
-      OneSignal.shared.setEmail(email: currentUser.email);
-      final oneSignal = await OneSignal.shared.getDeviceState();
-      currentUser.privacy.pushNotificationToken = oneSignal?.userId ?? "";
-      currentUser.privacy.pushNotifications = oneSignal!.hasNotificationPermission ? "ENABLED" : "DISABLED";
+      OneSignal.login(currentUser.id);
+      OneSignal.User.addEmail(currentUser.email);
+      currentUser.privacy.pushNotificationToken = OneSignal.User.pushSubscription.id ?? "";
+      currentUser.privacy.pushNotifications = OneSignal.User.pushSubscription.optedIn! ? "ENABLED" : "DISABLED";
     }
 
     setUserStatus("ONLINE");

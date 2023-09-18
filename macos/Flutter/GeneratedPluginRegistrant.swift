@@ -6,13 +6,13 @@ import FlutterMacOS
 import Foundation
 
 import cloud_firestore
-import connectivity_plus_macos
+import connectivity_plus
 import firebase_analytics
 import firebase_auth
 import firebase_core
 import firebase_storage
 import geolocator_apple
-import network_info_plus_macos
+import network_info_plus
 import path_provider_macos
 import shared_preferences_foundation
 import url_launcher_macos

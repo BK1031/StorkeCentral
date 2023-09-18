@@ -323,7 +323,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> requestNotifications() async {
-    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+    OneSignal.Notifications.requestPermission(true).then((accepted) {
       log("[registration_page] Accepted permission: $accepted");
       if (mounted) {
         setState(() {

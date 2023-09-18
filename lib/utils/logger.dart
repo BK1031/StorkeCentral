@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 List<Log> logs = [];
 
 void log(var message, [LogLevel logLevel = LogLevel.info]) {

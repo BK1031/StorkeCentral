@@ -63,7 +63,7 @@ Future<void> main() async {
 
   // Remove this method to stop OneSignal Debugging
   // OneSignal.shared.setLogLevel(OSLogLevel.debug, OSLogLevel.none);
-  OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
+  OneSignal.initialize(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
   router.define("/", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {

@@ -45,7 +45,7 @@ class AuthService {
   static Future<void> getAuthToken() async {
     Trace trace = FirebasePerformance.instance.newTrace("getAuthToken()");
     await trace.start();
-    SC_AUTH_TOKEN = await fb.FirebaseAuth.instance.currentUser!.getIdToken(true);
+    SC_AUTH_TOKEN = (await fb.FirebaseAuth.instance.currentUser!.getIdToken(true))!;
     log("Retrieved auth token: ...${SC_AUTH_TOKEN.substring(SC_AUTH_TOKEN.length - 20)}");
     // await Future.delayed(const Duration(milliseconds: 100));
     trace.stop();
