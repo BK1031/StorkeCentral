@@ -26,7 +26,7 @@ func GetProxy(c *gin.Context) {
 	// Get service to handle route
 	mappedService := service.MatchRoute(utils.BuildTraceparent(span), strings.TrimLeft(c.Request.URL.String(), "/"), requestID)
 	if mappedService.ID != 0 {
-		if strings.HasSuffix(c.Request.URL.String(), "/ping") || service.VerifyAPIKeyScopes(c.Request.Header.Get("PEL-API-KEY"), mappedService, c.Request.Method) {
+		if strings.HasSuffix(c.Request.URL.String(), "/ping") || service.VerifyAPIKeyScopes(c.Request.Header.Get("SC-API-KEY"), mappedService, c.Request.Method) {
 			utils.SugarLogger.Infoln("PROXY TO: (" + strconv.Itoa(mappedService.ID) + ") " + mappedService.Name + " @ " + mappedService.URL)
 			proxyClient := &http.Client{}
 			//proxyRequest, _ := http.NewRequest("GET", "http://localhost"+":"+strconv.Itoa(mappedService.Port)+c.Request.URL.String(), nil) // Use this when not running in Docker
