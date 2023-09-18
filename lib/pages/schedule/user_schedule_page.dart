@@ -91,7 +91,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
               setState(() {
                 classesFound = true;
                 loading = false;
-                localUserScheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
+                localUserScheduleItems = jsonDecode(value.body)["data"].map<UserScheduleItem>((json) => UserScheduleItem.fromJson(json)).toList();
               });
               buildCalendar();
             }
@@ -100,12 +100,12 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
           log("[user_schedule_page] Schedule items already loaded for this quarter, skipping fetch.");
         }
       } catch(err) {
-        AlertService.showErrorSnackbar(context, "Failed to get schedule!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get schedule!"));
         log("[user_schedule_page] ${err.toString()}", LogLevel.error);
-        setState(() => classesFound = true);
+        setState(() => classesFound = false);
       }
     } else {
-      log("[user_schedule_page] Offline mode, searching cache for schedule...");
+      log("[user_schedule_page] Offline mode, can't get user schedule!");
     }
   }
 

@@ -54,7 +54,7 @@ bool offlineMode = false;
 bool demoMode = false;
 
 bool appUnderReview = false;
-String appReviewUserID = "Xbq9Xf8kfjQzHsvTVds2E6kUD5F3";
+String appReviewUserID = "thomas-storke";
 
 String launchDynamicLink = "";
 
@@ -95,9 +95,7 @@ DateTime lastBuildingFetch = DateTime.now();
 Building selectedBuilding = Building();
 
 /// Units can be [m] or [ft]
-// ignore: non_constant_identifier_names
 String PREF_UNITS = "M";
-// ignore: non_constant_identifier_names
 Map<String, double> UNITS_CONVERSION = {
   "M": 1,
   "FT": 3.28084
