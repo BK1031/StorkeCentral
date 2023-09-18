@@ -15,7 +15,7 @@ var Service = model.Service{
 
 var RinconService = model.Service{}
 
-var Version = "2.1.2"
+var Version = "2.1.3"
 var Env = os.Getenv("ENV")
 var Port = os.Getenv("PORT")
 var RinconPort = os.Getenv("RINCON_PORT")
