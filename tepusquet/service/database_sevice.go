@@ -28,7 +28,7 @@ func InitializeDB() {
 		}
 	} else {
 		utils.SugarLogger.Infoln("Connected to postgres database")
-		db.AutoMigrate(&model.UserCourse{}, model.UserCredential{}, model.UserScheduleItem{})
+		db.AutoMigrate(&model.UserCourse{}, model.UserCredential{}, model.UserScheduleItem{}, model.UserPasstime{}, model.UserUpNext{})
 		utils.SugarLogger.Infoln("AutoMigration complete")
 		DB = db
 	}
