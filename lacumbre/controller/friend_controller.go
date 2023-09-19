@@ -106,14 +106,14 @@ func AcceptFriendRequest(c *gin.Context) {
 		}
 		from := service.GetUserByID(fromUserID)
 		to := service.GetUserByID(toUserID)
-		go service.Discord.ChannelMessageSend(config.DiscordChannel, from.String()+" just sent a friend request to "+to.String())
+		go service.Discord.ChannelMessageSend(config.DiscordChannel, from.String()+" is now friends with "+to.String())
 		notification := service.MirandaNotification{
 			ID:         uuid.New().String(),
-			UserID:     from.ID,
+			UserID:     to.ID,
 			Sender:     config.Service.Name,
 			Title:      "Friend request accepted!",
-			Body:       to.FirstName + " just accepted your friend request!",
-			PictureUrl: to.ProfilePictureURL,
+			Body:       from.FirstName + " just accepted your friend request!",
+			PictureUrl: from.ProfilePictureURL,
 			LaunchUrl:  "",
 			Route:      "/profile/user/" + to.ID,
 			Priority:   "HIGH",
