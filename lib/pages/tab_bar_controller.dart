@@ -334,8 +334,8 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (!kIsWeb) {
       // Don't change any onesignal shit on the web
       await requestNotifications();
-      OneSignal.login(currentUser.id);
-      OneSignal.User.addEmail(currentUser.email);
+      await OneSignal.login(currentUser.id);
+      await OneSignal.User.addEmail(currentUser.email);
       log("[tab_bar_controller] OneSignal DEBUG optedIn: ${OneSignal.User.pushSubscription.optedIn}");
       log("[tab_bar_controller] OneSignal DEBUG id: ${OneSignal.User.pushSubscription.id}");
       log("[tab_bar_controller] OneSignal DEBUG token: ${OneSignal.User.pushSubscription.token}");
