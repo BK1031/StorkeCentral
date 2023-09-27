@@ -56,7 +56,7 @@ Future<void> main() async {
 
   prefs = await SharedPreferences.getInstance();
 
-  log("StorkeCentral v${appVersion.toString()}");
+  log("StorkeCentral v${appVersion.toString()} – ${appVersion.getVersionCode()}");
   FirebaseApp app = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   log("Initialized default app $app");
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
