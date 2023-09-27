@@ -162,13 +162,13 @@ class _HomePageState extends State<HomePage> {
         Trace trace = FirebasePerformance.instance.newTrace("getDiningMenus()");
         await trace.start();
         await Future.delayed(const Duration(milliseconds: 100));
-        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-YYYY").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-yyyy").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           log("[home_page] Fetched today's dining meals");
           setState(() {
             diningMealList = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
           });
         });
-        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-YYYY").format(queryDate.add(const Duration(days: 1)))}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-yyyy").format(queryDate.add(const Duration(days: 1)))}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           log("[home_page] Fetched tomorrow's dining meals");
           setState(() {
             List<DiningHallMeal> addMealList = jsonDecode(value.body)["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList();
@@ -523,7 +523,10 @@ class _HomePageState extends State<HomePage> {
                                                   Text("${(diningHallList[i].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.white, fontSize: 12),)
                                                 ],
                                               ),
-                                              Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
+                                              Hero(
+                                                tag: "${diningHallList[i].id}-status",
+                                                child: Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
+                                              )
                                             ],
                                           ),
                                         ),

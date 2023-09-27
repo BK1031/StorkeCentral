@@ -8,6 +8,7 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
+import 'package:storke_central/models/dining_hall_menu_item.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -30,6 +31,10 @@ class _DiningHallPageState extends State<DiningHallPage> {
   int currPage = 0;
   bool loading = false;
 
+  DateTime nextMealDate = DateTime.now();
+  DateTime selectedDate = DateTime.now();
+  List<DateTime> dates = [];
+
   _DiningHallPageState(this.diningHallID);
 
   @override
@@ -42,7 +47,20 @@ class _DiningHallPageState extends State<DiningHallPage> {
   @override
   void initState() {
     super.initState();
+    getDates();
     getDining();
+  }
+
+  Future<void> getDates() async {
+    DateTime now = DateTime.now();
+    dates.add(now);
+    for (int i = 1; i < 3; i++) {
+      dates.add(now.add(Duration(days: i)));
+    }
+    for (int i = 1; i < 3; i++) {
+      dates.add(now.subtract(Duration(days: i)));
+    }
+    dates.sort((a, b) => a.compareTo(b));
   }
 
   Future<void> getDining() async {
@@ -57,6 +75,12 @@ class _DiningHallPageState extends State<DiningHallPage> {
         });
         await getDiningMenus();
         selectedDiningHall.status = getDiningStatus(selectedDiningHall.id);
+        if (selectedDiningHall.status == "Closed Today") {
+          setState(() {
+            selectedDate = DateTime.now().add(const Duration(days: 1));
+            getDining();
+          });
+        }
       } catch(e) {
         log("[dining_hall_page] ${e.toString()}", LogLevel.error);
         AlertService.showErrorSnackbar(context, "Failed to fetch dining hall!");
@@ -67,14 +91,15 @@ class _DiningHallPageState extends State<DiningHallPage> {
   }
 
   Future<void> getDiningMenus() async {
-    DateTime queryDate = DateTime.now();
     // DateTime queryDate = DateTime.parse("2023-03-23 08:00:00.000");
     if (!offlineMode) {
+      setState(() => loading = true);
       try {
         await Future.delayed(const Duration(milliseconds: 100));
-        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("yyyy-MM-dd").format(queryDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+        await httpClient.get(Uri.parse("$API_HOST/dining/meals/${DateFormat("MM-dd-yyyy").format(selectedDate)}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
           setState(() {
             selectedDiningHall.meals = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList().where((element) => element.diningHallID == selectedDiningHall.id).toList();
+            selectedDiningHall.meals.sort((a, b) => a.open.compareTo(b.open));
           });
         });
         setState(() => loading = false);
@@ -89,7 +114,6 @@ class _DiningHallPageState extends State<DiningHallPage> {
 
   String getDiningStatus(String diningHallID) {
     DateTime now = DateTime.now();
-    // DateTime now = DateTime.parse("2023-03-23 11:00:00.100");
     selectedDiningHall.meals.sort((a, b) => a.open.compareTo(b.open));
     log("[dining_hall_page] Current Time: $now - ${now.timeZoneName}");
     for (int j = 0; j < selectedDiningHall.meals.length; j++) {
@@ -98,6 +122,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         Future.delayed(const Duration(milliseconds: 100), () {
           setState(() {
             selectedMeal = selectedDiningHall.meals[j].name;
+            nextMealDate = selectedDiningHall.meals[j].open.toLocal();
           });
           _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         });
@@ -112,8 +137,16 @@ class _DiningHallPageState extends State<DiningHallPage> {
         return "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
       }
     }
-    // TODO: Get next days breakfast
     return "Closed Today";
+  }
+
+  Icon getMenuItemIcon(DiningHallMenuItem item) {
+    switch (item.station) {
+      case "Breakfast":
+        return const Icon(Icons.breakfast_dining_rounded);
+      default:
+        return const Icon(Icons.fastfood_rounded);
+    }
   }
 
   @override
@@ -139,13 +172,13 @@ class _DiningHallPageState extends State<DiningHallPage> {
                 ),
               ),
               Container(
-                height: 125,
+                height: 250,
                 decoration: BoxDecoration(
                     gradient: LinearGradient(
-                        begin: FractionalOffset.topCenter,
+                        begin: FractionalOffset.center,
                         end: FractionalOffset.bottomCenter,
                         colors: [
-                          Colors.grey.withOpacity(0.0),
+                          Colors.black.withOpacity(0.0),
                           Colors.black,
                         ],
                         stops: const [0, 1]
@@ -168,6 +201,17 @@ class _DiningHallPageState extends State<DiningHallPage> {
                         ),
                       ),
                     ),
+                    const Padding(padding: EdgeInsets.all(4)),
+                    Hero(
+                      tag: "${selectedDiningHall.id}-status",
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          "${selectedDiningHall.status} on ${DateFormat("M/dd").format(nextMealDate)}",
+                          style: TextStyle(fontSize: 16, color: selectedDiningHall.status.contains("until") ? Colors.green : selectedDiningHall.status.contains("at") ? Colors.orangeAccent : selectedDiningHall.status.contains("Closed") ? Colors.red : Colors.grey,),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -182,10 +226,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                       padding: EdgeInsets.zero,
                       color: selectedMeal == e.name ? SB_NAVY : null,
                       onPressed: () {
-                        setState(() {
-                          selectedMeal = e.name;
-                        });
-                        _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                        _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == e.name), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -235,8 +276,12 @@ class _DiningHallPageState extends State<DiningHallPage> {
                   ),
                 )
               ) : PageView(
-                physics: const NeverScrollableScrollPhysics(),
                 controller: _controller,
+                onPageChanged: (int page) {
+                  setState(() {
+                    selectedMeal = selectedDiningHall.meals[page].name;
+                  });
+                },
                 children: selectedDiningHall.meals.map((e) => GroupedListView<dynamic, String>(
                   padding: EdgeInsets.zero,
                   elements: e.menuItems,
@@ -254,18 +299,47 @@ class _DiningHallPageState extends State<DiningHallPage> {
                       padding: const EdgeInsets.all(8),
                       child: Row(
                         children: [
-                          const Icon(Icons.fastfood_rounded),
+                          getMenuItemIcon(element),
                           const Padding(padding: EdgeInsets.all(4)),
                           Text(element.name, style: const TextStyle(fontSize: 16)),
                         ],
                       ),
                     )
                   ),
-                  // itemComparator: (item1, item2) => item1['name'].compareTo(item2['name']), // optional
                   useStickyGroupSeparators: false, // optional
                   floatingHeader: true, // optional
                   order: GroupedListOrder.ASC, // optional
-                )).toList(),
+                )).toList()
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Card(
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: dates.map((e) => SizedBox(
+                    width: 45,
+                    child: CupertinoButton(
+                      color: e.day == selectedDate.day ? SB_NAVY : null,
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        setState(() {
+                          selectedDate = e;
+                        });
+                        getDiningMenus();
+                      },
+                      child: Column(
+                        children: [
+                          Text(DateFormat("d").format(e), style: TextStyle(fontSize: 17, color: e.day == selectedDate.day ? Colors.white : Theme.of(context).textTheme.labelLarge!.color),),
+                          Text(DateFormat("MMM").format(e), style: TextStyle(fontSize: 13, color: e.day == selectedDate.day ? Colors.white : SB_NAVY)),
+                        ],
+                      ),
+                    ),
+                  )).toList()
+                ),
               ),
             ),
           ),

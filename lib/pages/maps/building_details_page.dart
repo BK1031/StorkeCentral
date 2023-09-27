@@ -228,9 +228,9 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                     ),
                     Container(
                       padding: const EdgeInsets.all(8),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Padding(padding: EdgeInsets.all(32),),
                           Text("Coming Soon!", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                         ],
@@ -299,8 +299,8 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                               crossAxisAlignment: CrossAxisAlignment.center,
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
-                                                Text("${(distance * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: TextStyle(fontSize: 18),),
-                                                Text("Distance"),
+                                                Text("${(distance * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(fontSize: 18),),
+                                                const Text("Distance"),
                                               ],
                                             ),
                                             const Padding(padding: EdgeInsets.all(4),),
@@ -314,8 +314,8 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                               crossAxisAlignment: CrossAxisAlignment.center,
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
-                                                Text("${(duration / 60).round()} min", style: TextStyle(fontSize: 18),),
-                                                Text("Time"),
+                                                Text("${(duration / 60).round()} min", style: const TextStyle(fontSize: 18),),
+                                                const Text("Time"),
                                               ],
                                             ),
                                           ],
