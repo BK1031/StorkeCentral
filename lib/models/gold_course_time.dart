@@ -13,7 +13,7 @@ class GoldCourseTime {
     building = json["building"] ?? "";
     roomCapacity = json["roomCapacity"] ?? 0;
     days = json["days"] ?? "";
-    beginTime = json["beginTime"] ?? "";
-    endTime = json["endTime"] ?? "";
+    beginTime = json["beginTime"] ?? "0:00";
+    endTime = json["endTime"] ?? "0:00";
   }
 }
