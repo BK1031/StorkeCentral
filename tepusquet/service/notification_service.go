@@ -23,16 +23,16 @@ func CheckUpNextNotificationsForAllUsers(og *sync.WaitGroup) {
 		id := id
 		go func() {
 			defer wg.Done()
-			CheckUpNextNotificationsForUserForQuarter(id, config.CurrentQuarter)
+			CheckUpNextNotificationsForUserForQuarter(id)
 		}()
 	}
 	wg.Wait()
 	_, _ = Discord.ChannelMessageSend(config.DiscordChannel, "Finished sending schedule notifications")
 }
 
-func CheckUpNextNotificationsForUserForQuarter(userID string, quarter string) bool {
+func CheckUpNextNotificationsForUserForQuarter(userID string) bool {
 	sentNotif := false
-	schedule := GetUpNextForUserForQuarter(userID, quarter)
+	schedule := GetUpNextForUser(userID)
 	sort.Slice(schedule, func(i, j int) bool {
 		return schedule[i].StartTime.Before(schedule[j].StartTime)
 	})

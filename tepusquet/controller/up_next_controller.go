@@ -9,9 +9,28 @@ import (
 	"tepusquet/service"
 )
 
-func GetUpNextForUserForQuarter(c *gin.Context) {
-	result := service.GetUpNextForUserForQuarter(c.Param("userID"), c.Param("quarter"))
+func GetUpNextForUser(c *gin.Context) {
+	result := service.GetUpNextForUser(c.Param("userID"))
 	c.JSON(http.StatusOK, result)
+}
+
+func GetUpNextSubscriptionsForUser(c *gin.Context) {
+	result := service.GetUpNextSubscriptionsForUser(c.Param("userID"))
+	c.JSON(http.StatusOK, result)
+}
+
+func SetUpNextSubscriptionsForUser(c *gin.Context) {
+	var subscriptions []string
+	if err := c.ShouldBindJSON(&subscriptions); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	service.RemoveUpNextSubscriptionsForUser(c.Param("userID"))
+	if err := service.SetUpNextSubscriptionsForUser(c.Param("userID"), subscriptions); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, service.GetUpNextSubscriptionsForUser(c.Param("userID")))
 }
 
 func RegisterUpNextCronJob() {
