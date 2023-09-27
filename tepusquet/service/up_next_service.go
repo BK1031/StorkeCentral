@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-func GetUpNextForUserForQuarter(userID string, quarter string) []model.UserUpNext {
+func GetUpNextForUser(userID string) []model.UserUpNext {
 	var upNext []model.UserUpNext
-	result := DB.Where("user_id = ? AND quarter = ?", userID, quarter).Find(&upNext)
+	result := DB.Where("user_id = ?", userID).Find(&upNext)
 	if result.Error != nil {
 	}
 	return upNext
 }
 
-func SetUpNextForUserForQuarter(upNext []model.UserUpNext) error {
+func SetUpNextForUser(upNext []model.UserUpNext) error {
 	for _, s := range upNext {
 		if result := DB.Create(&s); result.Error != nil {
 			return result.Error
@@ -26,8 +26,41 @@ func SetUpNextForUserForQuarter(upNext []model.UserUpNext) error {
 	return nil
 }
 
-func RemoveUpNextForUserForQuarter(userID string, quarter string) {
-	DB.Where("user_id = ? AND quarter = ?", userID, quarter).Delete(&model.UserUpNext{})
+func RemoveUpNextForUser(userID string) {
+	DB.Where("user_id = ?", userID).Delete(&model.UserUpNext{})
+}
+
+func GetUpNextSubscriptionsForUser(userID string) []model.SubscribedUpNext {
+	var subscribedUpNext []model.SubscribedUpNext
+	result := DB.Where("user_id = ?", userID).Find(&subscribedUpNext)
+	if result.Error != nil {
+	}
+
+	updatedSubscribedUpNext := make([]model.SubscribedUpNext, len(subscribedUpNext))
+	for i, s := range subscribedUpNext {
+		// Update the UpNext field for each element in the copy
+		s.UpNext = GetUpNextForUser(s.SubscribedUserID)
+		updatedSubscribedUpNext[i] = s
+	}
+
+	return updatedSubscribedUpNext
+}
+
+func SetUpNextSubscriptionsForUser(userID string, subscriptions []string) error {
+	for _, s := range subscriptions {
+		subscribedUpNext := model.SubscribedUpNext{
+			UserID:           userID,
+			SubscribedUserID: s,
+		}
+		if result := DB.Create(&subscribedUpNext); result.Error != nil {
+			return result.Error
+		}
+	}
+	return nil
+}
+
+func RemoveUpNextSubscriptionsForUser(userID string) {
+	DB.Where("user_id = ?", userID).Delete(&model.SubscribedUpNext{})
 }
 
 func FetchUpNextForAllUsers() {
@@ -82,8 +115,8 @@ func FetchUpNextForUserForQuarter(userID string, quarter string) {
 			}
 		}
 	}
-	RemoveUpNextForUserForQuarter(userID, quarter)
-	err := SetUpNextForUserForQuarter(upNext)
+	RemoveUpNextForUser(userID)
+	err := SetUpNextForUser(upNext)
 	if err != nil {
 		return
 	}

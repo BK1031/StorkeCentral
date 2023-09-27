@@ -104,7 +104,7 @@ func FetchPasstimeForUserForQuarter(credential model.UserCredential, quarter str
 	var passtime model.UserPasstime
 	path, _ := launcher.LookPath()
 	url := launcher.New().
-		Headless(false).
+		//Headless(false).
 		Bin(path).MustLaunch()
 	page := rod.New().ControlURL(url).MustConnect().MustPage("https://my.sa.ucsb.edu/gold/Login.aspx")
 	page.MustEmulate(devices.LaptopWithHiDPIScreen)
