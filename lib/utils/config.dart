@@ -13,7 +13,7 @@ import 'package:storke_central/models/gold_course.dart';
 import 'package:storke_central/models/news_article.dart';
 import 'package:storke_central/models/notification.dart' as sc;
 import 'package:storke_central/models/quarter.dart';
-import 'package:storke_central/models/up_next_schedule_item.dart';
+import 'package:storke_central/models/subscribed_up_next.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_passtime.dart';
@@ -30,7 +30,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.5.1+1");
+Version appVersion = Version("2.5.2+1");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
@@ -83,7 +83,7 @@ UserPasstime userPasstime = UserPasstime();
 DateTime lastScheduleFetch = DateTime.now();
 
 List<String> upNextUserIDs = [];
-List<UpNextScheduleItem> upNextSchedules = [];
+List<SubscribedUpNext> upNextSubscriptions = [];
 DateTime lastUpNextFetch = DateTime.now();
 
 List<WaitzBuilding> waitzBuildings = [];
