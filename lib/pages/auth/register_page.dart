@@ -43,6 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
   User registerUser = User();
   bool validUsername = true;
 
+  bool requireInvite = false;
   String inviteCode = "";
   bool validInvite = false;
   DateTime expires = DateTime.now();
@@ -101,6 +102,17 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
+  void checkAppInviteRequired() {
+    FirebaseFirestore.instance.doc("meta/invite").get().then((value) {
+      setState(() {
+        requireInvite = value.get("require");
+      });
+      if (requireInvite) {
+        log("[registration_page] Invite codes are required for new accounts!", LogLevel.warn);
+      }
+    });
+  }
+
   void _registerFirebaseDynamicLinkListener() {
     // Additional handler just for invite links since `initialLink` doesn't work reliably on iOS
     if (!kIsWeb) {
@@ -154,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 firstNameController.text = registerUser.firstName;
                 lastNameController.text = registerUser.lastName;
                 emailController.text = registerUser.email;
-                if (validInvite && DateTime.now().isBefore(expires) && invitedUsers.length < codeCap) {
+                if (!requireInvite || (validInvite && DateTime.now().isBefore(expires) && invitedUsers.length < codeCap)) {
                   _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                 } else {
                   _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
@@ -168,7 +180,7 @@ class _RegisterPageState extends State<RegisterPage> {
               context: context,
               type: CoolAlertType.warning,
               title: "Authentication Error",
-              widget: const Text("You must be a UCSB student and use a ucsb email addresss to sign in."),
+              widget: const Text("You must be a UCSB student and use a ucsb email address to sign in."),
               backgroundColor: SB_NAVY,
               confirmBtnColor: SB_AMBER,
               confirmBtnText: "OK"
@@ -506,7 +518,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            height: validInvite ? 150 : 0,
+            height: validInvite && requireInvite ? 150 : 0,
             child: Card(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
