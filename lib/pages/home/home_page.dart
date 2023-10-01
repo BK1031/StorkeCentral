@@ -5,12 +5,14 @@ import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/dining_hall.dart';
 import 'package:storke_central/models/dining_hall_meal.dart';
 import 'package:storke_central/models/news_article.dart';
+import 'package:storke_central/models/subscribed_up_next.dart';
 import 'package:storke_central/models/up_next_schedule_item.dart';
 import 'package:storke_central/models/waitz_building.dart';
 import 'package:storke_central/models/weather.dart';
@@ -36,6 +38,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
+  bool loadingUpNext = false;
+
   @override
   void setState(fn) {
     if (mounted) {
@@ -50,7 +54,7 @@ class _HomePageState extends State<HomePage> {
     getWeather();
     getDining();
     getWaitz();
-    Future.delayed(const Duration(milliseconds: 100), () => getUpNextFriends());
+    Future.delayed(const Duration(milliseconds: 100), () => getUpNextSubscriptions());
   }
 
   Future<void> getNewsHeadline() async {
@@ -93,7 +97,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> getWeather() async {
-    if (!offlineMode) {
+    if (!offlineMode && !kIsWeb) {
       try {
         if (weather.id == 0 || DateTime.now().difference(lastWeatherFetch).inMinutes > 60) {
           Trace trace = FirebasePerformance.instance.newTrace("getWeather()");
@@ -133,10 +137,13 @@ class _HomePageState extends State<HomePage> {
           log("[home_page] Fetched dining halls");
           setState(() {
             diningHallList = jsonDecode(value.body)["data"].map<DiningHall>((json) => DiningHall.fromJson(json)).toList();
-            for (int i = 0; i < diningHallList.length; i++) {
-              diningHallList[i].distanceFromUser = Geolocator.distanceBetween(diningHallList[i].latitude, diningHallList[i].longitude, currentPosition!.latitude, currentPosition!.longitude);
+            if (!kIsWeb) {
+              // Only calculate distance if not on web
+              for (int i = 0; i < diningHallList.length; i++) {
+                diningHallList[i].distanceFromUser = Geolocator.distanceBetween(diningHallList[i].latitude, diningHallList[i].longitude, currentPosition!.latitude, currentPosition!.longitude);
+              }
+              diningHallList.sort((a, b) => a.distanceFromUser.compareTo(b.distanceFromUser));
             }
-            diningHallList.sort((a, b) => a.distanceFromUser.compareTo(b.distanceFromUser));
           });
         });
         getDiningMenus().then((_) {
@@ -203,112 +210,111 @@ class _HomePageState extends State<HomePage> {
     return "Closed";
   }
 
-  Future<void> getUpNextFriends() async {
+  Future<void> getUpNextSubscriptions() async {
     if (!offlineMode) {
-      if (upNextSchedules.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > -1) {
-        upNextSchedules.clear();
-        upNextUserIDs.clear();
-        // Get up next user ids for current user
-        // await FirebaseFirestore.instance.doc("users/${currentUser.id}").collection("up-next").get().then((value) async {
-        //   for (var element in value.docs) {
-        //     setState(() {
-        //       upNextUserIDs.add(element.id);
-        //     });
-        //   }
-        // });
-        // Handle current users up next items
-        await getUserUpNext(currentUser.id).then((items) async {
-          UpNextScheduleItem scheduleItem = getNextClass(items);
-          if (scheduleItem.status != "") {
-            setState(() {
-              upNextSchedules.add(scheduleItem);
-            });
-          }
-        });
-        // Handle friends up next items
-        for (var id in upNextUserIDs) {
-          getUserUpNext(id).then((items) async {
-            UpNextScheduleItem scheduleItem = getNextClass(items);
-            if (scheduleItem.status != "") {
+      if (upNextSubscriptions.isEmpty || DateTime.now().difference(lastUpNextFetch).inMinutes > 2) {
+        try {
+          setState(() => loadingUpNext = true);
+          await AuthService.getAuthToken();
+          var response = await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/next/subscribed"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
+          setState(() {
+            upNextSubscriptions = jsonDecode(response.body)["data"].map<SubscribedUpNext>((json) => SubscribedUpNext.fromJson(json)).toList();
+            upNextUserIDs = upNextSubscriptions.map<String>((e) => e.subscribedUserID).toList();
+          });
+          for (int i = 0; i < upNextSubscriptions.length; i++) {
+            if (friends.any((element) => element.user.id == upNextSubscriptions[i].subscribedUserID)) {
               setState(() {
-                upNextSchedules.add(scheduleItem);
+                upNextSubscriptions[i].user = friends.firstWhere((element) => element.user.id == upNextSubscriptions[i].subscribedUserID).user;
+              });
+            } else if (upNextSubscriptions[i].subscribedUserID == currentUser.id) {
+              setState(() {
+                upNextSubscriptions[i].user = currentUser;
               });
             }
-          });
+          }
+          setState(() => loadingUpNext = false);
+        } catch(err) {
+          AlertService.showErrorSnackbar(context, "Failed to get UpNext subscriptions!");
         }
-        lastUpNextFetch = DateTime.now();
       } else {
-        log("[home_page] Using cached up next schedules, last fetch was ${DateTime.now().difference(lastUpNextFetch).inMinutes} minutes ago (minimum 15 minutes)");
+        log("[home_page] Using cached up next schedules, last fetch was ${DateTime.now().difference(lastUpNextFetch).inMinutes} minutes ago (minimum 2 minutes)");
       }
     } else {
       log("[home_page] Offline mode, not displaying up next schedules");
     }
   }
 
-  Future<List<UpNextScheduleItem>> getUserUpNext(String userID) async {
-    List<UpNextScheduleItem> scheduleItems = [];
-    // First check if users upnext is saved for today
-    if (prefs.containsKey("UP_NEXT_$userID")) {
-      scheduleItems = prefs.getStringList("UP_NEXT_$userID")!.map((e) => UpNextScheduleItem.fromJson(jsonDecode(e))).toList();
-      if (scheduleItems.isNotEmpty && scheduleItems.first.startTime.toLocal().day == DateTime.now().day) {
-        log("[home_page] Using cached up next schedules for user $userID");
-        // Add user object to schedule items
-        for (var element in scheduleItems) {
-          if (userID == currentUser.id) {
-            element.user = currentUser;
-          } else {
-            element.user = friends.firstWhere((friend) => friend.user.id == userID).user;
-          }
-        }
-        return scheduleItems;
+  Widget buildUpNextCard(SubscribedUpNext upNextSubscription) {
+    upNextSubscription.upNextItems.sort((a, b) => a.startTime.compareTo(b.startTime));
+    upNextSubscription.status = "Done for the day! 🎉";
+    UpNextScheduleItem currentItem = UpNextScheduleItem();
+    for (UpNextScheduleItem item in upNextSubscription.upNextItems) {
+      if (item.startTime.toLocal().isAfter(DateTime.now())) {
+        upNextSubscription.status = "Class at ${DateFormat("h:mm a").format(item.startTime.toLocal())}";
+        currentItem = item;
+      } else if (item.endTime.toLocal().isAfter(DateTime.now())) {
+        upNextSubscription.status = "Class until ${DateFormat("h:mm a").format(item.endTime.toLocal())}";
+        currentItem = item;
       }
     }
-    // Up next for user not stored locally or is out of date, fetch from API
-    Trace trace = FirebasePerformance.instance.newTrace("getUserUpNext()");
-    await trace.start();
-    try {
-      await AuthService.getAuthToken();
-      await httpClient.get(Uri.parse("$API_HOST/users/schedule/$userID/${currentQuarter.id}/next"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
-        if (jsonDecode(utf8.decode(value.bodyBytes))["data"].length != 0) {
-          scheduleItems = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<UpNextScheduleItem>((json) => UpNextScheduleItem.fromJson(json)).toList();
-        }
-      });
-      prefs.setStringList("UP_NEXT_$userID", scheduleItems.map((e) => jsonEncode(e).toString()).toList());
-    } catch(e) {
-      log("[home_page] ${e.toString()}", LogLevel.error);
-      // AlertService.showErrorSnackbar(context, "Failed to fetch up next!");
-    }
-    trace.stop();
-    // Add user object to schedule items
-    for (var element in scheduleItems) {
-      if (userID == currentUser.id) {
-        element.user = currentUser;
-      } else {
-        element.user = friends.firstWhere((friend) => friend.user.id == userID).user;
-      }
-    }
-    return scheduleItems;
-  }
-
-  UpNextScheduleItem getNextClass(List<UpNextScheduleItem> scheduleItems) {
-    UpNextScheduleItem returnItem = UpNextScheduleItem();
-    if (scheduleItems.isNotEmpty) {
-      scheduleItems[0].user.id == currentUser.id ? returnItem.user = currentUser : returnItem.user = friends.firstWhere((element) => element.user.id == scheduleItems[0].user.id).user;
-      scheduleItems.sort((a, b) => a.startTime.compareTo(b.startTime));
-      for (int i = 0; i < scheduleItems.length; i++) {
-        if (scheduleItems[i].endTime.isAfter(DateTime.now())) {
-          returnItem = scheduleItems[i];
-          if (scheduleItems[i].startTime.isAfter(DateTime.now())) {
-            returnItem.status = "at";
-          } else {
-            returnItem.status = "until";
-          }
-          return returnItem;
-        }
-      }
-      returnItem.status = "done";
-    }
-    return returnItem;
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: SizedBox(
+        width: 175,
+        child: Card(
+          child: InkWell(
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            onTap: () {
+              if (upNextSubscription.user.id == currentUser.id && !upNextSubscription.status.contains("Done")) {
+                router.navigateTo(context, "/schedule/view/${currentItem.title}", transition: TransitionType.native);
+              } else {
+                router.navigateTo(context, "/schedule/user/${upNextSubscription.user.id}", transition: TransitionType.native);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(64)),
+                        child: ExtendedImage.network(
+                          upNextSubscription.user.profilePictureURL,
+                          height: 30,
+                        ),
+                      ),
+                      const Padding(padding: EdgeInsets.all(4)),
+                      Text(
+                        upNextSubscription.user.id == currentUser.id ?
+                        "Me" : upNextSubscription.user.firstName,
+                        style: const TextStyle(fontSize: 18),
+                      )
+                    ],
+                  ),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  upNextSubscription.status.contains("Done") ? const Text(
+                      "Done for the day! 🎉",
+                      style: TextStyle(color: Colors.green)
+                  ) : Text(
+                    currentItem.title,
+                  ),
+                  Visibility(
+                    visible: !upNextSubscription.status.contains("Done"),
+                    child: Text(
+                      upNextSubscription.status,
+                      style: TextStyle(color: upNextSubscription.status.contains("until") ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void showAddUpNextDialog() {
@@ -329,9 +335,10 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: double.maxFinite,
               child: CupertinoButton(
-                onPressed: () {
+                onPressed: () async {
                   lastUpNextFetch = DateTime.now().subtract(const Duration(minutes: 100));
-                  getUpNextFriends();
+                  var response = await httpClient.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/next/subscribed"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(upNextUserIDs));
+                  getUpNextSubscriptions();
                   router.pop(context);
                 },
                 color: SB_NAVY,
@@ -542,7 +549,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Visibility(
-                      visible: false,
+                      visible: upNextSubscriptions.isNotEmpty,
                       child: const Padding(
                         padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
                         child: Row(
@@ -555,8 +562,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Visibility(
-                      visible: false,
-                      child: (upNextUserIDs.isNotEmpty && upNextSchedules.isEmpty) ? const UpNextPlaceholder() : (upNextUserIDs.isEmpty && upNextSchedules.isEmpty) ? SizedBox(
+                      visible: true,
+                      child: (loadingUpNext) ? const UpNextPlaceholder() : (upNextSubscriptions.isEmpty) ? SizedBox(
                         height: 100,
                         child: Padding(
                           padding: const EdgeInsets.only(left: 8.0, right: 8),
@@ -590,9 +597,9 @@ class _HomePageState extends State<HomePage> {
                       ) : SizedBox(
                         height: 100,
                         child: ListView.builder(
-                          itemCount: upNextSchedules.length + 1,
+                          itemCount: upNextSubscriptions.length + 1,
                           itemBuilder: (BuildContext context, int i) {
-                            if (i == upNextSchedules.length) {
+                            if (i == upNextSubscriptions.length) {
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: SizedBox(
@@ -615,66 +622,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               );
                             } else {
-                              return Padding(
-                                padding: EdgeInsets.only(right: 4, left: (i == 0) ? 8 : 0),
-                                child: SizedBox(
-                                  width: 175,
-                                  child: Card(
-                                    child: InkWell(
-                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                      onTap: () {
-                                        if (upNextSchedules[i].user.id == currentUser.id && upNextSchedules[i].status != "done") {
-                                          router.navigateTo(context, "/schedule/view/${upNextSchedules[i].title}", transition: TransitionType.native);
-                                        } else {
-                                          router.navigateTo(context, "/schedule/user/${upNextSchedules[i].user.id}", transition: TransitionType.native);
-                                        }
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius: const BorderRadius.all(Radius.circular(64)),
-                                                  child: ExtendedImage.network(
-                                                    upNextSchedules[i].user.profilePictureURL,
-                                                    height: 30,
-                                                  ),
-                                                ),
-                                                const Padding(padding: EdgeInsets.all(4)),
-                                                Text(
-                                                  upNextSchedules[i].user.id == currentUser.id ?
-                                                  "Me" : upNextSchedules[i].user.firstName,
-                                                  style: const TextStyle(fontSize: 18),
-                                                )
-                                              ],
-                                            ),
-                                            const Padding(padding: EdgeInsets.all(4)),
-                                            upNextSchedules[i].status != "done" ?
-                                            Text(
-                                              upNextSchedules[i].title,
-                                            ) : const Text(
-                                                "Done for the day! 🎉",
-                                                style: TextStyle(color: Colors.green)
-                                            ),
-                                            Visibility(
-                                              visible: upNextSchedules[i].status != "done",
-                                              child: Text(
-                                                upNextSchedules[i].status == "until" ?
-                                                "Class until ${DateFormat("jm").format(upNextSchedules[i].endTime.toLocal())}" : "Class at ${DateFormat("jm").format(upNextSchedules[i].startTime.toLocal())}",
-                                                style: TextStyle(color: upNextSchedules[i].status == "until" ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
+                              return buildUpNextCard(upNextSubscriptions[i]);
                             }
                           },
                           scrollDirection: Axis.horizontal,

@@ -1,9 +1,5 @@
-import 'package:storke_central/models/user.dart';
-
 class UpNextScheduleItem {
-  User user = User();
-  String status = "";
-
+  String userID = "";
   String courseID = "";
   String title = "";
   DateTime startTime = DateTime.now().toUtc();
@@ -14,7 +10,7 @@ class UpNextScheduleItem {
   UpNextScheduleItem();
 
   UpNextScheduleItem.fromJson(Map<String, dynamic> json) {
-    user.id = json["user_id"] ?? "";
+    userID = json["user_id"] ?? "";
     courseID = json["course_id"] ?? "";
     title = json["title"] ?? "";
     startTime = DateTime.tryParse(json["start_time"]) ?? DateTime.now().toUtc();
@@ -25,7 +21,7 @@ class UpNextScheduleItem {
 
   Map<String, dynamic> toJson() {
     return {
-      "user_id": user.id,
+      "user_id": userID,
       "course_id": courseID,
       "title": title,
       "start_time": startTime.toIso8601String(),

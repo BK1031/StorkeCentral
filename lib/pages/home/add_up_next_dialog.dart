@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:storke_central/utils/config.dart';
@@ -14,7 +13,7 @@ class AddUpNextDialog extends StatefulWidget {
 class _AddUpNextDialogState extends State<AddUpNextDialog> {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.6,
       width: 300,
       child: ListView.builder(
@@ -27,10 +26,8 @@ class _AddUpNextDialogState extends State<AddUpNextDialog> {
                 setState(() {
                   if (upNextUserIDs.contains(friends[index].user.id)) {
                     upNextUserIDs.remove(friends[index].user.id);
-                    FirebaseFirestore.instance.doc("users/${currentUser.id}/up-next/${friends[index].user.id}").delete();
                   } else {
                     upNextUserIDs.add(friends[index].user.id);
-                    FirebaseFirestore.instance.doc("users/${currentUser.id}/up-next/${friends[index].user.id}").set({});
                   }
                 });
               },
@@ -45,7 +42,7 @@ class _AddUpNextDialogState extends State<AddUpNextDialog> {
                       height: 45,
                       width: 45,
                       fit: BoxFit.cover,
-                      borderRadius: BorderRadius.all(Radius.circular(125)),
+                      borderRadius: const BorderRadius.all(Radius.circular(125)),
                       shape: BoxShape.rectangle,
                     ),
                   ),
@@ -56,7 +53,7 @@ class _AddUpNextDialogState extends State<AddUpNextDialog> {
                       children: [
                         Text(
                           "${friends[index].user.firstName} ${friends[index].user.lastName}",
-                          style: TextStyle(fontSize: 18),
+                          style: const TextStyle(fontSize: 18),
                         ),
                         Text(
                           "@${friends[index].user.userName}",
