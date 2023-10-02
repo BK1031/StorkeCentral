@@ -134,6 +134,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         setState(() {
           selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].open.toLocal())}";
         });
+        return;
       } else if (now.isAfter(selectedDiningHall.meals[j].open.toLocal()) && now.isBefore(selectedDiningHall.meals[j].close.toLocal())) {
         Future.delayed(const Duration(milliseconds: 100), () {
           setState(() {
@@ -145,6 +146,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         setState(() {
           selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
         });
+        return;
       }
     }
     setState(() {
