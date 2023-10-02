@@ -28,7 +28,6 @@ class _DiningHallPageState extends State<DiningHallPage> {
   String diningHallID = "";
   String selectedMeal = "breakfast";
   final PageController _controller = PageController();
-  int currPage = 0;
   bool loading = false;
 
   DateTime nextMealDate = DateTime.now();
@@ -48,7 +47,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
   void initState() {
     super.initState();
     getDates();
-    getDining();
+    getDining().then((value) => getDiningStatus(diningHallID));
   }
 
   Future<void> getDates() async {
@@ -74,13 +73,6 @@ class _DiningHallPageState extends State<DiningHallPage> {
           });
         });
         await getDiningMenus();
-        selectedDiningHall.status = getDiningStatus(selectedDiningHall.id);
-        if (selectedDiningHall.status == "Closed Today") {
-          setState(() {
-            selectedDate = DateTime.now().add(const Duration(days: 1));
-            getDining();
-          });
-        }
       } catch(e) {
         log("[dining_hall_page] ${e.toString()}", LogLevel.error);
         AlertService.showErrorSnackbar(context, "Failed to fetch dining hall!");
@@ -101,6 +93,11 @@ class _DiningHallPageState extends State<DiningHallPage> {
             selectedDiningHall.meals = jsonDecode(utf8.decode(value.bodyBytes))["data"].map<DiningHallMeal>((json) => DiningHallMeal.fromJson(json)).toList().where((element) => element.diningHallID == selectedDiningHall.id).toList();
             selectedDiningHall.meals.sort((a, b) => a.open.compareTo(b.open));
           });
+          if (selectedDiningHall.meals.isNotEmpty) {
+            setState(() {
+              selectedMeal = selectedDiningHall.meals[0].name;
+            });
+          }
         });
         setState(() => loading = false);
       } catch(e) {
@@ -112,9 +109,17 @@ class _DiningHallPageState extends State<DiningHallPage> {
     }
   }
 
-  String getDiningStatus(String diningHallID) {
+  Future<void> getDiningStatus(String diningHallID) async {
     DateTime now = DateTime.now();
     selectedDiningHall.meals.sort((a, b) => a.open.compareTo(b.open));
+    if (selectedDiningHall.meals.isEmpty && selectedDate.day == now.day) {
+      // Only check one next day if there's no meals today
+      setState(() {
+        selectedDate = now.add(const Duration(days: 1));
+      });
+      await getDiningMenus();
+      return getDiningStatus(diningHallID);
+    }
     log("[dining_hall_page] Current Time: $now - ${now.timeZoneName}");
     for (int j = 0; j < selectedDiningHall.meals.length; j++) {
       log("[dining_hall_page] ${selectedDiningHall.meals[j].name} from ${DateFormat("MM/dd h:mm a").format(selectedDiningHall.meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}");
@@ -126,18 +131,27 @@ class _DiningHallPageState extends State<DiningHallPage> {
           });
           _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         });
-        return "${selectedDiningHall.meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].open.toLocal())}";
+        setState(() {
+          selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].open.toLocal())}";
+        });
+        return;
       } else if (now.isAfter(selectedDiningHall.meals[j].open.toLocal()) && now.isBefore(selectedDiningHall.meals[j].close.toLocal())) {
         Future.delayed(const Duration(milliseconds: 100), () {
           setState(() {
             selectedMeal = selectedDiningHall.meals[j].name;
+            nextMealDate = selectedDiningHall.meals[j].open.toLocal();
           });
           _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
         });
-        return "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
+        setState(() {
+          selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
+        });
+        return;
       }
     }
-    return "Closed Today";
+    setState(() {
+      selectedDiningHall.status = "Closed Today";
+    });
   }
 
   Icon getMenuItemIcon(DiningHallMenuItem item) {
