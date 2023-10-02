@@ -115,7 +115,7 @@ func AcceptFriendRequest(c *gin.Context) {
 			Body:       from.FirstName + " just accepted your friend request!",
 			PictureUrl: from.ProfilePictureURL,
 			LaunchUrl:  "",
-			Route:      "/profile/user/" + to.ID,
+			Route:      "/profile/user/" + from.ID,
 			Priority:   "HIGH",
 			Push:       true,
 			Read:       false,
