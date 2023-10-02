@@ -75,6 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
   initState() {
     super.initState();
     checkAppUnderReview();
+    checkAppInviteRequired();
     _registerFirebaseDynamicLinkListener();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (ModalRoute.of(context)!.settings.name!.contains("?invite=")) {
@@ -137,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser != null) {
         log("[registration_page] Signed into Google as ${googleUser.displayName} (${googleUser.email})");
-        if (googleUser.email.contains("ucsb.edu")) {
+        if (googleUser.email.contains("ucsb.edu") || googleUser.email.contains("storkecentr.al")) {
           final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
           final credential = fb.GoogleAuthProvider.credential(
             accessToken: googleAuth.accessToken,
@@ -161,7 +162,11 @@ class _RegisterPageState extends State<RegisterPage> {
             } else {
               log("[registration_page] User does not have a StorkeCentral account");
               if (kIsWeb) {
-                router.navigateTo(context, "/download", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+                Future.delayed(Duration.zero, () {
+                  AlertService.showWarningDialog(context, "Registration Error", "Please download our mobile app to create your StorkeCentral account!", () {
+                    router.navigateTo(context, "/download", transition: TransitionType.fadeIn, replace: true, clearStack: true);
+                  });
+                });
               } else {
                 firstNameController.text = registerUser.firstName;
                 lastNameController.text = registerUser.lastName;
@@ -175,29 +180,16 @@ class _RegisterPageState extends State<RegisterPage> {
             }
           });
         } else {
-          // ignore: use_build_context_synchronously
-          CoolAlert.show(
-              context: context,
-              type: CoolAlertType.warning,
-              title: "Authentication Error",
-              widget: const Text("You must be a UCSB student and use a ucsb email address to sign in."),
-              backgroundColor: SB_NAVY,
-              confirmBtnColor: SB_AMBER,
-              confirmBtnText: "OK"
-          );
+          Future.delayed(Duration.zero, () {
+            AlertService.showWarningDialog(context, "Invalid Email", "You must be a UCSB student and use a ucsb email address to sign in.", () {});
+          });
         }
       }
     } catch (err) {
       log("[registration_page] $err", LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Google Sign-in Error",
-          widget: Text(err.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      Future.delayed(Duration.zero, () {
+        AlertService.showErrorDialog(context, "Google Sign-in Error", err.toString(), () {});
+      });
     }
   }
 
