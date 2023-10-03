@@ -33,7 +33,7 @@ class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -234,7 +234,7 @@ class _HomePageState extends State<HomePage> {
           }
           setState(() => loadingUpNext = false);
         } catch(err) {
-          AlertService.showErrorSnackbar(context, "Failed to get UpNext subscriptions!");
+          Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get UpNext subscriptions!"));
         }
       } else {
         log("[home_page] Using cached up next schedules, last fetch was ${DateTime.now().difference(lastUpNextFetch).inMinutes} minutes ago (minimum 2 minutes)");
@@ -252,9 +252,11 @@ class _HomePageState extends State<HomePage> {
       if (item.startTime.toLocal().isAfter(DateTime.now())) {
         upNextSubscription.status = "Class at ${DateFormat("h:mm a").format(item.startTime.toLocal())}";
         currentItem = item;
+        break;
       } else if (item.endTime.toLocal().isAfter(DateTime.now())) {
         upNextSubscription.status = "Class until ${DateFormat("h:mm a").format(item.endTime.toLocal())}";
         currentItem = item;
+        break;
       }
     }
     return Padding(
@@ -318,6 +320,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void showAddUpNextDialog() {
+    if (friends.isEmpty) {
+      AlertService.showWarningDialog(context, "No Friends!","You don't have any friends to add to your Up Next.", () {});
+      return;
+    }
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -337,9 +343,12 @@ class _HomePageState extends State<HomePage> {
               child: CupertinoButton(
                 onPressed: () async {
                   lastUpNextFetch = DateTime.now().subtract(const Duration(minutes: 100));
+                  if (!upNextUserIDs.contains(currentUser.id)) {
+                    upNextUserIDs.insert(0, currentUser.id);
+                  }
                   var response = await httpClient.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/next/subscribed"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(upNextUserIDs));
                   getUpNextSubscriptions();
-                  router.pop(context);
+                  Future.delayed(Duration.zero, () => router.pop(context));
                 },
                 color: SB_NAVY,
                 child: const Text("Done"),
@@ -499,11 +508,10 @@ class _HomePageState extends State<HomePage> {
                                           height: 350.0,
                                           decoration: BoxDecoration(
                                               gradient: LinearGradient(
-                                                  begin: FractionalOffset.topCenter,
+                                                  begin: FractionalOffset.center,
                                                   end: FractionalOffset.bottomCenter,
                                                   colors: [
-                                                    // Colors.grey.withOpacity(1.0),
-                                                    Colors.grey.withOpacity(0.0),
+                                                    Colors.black.withOpacity(0.0),
                                                     Colors.black,
                                                   ],
                                                   stops: const [0, 1]
@@ -532,7 +540,10 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                               Hero(
                                                 tag: "${diningHallList[i].id}-status",
-                                                child: Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12),)
+                                                child: Material(
+                                                  color: Colors.transparent,
+                                                  child: Text(diningHallList[i].status, style: TextStyle(color: diningHallList[i].status.contains("until") ? Colors.green : diningHallList[i].status.contains("at") ? Colors.orangeAccent : diningHallList[i].status.contains("Closed") ? Colors.red : Colors.grey, fontSize: 12))
+                                                )
                                               )
                                             ],
                                           ),
@@ -548,17 +559,14 @@ class _HomePageState extends State<HomePage> {
                         scrollDirection: Axis.horizontal,
                       ),
                     ),
-                    Visibility(
-                      visible: upNextSubscriptions.isNotEmpty,
-                      child: const Padding(
-                        padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_view_day_rounded),
-                            Padding(padding: EdgeInsets.all(4)),
-                            Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                          ],
-                        ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 16.0, right: 16, top: 8, bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.calendar_view_day_rounded),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Text("Up Next", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        ],
                       ),
                     ),
                     Visibility(

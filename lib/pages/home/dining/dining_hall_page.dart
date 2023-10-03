@@ -124,27 +124,23 @@ class _DiningHallPageState extends State<DiningHallPage> {
     for (int j = 0; j < selectedDiningHall.meals.length; j++) {
       log("[dining_hall_page] ${selectedDiningHall.meals[j].name} from ${DateFormat("MM/dd h:mm a").format(selectedDiningHall.meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}");
       if (now.isBefore(selectedDiningHall.meals[j].open.toLocal())) {
-        Future.delayed(const Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 25), () {
           setState(() {
-            selectedMeal = selectedDiningHall.meals[j].name;
             nextMealDate = selectedDiningHall.meals[j].open.toLocal();
+            selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].open.toLocal())}";
+            selectedMeal = selectedDiningHall.meals[j].name;
           });
           _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-        });
-        setState(() {
-          selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} at ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].open.toLocal())}";
         });
         return;
       } else if (now.isAfter(selectedDiningHall.meals[j].open.toLocal()) && now.isBefore(selectedDiningHall.meals[j].close.toLocal())) {
-        Future.delayed(const Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 25), () {
           setState(() {
-            selectedMeal = selectedDiningHall.meals[j].name;
             nextMealDate = selectedDiningHall.meals[j].open.toLocal();
+            selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
+            selectedMeal = selectedDiningHall.meals[j].name;
           });
           _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == selectedMeal), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-        });
-        setState(() {
-          selectedDiningHall.status = "${selectedDiningHall.meals[j].name.capitalize()} until ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}";
         });
         return;
       }

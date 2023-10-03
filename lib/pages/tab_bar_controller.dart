@@ -465,10 +465,10 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         color: Theme.of(context).cardColor,
         index: _currPage,
         items: [
-          Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
-          Image.asset("images/icons/user-icon.png", height: 30, color: Theme.of(context).textTheme.bodyText1!.color),
+          Image.asset("images/icons/home-icon.png", height: 30, color: Theme.of(context).textTheme.bodyMedium!.color),
+          Image.asset("images/icons/calendar/calendar-${DateTime.now().day}.png", height: 30, color: Theme.of(context).textTheme.bodyMedium!.color),
+          Image.asset("images/icons/map-icon.png", height: 30, color: Theme.of(context).textTheme.bodyMedium!.color),
+          Image.asset("images/icons/user-icon.png", height: 30, color: Theme.of(context).textTheme.bodyMedium!.color),
         ],
         onTap: (index) {
           setState(() {
