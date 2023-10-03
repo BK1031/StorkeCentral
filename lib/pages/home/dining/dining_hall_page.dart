@@ -112,14 +112,6 @@ class _DiningHallPageState extends State<DiningHallPage> {
   Future<void> getDiningStatus(String diningHallID) async {
     DateTime now = DateTime.now();
     selectedDiningHall.meals.sort((a, b) => a.open.compareTo(b.open));
-    if (selectedDiningHall.meals.isEmpty && selectedDate.day == now.day) {
-      // Only check one next day if there's no meals today
-      setState(() {
-        selectedDate = now.add(const Duration(days: 1));
-      });
-      await getDiningMenus();
-      return getDiningStatus(diningHallID);
-    }
     log("[dining_hall_page] Current Time: $now - ${now.timeZoneName}");
     for (int j = 0; j < selectedDiningHall.meals.length; j++) {
       log("[dining_hall_page] ${selectedDiningHall.meals[j].name} from ${DateFormat("MM/dd h:mm a").format(selectedDiningHall.meals[j].open.toLocal())} to ${DateFormat("h:mm a").format(selectedDiningHall.meals[j].close.toLocal())}");
@@ -148,6 +140,14 @@ class _DiningHallPageState extends State<DiningHallPage> {
     setState(() {
       selectedDiningHall.status = "Closed Today";
     });
+    if (selectedDate.day == now.day) {
+      // Only check one next day if closed on current day
+      setState(() {
+        selectedDate = now.add(const Duration(days: 1));
+      });
+      await getDiningMenus();
+      return getDiningStatus(diningHallID);
+    }
   }
 
   Icon getMenuItemIcon(DiningHallMenuItem item) {
