@@ -99,4 +99,46 @@ class AlertService {
     );
   }
 
+  static showWarningDialog(BuildContext context, String title, String message, Function onConfirm) {
+    CoolAlert.show(
+      context: context,
+      width: 300,
+      type: CoolAlertType.warning,
+      title: title,
+      text: message,
+      confirmBtnText: "OK",
+      confirmBtnColor: SB_NAVY,
+      onConfirmBtnTap: () => onConfirm(),
+      backgroundColor: SB_NAVY,
+    );
+  }
+
+  static showErrorDialog(BuildContext context, String title, String message, Function onConfirm) {
+    CoolAlert.show(
+      context: context,
+      width: 300,
+      type: CoolAlertType.error,
+      title: title,
+      text: message,
+      confirmBtnText: "OK",
+      confirmBtnColor: SB_NAVY,
+      onConfirmBtnTap: () => onConfirm(),
+      backgroundColor: SB_NAVY,
+    );
+  }
+
+  static showSuccessDialog(BuildContext context, String title, String message, Function onConfirm) {
+    CoolAlert.show(
+      context: context,
+      width: 300,
+      type: CoolAlertType.success,
+      title: title,
+      text: message,
+      confirmBtnText: "OK",
+      confirmBtnColor: SB_NAVY,
+      onConfirmBtnTap: () => onConfirm(),
+      backgroundColor: SB_NAVY,
+    );
+  }
+
 }

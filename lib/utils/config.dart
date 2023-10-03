@@ -53,7 +53,7 @@ bool offlineMode = false;
 bool demoMode = false;
 
 bool appUnderReview = false;
-String appReviewUserID = "thomas-storke";
+String appReviewUserID = "RPrcOUuQPrQEcL7vIF0BHTNxojY2";
 
 String launchDynamicLink = "";
 
