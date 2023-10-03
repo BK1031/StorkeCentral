@@ -75,7 +75,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         await getDiningMenus();
       } catch(e) {
         log("[dining_hall_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch dining hall!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch dining hall!"));
       }
     } else {
       log("[dining_hall_page] Offline mode, searching cache for dining...");
@@ -102,7 +102,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
         setState(() => loading = false);
       } catch(e) {
         log("[dining_hall_page] ${e.toString()}", LogLevel.error);
-        AlertService.showErrorSnackbar(context, "Failed to fetch dining menu!");
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to fetch dining menu!"));
       }
     } else {
       log("[dining_hall_page] Offline mode, searching cache for dining...");
@@ -261,7 +261,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                           backgroundColor: SB_NAVY
                       )
                   )
-              ) : selectedDiningHall.meals.isEmpty ? Container(
+              ) : selectedDiningHall.meals.isEmpty ? SizedBox(
                 height: 300,
                 child: Center(
                   child: Container(
@@ -270,7 +270,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.no_food_rounded, size: 65, color: Theme.of(context).textTheme.caption!.color,),
+                        Icon(Icons.no_food_rounded, size: 65, color: Theme.of(context).textTheme.bodySmall!.color,),
                         const Padding(padding: EdgeInsets.all(4),),
                         const Text(
                           "No Menu Found",
