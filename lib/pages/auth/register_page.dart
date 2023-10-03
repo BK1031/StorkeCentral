@@ -359,18 +359,16 @@ class _RegisterPageState extends State<RegisterPage> {
       var usernameCheck = await http.get(Uri.parse("$API_HOST/users/${registerUser.userName}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
       if (usernameCheck.statusCode == 200) {
         // User exists with username
-        CoolAlert.show(
-            context: context,
-            type: CoolAlertType.error,
-            title: "Invalid Username",
-            widget: const Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
-            backgroundColor: SB_NAVY,
-            confirmBtnColor: SB_RED,
-            confirmBtnText: "OK",
-            onConfirmBtnTap: () {
+        Future.delayed(Duration.zero, () {
+          AlertService.showErrorDialog(
+            context,
+            "Username Taken",
+            "Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help.",
+            () {
               _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
             }
-        );
+          );
+        });
       } else {
         // Setting privacy object's userID so privacy will be set in the backend
         registerUser.privacy.userID = registerUser.id;
@@ -378,43 +376,40 @@ class _RegisterPageState extends State<RegisterPage> {
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
-        registerInviteCode();
+        if (requireInvite) {
+          registerInviteCode();
+        }
         if (createUser.statusCode == 200) {
-          CoolAlert.show(
-              context: context,
-              type: CoolAlertType.success,
-              title: "Account Created",
-              widget: const Text("Your account has been successfully created. Welcome to StorkeCentral!"),
-              backgroundColor: SB_NAVY,
-              confirmBtnColor: SB_GREEN,
-              confirmBtnText: "OK",
-              onConfirmBtnTap: () {
-                router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, clearStack: true, replace: true);
-              }
-          );
+          log("[registration_page] User created successfully");
+          Future.delayed(Duration.zero, () {
+            CoolAlert.show(
+                context: context,
+                type: CoolAlertType.success,
+                barrierDismissible: false,
+                title: "Account Created",
+                text: "Your account has been successfully created. Welcome to StorkeCentral!",
+                backgroundColor: SB_NAVY,
+                confirmBtnColor: SB_NAVY,
+                confirmBtnText: "OK",
+                onConfirmBtnTap: () {
+                  Future.delayed(Duration.zero, () {
+                    router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, clearStack: true, replace: true);
+                  });
+                }
+            );
+          });
         } else {
-          CoolAlert.show(
-              context: context,
-              type: CoolAlertType.error,
-              title: "Account Creation Error",
-              widget: Text(jsonDecode(createUser.body)["data"].toString()),
-              backgroundColor: SB_NAVY,
-              confirmBtnColor: SB_RED,
-              confirmBtnText: "OK"
-          );
+          log("[registration_page] Error while creating account: ${jsonDecode(createUser.body)["data"]}", LogLevel.error);
+          Future.delayed(Duration.zero, () {
+            AlertService.showErrorDialog(context, "Account Creation Error", jsonDecode(createUser.body)["data"].toString(), () {});
+          });
         }
       }
     } catch (err) {
-      log("[registration_page] $err", LogLevel.error);
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Account Creation Error",
-          widget: Text(err.toString()),
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK"
-      );
+      log("[registration_page] Error while creating account: $err", LogLevel.error);
+      Future.delayed(Duration.zero, () {
+        AlertService.showErrorDialog(context, "Account Creation Error", err.toString(), () {});
+      });
     }
   }
 
@@ -466,7 +461,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text("Enter Demo Code", style: TextStyle(fontSize: 18)),
+                            const Text("Enter Demo Code", style: TextStyle(fontSize: 18)),
                             TextField(
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
@@ -1016,8 +1011,8 @@ class _RegisterPageState extends State<RegisterPage> {
             ],
           ),
           const Padding(padding: EdgeInsets.all(2)),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.near_me, color: Colors.black54, size: 60),
               Padding(padding: EdgeInsets.all(4)),
               Expanded(child: Text("We ask that you share your location with us in order to see nearby buildings, travel times, and navigation directions.", style: TextStyle(fontSize: 16),)),
@@ -1042,8 +1037,8 @@ class _RegisterPageState extends State<RegisterPage> {
             ],
           ),
           const Padding(padding: EdgeInsets.all(2)),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.notifications_active_rounded, color: Colors.black54, size: 60),
               Padding(padding: EdgeInsets.all(4)),
               Expanded(child: Text("Enabling push notifications will allow us to send you important updates and reminders. You can update this setting at any time.", style: TextStyle(fontSize: 16),)),
