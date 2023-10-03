@@ -19,7 +19,7 @@ class Version {
   }
 
   int getVersionCode() {
-    return (major * pow(10, 6) + minor * pow(10, 3) + patch).toInt();
+    return (major * pow(10, 9) + minor * pow(10, 6) + patch * pow(10, 3) + build).toInt();
   }
 
   int getBuild() {

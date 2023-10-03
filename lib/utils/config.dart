@@ -30,7 +30,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.5.2+1");
+Version appVersion = Version("2.5.2+2");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
