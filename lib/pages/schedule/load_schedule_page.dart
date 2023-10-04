@@ -14,6 +14,7 @@ import 'package:storke_central/models/gold_course_time.dart';
 import 'package:storke_central/models/gold_section.dart';
 import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
@@ -109,6 +110,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       });
     } catch(err) {
       log("[load_schedule_page] ${err.toString()}", LogLevel.error);
+      AlertService.showErrorDialog(context, "Error Fetching Courses", err.toString(), () {});
       setState(() {
         state = 0;
       });
@@ -154,6 +156,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       });
     } catch(err) {
       log("[load_schedule_page] ${err.toString()}", LogLevel.error);
+      AlertService.showErrorDialog(context, "Error Saving Credentials", err.toString(), () {});
       setState(() {
         state = 0;
       });
@@ -192,19 +195,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       setState(() {
         state = 0;
       });
-      CoolAlert.show(
-        context: context,
-        type: CoolAlertType.error,
-        title: "Error",
-        text: "Error retrieving course info: ${err.toString()}",
-        backgroundColor: SB_NAVY,
-        confirmBtnColor: SB_RED,
-        confirmBtnText: "OK",
-        onConfirmBtnTap: () {
-          router.pop(context);
-          router.pop(context);
-        }
-      );
+      AlertService.showErrorDialog(context, "Error Retrieving Course Info", err.toString(), () {});
     }
     trace.stop();
   }
@@ -289,19 +280,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       setState(() {
         state = 0;
       });
-      CoolAlert.show(
-          context: context,
-          type: CoolAlertType.error,
-          title: "Error",
-          text: "Error saving schedule: ${err.toString()}",
-          backgroundColor: SB_NAVY,
-          confirmBtnColor: SB_RED,
-          confirmBtnText: "OK",
-          onConfirmBtnTap: () {
-            router.pop(context);
-            router.pop(context);
-          }
-      );
+      AlertService.showErrorDialog(context, "Error Saving Schedule", err.toString(), () {});
     }
     trace.stop();
   }
