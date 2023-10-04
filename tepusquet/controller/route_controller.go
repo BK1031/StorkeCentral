@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strings"
 	"tepusquet/service"
 	"tepusquet/utils"
@@ -70,7 +69,7 @@ func AuthChecker() gin.HandlerFunc {
 			// a matching user ID
 			if c.Request.Method == "POST" {
 				if requestUserID != c.Param("userID") {
-					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
+					//c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
 				}
 			}
 		}
