@@ -71,7 +71,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion 33
         targetSdkVersion 33
-        versionCode 200500002
+        //noinspection HighAppVersionCode
+        versionCode 2005003004
         versionName flutterVersionName
     }
 
