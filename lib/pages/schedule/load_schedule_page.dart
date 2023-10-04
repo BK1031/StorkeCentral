@@ -59,13 +59,10 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   void checkDeviceKey() {
     if (prefs.containsKey("CREDENTIALS_KEY")) {
       log("[load_schedule_page] Found device key, fetching schedule");
-      fetchGoldSchedule();
     } else {
       log("[load_schedule_page] No device key found, launching login page", LogLevel.warn);
-      setState(() {
-        state = 1;
-      });
     }
+    fetchGoldSchedule();
   }
 
   List<String> getListFromDayString(String days) {
