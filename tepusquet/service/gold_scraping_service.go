@@ -25,7 +25,7 @@ func VerifyCredential(credential model.UserCredential, retry int) bool {
 		page.MustElement("#pageContent_userNameText").MustInput(credential.Username)
 		page.MustElement("#pageContent_passwordText").MustInput(credential.Password)
 		page.MustElement("#pageContent_loginButton").MustClick()
-		page.Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a > div").MustHandle(func(e *rod.Element) {
+		page.Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a").MustHandle(func(e *rod.Element) {
 			utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
 			validCredential = true
 		}).Element("#pageContent_errorLabel > ul").MustHandle(func(e *rod.Element) {
@@ -49,7 +49,7 @@ func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter stri
 	var courses []model.UserCourse
 	path, _ := launcher.LookPath()
 	url := launcher.New().
-		//Headless(false).
+		Headless(false).
 		Bin(path).MustLaunch()
 	page := rod.New().ControlURL(url).MustConnect().MustPage("https://my.sa.ucsb.edu/gold/Login.aspx")
 	page.MustEmulate(devices.LaptopWithHiDPIScreen)
@@ -59,10 +59,9 @@ func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter stri
 		page.MustElement("#pageContent_passwordText").MustInput(credential.Password)
 		page.MustElement("#pageContent_loginButton").MustClick()
 
-		page.Race().Element("#Li0 > a").MustHandle(func(e *rod.Element) {
+		page.Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a").MustHandle(func(e *rod.Element) {
 			utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
 			page.MustWaitIdle().MustNavigate("https://my.sa.ucsb.edu/gold/StudentSchedule.aspx")
-			//page.MustElement("#ctl00_pageContent_ScheduleGrid").MustClick()
 			page.MustWaitIdle()
 			utils.SugarLogger.Infoln("Found schedule grid")
 			page.MustElement("#ctl00_pageContent_quarterDropDown")
@@ -114,7 +113,7 @@ func FetchPasstimeForUserForQuarter(credential model.UserCredential, quarter str
 		page.MustElement("#pageContent_passwordText").MustInput(credential.Password)
 		page.MustElement("#pageContent_loginButton").MustClick()
 
-		page.Race().Element("#Li0 > a").MustHandle(func(e *rod.Element) {
+		page.Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a").MustHandle(func(e *rod.Element) {
 			println("Logged in successfully as " + credential.Username + "@ucsb.edu")
 			page.MustWaitIdle().MustNavigate("https://my.sa.ucsb.edu/gold/RegistrationInfo.aspx")
 			page.MustWaitIdle()
