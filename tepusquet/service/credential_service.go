@@ -10,13 +10,15 @@ import (
 	"tepusquet/utils"
 )
 
-func GetCredentialForUser(userID string) model.UserCredential {
+func GetCredentialForUser(userID string, deviceKey string) model.UserCredential {
 	var cred model.UserCredential
 	result := DB.Where("user_id = ?", userID).Find(&cred)
 	if result.Error != nil {
 	}
 	if cred.Username != "" && cred.Password != "" {
 		// First decode string from db to bytes
+		println("cred.Username: " + cred.Username)
+		println("cred.Password: " + cred.Password)
 		encryptedUsername, err := hex.DecodeString(cred.Username)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
@@ -34,15 +36,19 @@ func GetCredentialForUser(userID string) model.UserCredential {
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
+		println("decryptedUsername: " + string(decryptedUsername))
+		println("decryptedPassword: " + string(decryptedPassword))
 		// Second decrypt using user generated key
-		decryptedUsername2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedUsername)
+		decryptedUsername2, err := DecryptCredential([]byte(deviceKey), decryptedUsername)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
-		decryptedPassword2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedPassword)
+		decryptedPassword2, err := DecryptCredential([]byte(deviceKey), decryptedPassword)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
+		println("decryptedUsername2: " + string(decryptedUsername2))
+		println("decryptedPassword2: " + string(decryptedPassword2))
 		cred.Username = string(decryptedUsername2)
 		cred.Password = string(decryptedPassword2)
 	}
@@ -52,21 +58,13 @@ func GetCredentialForUser(userID string) model.UserCredential {
 func SetCredentialForUser(cred model.UserCredential) error {
 	// Delete existing credential
 	DB.Where("user_id = ?", cred.UserID).Delete(&model.UserCredential{})
-	// First encrypt using user generated key
-	encryptedUsername, err := EncryptCredential([]byte(cred.EncryptionKey), []byte(cred.Username))
-	if err != nil {
-		utils.SugarLogger.Errorln(err)
-	}
-	encryptedPassword, err := EncryptCredential([]byte(cred.EncryptionKey), []byte(cred.Password))
-	if err != nil {
-		utils.SugarLogger.Errorln(err)
-	}
+	// Credentials come encrypted using user generated key
 	// Second encrypt using project key
-	encryptedUsername2, err := EncryptCredential([]byte(config.CredEncryptionKey), encryptedUsername)
+	encryptedUsername2, err := EncryptCredential([]byte(config.CredEncryptionKey), []byte(cred.Username))
 	if err != nil {
 		utils.SugarLogger.Errorln(err)
 	}
-	encryptedPassword2, err := EncryptCredential([]byte(config.CredEncryptionKey), encryptedPassword)
+	encryptedPassword2, err := EncryptCredential([]byte(config.CredEncryptionKey), []byte(cred.Password))
 	if err != nil {
 		utils.SugarLogger.Errorln(err)
 	}
@@ -76,6 +74,10 @@ func SetCredentialForUser(cred model.UserCredential) error {
 		return result.Error
 	}
 	return nil
+}
+
+func DeleteCredentialForUser(userID string) {
+	DB.Where("user_id = ?", userID).Delete(&model.UserCredential{})
 }
 
 func EncryptCredential(key []byte, data []byte) ([]byte, error) {

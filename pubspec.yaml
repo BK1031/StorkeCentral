@@ -72,6 +72,7 @@ dependencies:
   fuzzywuzzy: ^1.1.6
   visibility_detector: ^0.4.0+2
   weather_icons: ^3.0.0
+  cryptography: ^2.7.0
 
 dev_dependencies:
   flutter_test:

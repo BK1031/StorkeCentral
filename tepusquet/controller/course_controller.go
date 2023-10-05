@@ -32,7 +32,7 @@ func FetchCoursesForUserForQuarter(c *gin.Context) {
 	span := utils.BuildSpan(c.Request.Context(), "FetchCoursesForUserForQuarter", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
-	creds := service.GetCredentialForUser(c.Param("userID"))
+	creds := service.GetCredentialForUser(c.Param("userID"), c.GetHeader("SC-Device-Key"))
 	if creds.Username == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Credentials not found for user, please set them first"})
 		return

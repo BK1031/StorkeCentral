@@ -14,6 +14,7 @@ import 'package:storke_central/models/gold_course_time.dart';
 import 'package:storke_central/models/gold_section.dart';
 import 'package:storke_central/models/user_course.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/utils/aes256gcm.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -57,13 +58,21 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     checkDeviceKey();
   }
 
-  void checkDeviceKey() {
+  Future<void> checkDeviceKey() async {
     if (prefs.containsKey("CREDENTIALS_KEY")) {
       log("[load_schedule_page] Found device key, fetching schedule");
     } else {
       log("[load_schedule_page] No device key found, launching login page", LogLevel.warn);
     }
-    fetchGoldSchedule();
+    final text = 'bkathi@ucsb.edu';
+    final password = 'password';
+
+    final encrypted = await Aes256Gcm.encrypt(text, password);
+    final decrypted = await Aes256Gcm.decrypt(encrypted, password);
+
+    print(encrypted);
+    print(decrypted);
+    // fetchGoldSchedule();
   }
 
   List<String> getListFromDayString(String days) {

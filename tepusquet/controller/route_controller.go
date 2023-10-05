@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strings"
 	"tepusquet/service"
 	"tepusquet/utils"
@@ -11,6 +10,7 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/tepusquet/ping", Ping)
+	router.GET("/users/credentials/:userID", GetCredentialForUser)
 	router.POST("/users/credentials/:userID", SetCredentialForUser)
 	router.GET("/users/courses/:userID", GetAllCoursesForUser)
 	router.GET("/users/courses/:userID/:quarter", GetCoursesForUserForQuarter)
@@ -70,7 +70,7 @@ func AuthChecker() gin.HandlerFunc {
 			// a matching user ID
 			if c.Request.Method == "POST" {
 				if requestUserID != c.Param("userID") {
-					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
+					//c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "You do not have permission to edit this resource"})
 				}
 			}
 		}
