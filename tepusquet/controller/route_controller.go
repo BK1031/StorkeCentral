@@ -11,6 +11,7 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	router.GET("/tepusquet/ping", Ping)
+	router.GET("/users/credentials/:userID", GetCredentialForUser)
 	router.POST("/users/credentials/:userID", SetCredentialForUser)
 	router.GET("/users/courses/:userID", GetAllCoursesForUser)
 	router.GET("/users/courses/:userID/:quarter", GetCoursesForUserForQuarter)

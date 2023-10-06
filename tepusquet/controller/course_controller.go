@@ -32,17 +32,22 @@ func FetchCoursesForUserForQuarter(c *gin.Context) {
 	span := utils.BuildSpan(c.Request.Context(), "FetchCoursesForUserForQuarter", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
 	defer span.End()
 
-	creds := service.GetCredentialForUser(c.Param("userID"))
+	deviceKey := c.GetHeader("SC-Device-Key")
+	if deviceKey == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Device key not set in header"})
+		return
+	}
+	creds := service.GetCredentialForUser(c.Param("userID"), deviceKey)
 	if creds.Username == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Credentials not found for user, please set them first"})
 		return
 	}
 	courses := service.FetchCoursesForUserForQuarter(creds, c.Param("quarter"), 0)
-	service.RemoveAllCoursesForUserForQuarter(c.Param("userID"), c.Param("quarter"))
 	if len(courses) == 1 && courses[0].UserID == "AUTH ERROR" {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials."})
 		return
 	}
+	service.RemoveAllCoursesForUserForQuarter(c.Param("userID"), c.Param("quarter"))
 	for _, course := range courses {
 		service.AddCourseForUser(course)
 	}

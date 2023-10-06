@@ -5,109 +5,123 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
+	"io"
 	"tepusquet/config"
 	"tepusquet/model"
 	"tepusquet/utils"
 )
 
-func GetCredentialForUser(userID string) model.UserCredential {
+func GetCredentialForUser(userID string, deviceKey string) model.UserCredential {
 	var cred model.UserCredential
 	result := DB.Where("user_id = ?", userID).Find(&cred)
 	if result.Error != nil {
 	}
 	if cred.Username != "" && cred.Password != "" {
-		// First decode string from db to bytes
-		encryptedUsername, err := hex.DecodeString(cred.Username)
-		if err != nil {
-			utils.SugarLogger.Errorln(err)
-		}
-		encryptedPassword, err := hex.DecodeString(cred.Password)
-		if err != nil {
-			utils.SugarLogger.Errorln(err)
-		}
 		// First decrypt using project key
-		decryptedUsername, err := DecryptCredential([]byte(config.CredEncryptionKey), encryptedUsername)
+		decryptedUsername, err := DecryptAES256GCM(config.CredEncryptionKey, cred.Username)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
-		decryptedPassword, err := DecryptCredential([]byte(config.CredEncryptionKey), encryptedPassword)
+		decryptedPassword, err := DecryptAES256GCM(config.CredEncryptionKey, cred.Password)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
 		// Second decrypt using user generated key
-		decryptedUsername2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedUsername)
+		decryptedUsername2, err := DecryptAES256GCM(deviceKey, decryptedUsername)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
-		decryptedPassword2, err := DecryptCredential([]byte(cred.EncryptionKey), decryptedPassword)
+		decryptedPassword2, err := DecryptAES256GCM(deviceKey, decryptedPassword)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
 		}
-		cred.Username = string(decryptedUsername2)
-		cred.Password = string(decryptedPassword2)
+		cred.Username = decryptedUsername2
+		cred.Password = decryptedPassword2
 	}
 	return cred
 }
 
 func SetCredentialForUser(cred model.UserCredential) error {
 	// Delete existing credential
-	DB.Where("user_id = ?", cred.UserID).Delete(&model.UserCredential{})
-	// First encrypt using user generated key
-	encryptedUsername, err := EncryptCredential([]byte(cred.EncryptionKey), []byte(cred.Username))
-	if err != nil {
-		utils.SugarLogger.Errorln(err)
-	}
-	encryptedPassword, err := EncryptCredential([]byte(cred.EncryptionKey), []byte(cred.Password))
-	if err != nil {
-		utils.SugarLogger.Errorln(err)
-	}
+	DeleteCredentialForUser(cred.UserID)
+	// Credentials come encrypted using user generated key
 	// Second encrypt using project key
-	encryptedUsername2, err := EncryptCredential([]byte(config.CredEncryptionKey), encryptedUsername)
+	encryptedUsername2, err := EncryptAES256GCM(config.CredEncryptionKey, cred.Username)
 	if err != nil {
 		utils.SugarLogger.Errorln(err)
 	}
-	encryptedPassword2, err := EncryptCredential([]byte(config.CredEncryptionKey), encryptedPassword)
+	encryptedPassword2, err := EncryptAES256GCM(config.CredEncryptionKey, cred.Password)
 	if err != nil {
 		utils.SugarLogger.Errorln(err)
 	}
-	cred.Username = hex.EncodeToString(encryptedUsername2)
-	cred.Password = hex.EncodeToString(encryptedPassword2)
+	cred.Username = encryptedUsername2
+	cred.Password = encryptedPassword2
 	if result := DB.Create(&cred); result.Error != nil {
 		return result.Error
 	}
 	return nil
 }
 
-func EncryptCredential(key []byte, data []byte) ([]byte, error) {
-	blockCipher, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	gcm, err := cipher.NewGCM(blockCipher)
-	if err != nil {
-		return nil, err
-	}
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = rand.Read(nonce); err != nil {
-		return nil, err
-	}
-	ciphertext := gcm.Seal(nonce, nonce, data, nil)
-	return ciphertext, nil
+func DeleteCredentialForUser(userID string) {
+	DB.Where("user_id = ?", userID).Delete(&model.UserCredential{})
 }
 
-func DecryptCredential(key []byte, data []byte) ([]byte, error) {
-	blockCipher, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
+func EncryptAES256GCM(key string, plaintext string) (string, error) {
+	println("Encrypting " + plaintext + " with key " + key)
+	if len(key) != 32 {
+		return "", fmt.Errorf("key length must be 32 characters")
 	}
-	gcm, err := cipher.NewGCM(blockCipher)
-	if err != nil {
-		return nil, err
+	// Generate a random nonce (IV) of 12 bytes
+	nonce := make([]byte, 12)
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
 	}
-	nonce, ciphertext := data[:gcm.NonceSize()], data[gcm.NonceSize():]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	// Create a new AES cipher block
+	block, err := aes.NewCipher([]byte(key))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return plaintext, nil
+	// Create a GCM mode cipher
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	// Encrypt the plaintext
+	ciphertext := aesGCM.Seal(nil, nonce, []byte(plaintext), nil)
+	// Combine the nonce and ciphertext for storage
+	encryptedData := append(nonce, ciphertext...)
+	// Convert the result to a hex-encoded string
+	encryptedHex := hex.EncodeToString(encryptedData)
+	return encryptedHex, nil
+}
+
+func DecryptAES256GCM(key string, encryptedHex string) (string, error) {
+	if len(key) != 32 {
+		return "", fmt.Errorf("key length must be 32 characters")
+	}
+	// Decode the hex-encoded input into bytes
+	encryptedData, err := hex.DecodeString(encryptedHex)
+	if err != nil {
+		return "", err
+	}
+	// Extract the nonce (first 12 bytes) and ciphertext
+	nonce := encryptedData[:12]
+	ciphertext := encryptedData[12:]
+	// Create a new AES cipher block
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", err
+	}
+	// Create a GCM mode cipher
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	// Decrypt the ciphertext
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(plaintext), nil
 }
