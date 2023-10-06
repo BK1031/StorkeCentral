@@ -35,6 +35,12 @@ func SetCredentialForUser(c *gin.Context) {
 	}
 	// Set the user id to ensure that the user can only set their own credentials
 	input.UserID = c.Param("userID")
+	deviceKey := c.GetHeader("SC-Device-Key")
+	if deviceKey == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Device key not set in header"})
+		return
+	}
+	// Encrypt and store the credentials
 	if err := service.SetCredentialForUser(input); err != nil {
 		utils.SugarLogger.Errorln("Error setting credentials for user " + input.UserID + ": " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -42,23 +48,15 @@ func SetCredentialForUser(c *gin.Context) {
 	}
 	utils.SugarLogger.Infoln("Credentials set for user " + input.UserID)
 	// Verify that the credentials are valid
-	deviceKey := c.GetHeader("SC-Device-Key")
-	// Check if credentials are valid
 	creds := service.GetCredentialForUser(input.UserID, deviceKey)
-	if creds.Username == "" {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Credentials not found for user, please set them first"})
+	if service.VerifyCredential(creds, 0) {
+		utils.SugarLogger.Infoln("Credentials are valid!")
+		c.JSON(http.StatusOK, gin.H{"message": "Credentials encrypted and stored"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Credentials encrypted and stored"})
-
-	//if service.VerifyCredential(creds, 0) {
-	//	utils.SugarLogger.Infoln("Credentials are valid!")
-	//	c.JSON(http.StatusOK, gin.H{"message": "Credentials encrypted and stored"})
-	//	return
-	//}
-	//// If not valid, delete the credentials and return an error
-	//utils.SugarLogger.Errorln("Invalid credentials, deleting...")
-	//service.DeleteCredentialForUser(input.UserID)
-	//c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials"})
+	// If not valid, delete the credentials and return an error
+	utils.SugarLogger.Errorln("Invalid credentials, deleting...")
+	service.DeleteCredentialForUser(input.UserID)
+	c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials"})
 	return
 }
