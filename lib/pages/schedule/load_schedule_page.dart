@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cool_alert/cool_alert.dart';
@@ -45,6 +44,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
 
   Map<GoldSection, bool> goldSectionMap = {};
 
+  String deviceKey = "";
+
   @override
   void setState(fn) {
     if (mounted) {
@@ -61,18 +62,14 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   Future<void> checkDeviceKey() async {
     if (prefs.containsKey("CREDENTIALS_KEY")) {
       log("[load_schedule_page] Found device key, fetching schedule");
+      deviceKey = prefs.getString("CREDENTIALS_KEY")!;
+      fetchGoldSchedule();
     } else {
       log("[load_schedule_page] No device key found, launching login page", LogLevel.warn);
+      setState(() {
+        state = 1;
+      });
     }
-    final text = 'bkathi@ucsb.edu';
-    final password = 'password';
-
-    final encrypted = await Aes256Gcm.encrypt(text, password);
-    final decrypted = await Aes256Gcm.decrypt(encrypted, password);
-
-    print(encrypted);
-    print(decrypted);
-    // fetchGoldSchedule();
   }
 
   List<String> getListFromDayString(String days) {
@@ -105,7 +102,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         state = 0;
       });
       await AuthService.getAuthToken();
-      await httpClient.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) {
+      await httpClient.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN", "SC-Device-Key": deviceKey}).then((value) {
         if (value.statusCode == 200) {
           userCourses = jsonDecode(value.body)["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
           log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
@@ -135,16 +132,20 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     });
     try {
       await AuthService.getAuthToken();
-      String encryptionKey = generateEncryptionKey();
-      await http.post(Uri.parse("$API_HOST/users/credentials/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode({
+      String encryptionKey = Aes256Gcm.keygen(32);
+      log("[load_schedule_page] Generated encryption key: ${encryptionKey.substring(0,32)}...", LogLevel.info);
+
+      final encryptedUsername = await Aes256Gcm.encrypt(usernameController.value.text, encryptionKey);
+      final encryptedPassword = await Aes256Gcm.encrypt(passwordController.value.text, encryptionKey);
+      await http.post(Uri.parse("$API_HOST/users/credentials/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN", "SC-Device-Key": encryptionKey}, body: jsonEncode({
         "user_id": currentUser.id,
-        "username": usernameController.text,
-        "password": passwordController.text,
-        "encryption_key": encryptionKey
+        "username": encryptedUsername,
+        "password": encryptedPassword,
       })).then((value) {
         if (value.statusCode == 200) {
-          log("[load_schedule_page] Encrypted credentials with device key ${encryptionKey.substring(0, 8)}...");
+          log("[load_schedule_page] Successfully set credentials!");
           prefs.setString("CREDENTIALS_KEY", encryptionKey);
+          deviceKey = encryptionKey;
           fetchGoldSchedule();
         } else {
           log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
@@ -171,13 +172,6 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       });
     }
     trace.stop();
-  }
-
-  String generateEncryptionKey() {
-    const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-    Random rnd = Random.secure();
-    log("[load_schedule_page] Generated encryption key", LogLevel.info);
-    return String.fromCharCodes(Iterable.generate(32, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
   Future<void> getCourseInformation(String quarter) async {
@@ -357,6 +351,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                                 border: InputBorder.none,
                                 hintText: "UCSB NetID",
                               ),
+                              autocorrect: false,
                               style: const TextStyle(fontSize: 25),
                               onChanged: (input) {
                               },
@@ -409,8 +404,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         children: [
                           const Text("Your login credentials are encrypted using 256-bit AES encryption with a rolling key on device, and then once again encrypted on our backend for storage. Your credentials are never transmitted in plain text, and are never stored in plaintext.", style: TextStyle(fontSize: 16),),
                           const Padding(padding: EdgeInsets.all(4)),
-                          const Text("Your privacy and security are always our number one priorities, so you can always take a look at our GitHub repository to see how your data is handled.", style: TextStyle(fontSize: 16),),
-                          CupertinoButton(child: const Text("GitHub Repository"), onPressed: () => launchUrlString("https://github.com/BK1031/StorkeCentral")),
+                          const Text("Your privacy and security are always our number one priorities, check out our security white paper below for specific information about our security practices.  You can also always take a look at our GitHub repository to see exactly how your data is handled.", style: TextStyle(fontSize: 16),),
+                          CupertinoButton(child: const Text("Security White Paper"), onPressed: () => launchUrlString("https://docs.storkecentr.al/ca66d208afbc410dad5271c75ded4fdb")),
                           const Text("StorkeCentral is not an official UCSB app, use at your own risk!", style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic), textAlign: TextAlign.center,),
                           const Padding(padding: EdgeInsets.all(8)),
                         ],

@@ -4,6 +4,7 @@ import 'package:calendar_view/calendar_view.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/quarter.dart';
@@ -360,7 +361,16 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                 FloatingActionButton(
                   child: const Icon(Icons.refresh),
                   onPressed: () {
-                    router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+                    if (kIsWeb) {
+                      AlertService.showWarningDialog(
+                        context,
+                        "Schedule Sync Unavailable",
+                        "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                        () {}
+                      );
+                    } else {
+                      router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+                    }
                   },
                 ),
               ],

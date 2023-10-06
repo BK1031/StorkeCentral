@@ -34,7 +34,6 @@ Version appVersion = Version("2.5.2+4");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
-// String API_HOST = "http://localhost:4001";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
@@ -103,7 +102,7 @@ Map<String, double> UNITS_CONVERSION = {
 // Quarter Information
 Quarter currentQuarter = fall23;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [fall22, winter23, spring23, fall23];
+List<Quarter> availableQuarters = [fall23];
 // Quarter for the next passtime
 Quarter currentPassQuarter = fall23;
 

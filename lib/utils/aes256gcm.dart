@@ -3,81 +3,50 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
-import 'package:cryptography/cryptography.dart';
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/block/aes.dart';
+import 'package:pointycastle/block/modes/gcm.dart';
+
 
 const int KEY_LENGTH = 32;
-const int IV_LENGTH = 12;
-const int TAG_LENGTH = 16;
-const int SALT_LENGTH = 16;
-const int KEY_ITERATIONS_COUNT = 10000;
+const int NONCE_LENGTH = 12;
 
 class Aes256Gcm {
-  /// Encrypts passed [cleartext] with key generated based on [password] argument
-  static Future<String> encrypt(String cleartext, String password) async {
-    final salt = randomBytes(SALT_LENGTH);
-    final iv = randomBytes(IV_LENGTH);
-    final key = await deriveKey(password, salt);
-    final algorithm = AesGcm.with256bits();
 
-    final secretBox = await algorithm.encrypt(
-      utf8.encode(cleartext),
-      secretKey: key,
-      nonce: iv,
-    );
-
-    final List<int> result =
-        salt + secretBox.nonce + secretBox.cipherText + secretBox.mac.bytes;
-
-    return hex.encode(result);
+  static String keygen(int length) {
+    const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random rnd = Random.secure();
+    return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
-  /// Decrypts passed [ciphertext] with key generated based on [password] argument
-  static Future<String> decrypt(String cipherText, String password) async {
-    final cText = hex.decode(cipherText);
-    final salt = cText.sublist(0, SALT_LENGTH);
-    final iv = cText.sublist(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
-    final mac = cText.sublist(cText.length - TAG_LENGTH);
-    final text =
-    cText.sublist(SALT_LENGTH + IV_LENGTH, cText.length - TAG_LENGTH);
+  static String encrypt(String plaintext, String key) {
+    final keyBytes = Uint8List.fromList(utf8.encode(key));
+    final plaintextBytes = Uint8List.fromList(utf8.encode(plaintext));
 
-    final algorithm = AesGcm.with256bits();
-    final key = await deriveKey(password, salt);
-
-    final secretBox = new SecretBox(text, nonce: iv, mac: new Mac(mac));
-
-    final cleartext = await algorithm.decrypt(
-      secretBox,
-      secretKey: key,
-    );
-
-    return utf8.decode(cleartext);
-  }
-
-  /// Password Based Key Deriviation function
-  static Future<SecretKey> deriveKey(String password, List<int> salt) async {
-    final pbkdf2 = Pbkdf2(
-      macAlgorithm: Hmac.sha512(),
-      iterations: KEY_ITERATIONS_COUNT,
-      bits: KEY_LENGTH * 8,
-    );
-
-    SecretKey secret = await pbkdf2.deriveKey(
-      secretKey: SecretKey(utf8.encode(password)),
-      nonce: salt,
-    );
-
-    return await secret;
-  }
-
-  /// Generates a random byte sequence of given [length]
-  static Uint8List randomBytes(int length) {
-    Uint8List buffer = new Uint8List(length);
-    Random range = new Random.secure();
-
-    for (int i = 0; i < length; i++) {
-      buffer[i] = range.nextInt(256);
+    Random random = Random.secure();
+    // generate 12 byte nonce using random
+    final nonceGen = Uint8List(12);
+    for (int i = 0; i < NONCE_LENGTH; i++) {
+      nonceGen[i] = random.nextInt(256);
     }
+    print("nonce: ${hex.encode(nonceGen)}");
+    print("ecrypting using: $key");
 
-    return buffer;
+    final keyParam = KeyParameter(keyBytes);
+    final cipher = GCMBlockCipher(AESEngine());
+    final params = AEADParameters(keyParam, 128, nonceGen, Uint8List(0));
+    cipher.init(true, params);
+
+    final ciphertext = cipher.process(plaintextBytes);
+    print("ciphertext: ${hex.encode(ciphertext)}");
+
+    final encryptedData = Uint8List.fromList(ciphertext);
+    final nonce = params.nonce;
+    final encryptedBytes = Uint8List.fromList([...nonce, ...encryptedData]);
+
+    final encryptedString = hex.encode(encryptedBytes);
+    print("encryptedData: $encryptedString");
+    return encryptedString;
   }
+
 }
