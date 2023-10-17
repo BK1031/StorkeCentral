@@ -32,13 +32,14 @@ func CheckUpNextNotificationsForAllUsers(og *sync.WaitGroup) {
 
 func CheckUpNextNotificationsForUserForQuarter(userID string) bool {
 	sentNotif := false
+	inClass := false
 	schedule := GetUpNextForUser(userID)
 	sort.Slice(schedule, func(i, j int) bool {
 		return schedule[i].StartTime.Before(schedule[j].StartTime)
 	})
 	for _, s := range schedule {
 		if s.StartTime.After(time.Now()) {
-			delta := int(s.StartTime.Sub(time.Now()).Minutes())
+			delta := int(s.StartTime.Sub(time.Now()).Minutes()) + 1
 			notificationSetting := GetNotificationSettingForUser(userID)
 			if notificationSetting != 0 {
 				if delta <= notificationSetting+1 && delta >= notificationSetting-1 {
@@ -59,17 +60,21 @@ func CheckUpNextNotificationsForUserForQuarter(userID string) bool {
 					sentNotif = true
 				}
 			}
-			println(userID + " next class is " + s.Title + " at " + s.StartTime.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)! Sent Notif: " + strconv.FormatBool(sentNotif))
-			if sentNotif {
-				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)! [SENT NOTIFICATION]")
-			} else {
-				_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+			if !inClass {
+				// Only send next class log info if user is not currently in a previous class
+				println(userID + " next class is " + s.Title + " at " + s.StartTime.Format("3:04PM") + " (" + strconv.Itoa(delta) + " minutes)! Sent Notif: " + strconv.FormatBool(sentNotif))
+				if sentNotif {
+					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)! [SENT NOTIFICATION]")
+				} else {
+					_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" next class is "+s.Title+" at "+s.StartTime.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
+				}
 			}
 			return sentNotif
 		} else if s.StartTime.Before(time.Now()) && s.EndTime.After(time.Now()) {
 			println(userID + " is in class " + s.Title + " until " + s.EndTime.Format("3:04PM"))
 			_, _ = Discord.ChannelMessageSend(config.DiscordChannel, userID+" is in class "+s.Title+" until "+s.EndTime.Format("3:04PM"))
-			return sentNotif
+			inClass = true
+			// Restart for-loop since next class notification time may overlap with current class period
 		}
 	}
 	println(userID + " has no more classes today!")
@@ -131,6 +136,7 @@ func CheckPasstimeNotificationsForAllUsers(og *sync.WaitGroup) {
 				}
 			} else if p.PassThreeStart.Add(time.Minute).After(time.Now()) {
 				delta := int(p.PassThreeStart.Sub(time.Now()).Minutes())
+				println(delta)
 				// Will sequentially send notifications at 5 minute intervals from 15 minutes.
 				if delta <= 16 {
 					// 15 minute reminder
