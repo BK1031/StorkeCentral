@@ -208,7 +208,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text("${scheduleItems.indexOf(e) == 0 ? "Lecture" : "Section"} (${to12HourTime(e.startTime)} - ${to12HourTime(e.endTime)})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                Text("${scheduleBuildings[scheduleItems.indexOf(e)].name} ${e.room}", style: TextStyle(color: SB_NAVY)),
+                                Text("${scheduleBuildings[scheduleItems.indexOf(e)].name} ${e.room}", style: TextStyle(color: SC_MAIN)),
                                 Text(getListFromDayString(e.days).join(", "), style: const TextStyle()),
                               ],
                             ),

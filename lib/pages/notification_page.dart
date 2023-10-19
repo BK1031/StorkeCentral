@@ -81,7 +81,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: SC_MAIN,
         title: const Text(
           "Notifications",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -117,7 +117,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   child: Center(
                       child: RefreshProgressIndicator(
                           color: Colors.white,
-                          backgroundColor: SB_NAVY
+                          backgroundColor: SC_MAIN
                       )
                   )
               ),
@@ -159,7 +159,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               width: 35,
                               child: Icon(
                                 notifications[index].read ? Icons.notifications_rounded : Icons.notifications_active_rounded,
-                                color: notifications[index].read ? Colors.grey : SB_NAVY,
+                                color: notifications[index].read ? Colors.grey : SC_MAIN,
                               ),
                             ),
                             const Padding(padding: EdgeInsets.all(4)),
@@ -180,11 +180,11 @@ class _NotificationPageState extends State<NotificationPage> {
                             const Padding(padding: EdgeInsets.all(1)),
                             Text(
                                 DateTime.now().difference(notifications[index].createdAt).inDays > 6 ? DateFormat("MMM d").format(notifications[index].createdAt) : timeago.format(notifications[index].createdAt, locale: "en_short"),
-                                style: TextStyle(color: notifications[index].read ? Colors.grey : SB_NAVY,)
+                                style: TextStyle(color: notifications[index].read ? Colors.grey : SC_MAIN,)
                             ),
                             Icon(
                               notifications[index].route != "" || notifications[index].launchURL != "" ? Icons.arrow_forward_ios_rounded : null,
-                              color: notifications[index].read ? Colors.grey : SB_NAVY,
+                              color: notifications[index].read ? Colors.grey : SC_MAIN,
                             ),
                           ],
                         ),

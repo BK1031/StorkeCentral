@@ -151,7 +151,7 @@ class _FriendsPageState extends State<FriendsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: SC_MAIN,
         title: const Text(
           "Friends",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -167,7 +167,7 @@ class _FriendsPageState extends State<FriendsPage> {
                   Expanded(
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
-                      color: currPage == 0 ? SB_NAVY : null,
+                      color: currPage == 0 ? SC_MAIN : null,
                       onPressed: () {
                         setState(() {
                           currPage = 0;
@@ -180,7 +180,7 @@ class _FriendsPageState extends State<FriendsPage> {
                   Expanded(
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
-                      color: currPage == 1 ? SB_NAVY : null,
+                      color: currPage == 1 ? SC_MAIN : null,
                       onPressed: () {
                         setState(() {
                           currPage = 1;
@@ -214,7 +214,7 @@ class _FriendsPageState extends State<FriendsPage> {
                       visible: refreshing,
                       child: Padding(
                           padding: const EdgeInsets.all(8),
-                          child: Center(child: RefreshProgressIndicator(backgroundColor: SB_NAVY, color: Colors.white,))
+                          child: Center(child: RefreshProgressIndicator(backgroundColor: SC_MAIN, color: Colors.white,))
                       ),
                     ),
                     friends.isEmpty ? Center(
@@ -353,7 +353,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                     padding: const EdgeInsets.all(8),
                                     child: Center(child: RefreshProgressIndicator(
                                       color: Colors.white,
-                                      backgroundColor: SB_NAVY
+                                      backgroundColor: SC_MAIN
                                     ))
                                 ),
                               ),
@@ -361,7 +361,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                 visible: requests[index].fromUserID != currentUser.id && !loadingList.contains(requests[index].fromUserID),
                                 child: CupertinoButton(
                                   padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                  color: SB_NAVY,
+                                  color: SC_MAIN,
                                   child: const Row(
                                     children: [
                                       Icon(Icons.person_add, color: Colors.white),

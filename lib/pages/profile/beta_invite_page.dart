@@ -179,7 +179,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: SC_MAIN,
         title: const Text(
             "Public Beta",
             style: TextStyle(fontWeight: FontWeight.bold)
@@ -223,12 +223,12 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                     child: Text(
                       "My Invite Code",
                       // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SC_MAIN : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   ListTile(
                     title: Text(inviteCode != "" ? inviteCode : "XXX-XXX", style: TextStyle(fontSize: 26, letterSpacing: 4, color: inviteCode != "" ? null : Colors.grey), textAlign: TextAlign.center),
-                    subtitle: Text(inviteURL != "" ? inviteURL.replaceAll("https://", "") : "Generating invite url...", style: TextStyle(color: SB_NAVY, fontSize: 18), textAlign: TextAlign.center),
+                    subtitle: Text(inviteURL != "" ? inviteURL.replaceAll("https://", "") : "Generating invite url...", style: TextStyle(color: SC_MAIN, fontSize: 18), textAlign: TextAlign.center),
                     trailing: const Icon(Icons.copy),
                     onTap: () async {
                       await Clipboard.setData(ClipboardData(text: "Hey, here's an invite code for StorkeCentral, the cool new app I was talking about: $inviteCode\n\n$inviteURL"));
@@ -252,7 +252,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                     child: Text(
                       "Current Invites (${currentInvitedUsers.length}/$codeCap)",
                       // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SC_MAIN : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Visibility(
@@ -324,7 +324,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                     child: Text(
                       "Invited Users",
                       // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SC_MAIN : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Visibility(

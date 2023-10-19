@@ -439,7 +439,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                               Expanded(
                                 child: CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  color: SB_NAVY,
+                                  color: SC_MAIN,
                                   onPressed: () {
                                     // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
                                     router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?walking", transition: TransitionType.native);
@@ -451,7 +451,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                               Expanded(
                                 child: CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  color: SB_NAVY,
+                                  color: SC_MAIN,
                                   onPressed: () {
                                     // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
                                     router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?cycling", transition: TransitionType.native);

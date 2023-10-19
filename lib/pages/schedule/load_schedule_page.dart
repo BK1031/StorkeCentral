@@ -158,7 +158,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
             type: CoolAlertType.error,
             title: "GOLD Login Error",
             text: "Error saving credentials: ${jsonDecode(value.body)["data"]}",
-            backgroundColor: SB_NAVY,
+            backgroundColor: SC_MAIN,
             confirmBtnColor: SB_RED,
             confirmBtnText: "OK",
           );
@@ -292,7 +292,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: SC_MAIN,
         title: const Text(
           "GOLD Sync",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -384,7 +384,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         width: MediaQuery.of(context).size.width,
                         padding: const EdgeInsets.all(8),
                         child: CupertinoButton(
-                          color: SB_NAVY,
+                          color: SC_MAIN,
                           onPressed: () {
                             if (passwordController.text.isNotEmpty) saveCredentials();
                           },
@@ -474,7 +474,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                             },
                             child: Row(
                               children: [
-                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
+                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SC_MAIN : Theme.of(context).textTheme.bodySmall!.color),
                                 const Padding(padding: EdgeInsets.all(8)),
                                 Expanded(
                                   child: Column(
@@ -482,7 +482,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                                     children: [
                                       Text("${s.enrollCode} - ${s.section == "0100" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                       // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
-                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
+                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SC_MAIN)),
                                     ],
                                   ),
                                 ),
@@ -499,7 +499,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   width: MediaQuery.of(context).size.width,
                   padding: const EdgeInsets.all(8),
                   child: CupertinoButton(
-                    color: SB_NAVY,
+                    color: SC_MAIN,
                     onPressed: () {
                       if (goldCourses.isNotEmpty) {
                         generateUserSchedule(selectedQuarter.id);

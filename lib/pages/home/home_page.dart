@@ -307,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                     visible: !upNextSubscription.status.contains("Done"),
                     child: Text(
                       upNextSubscription.status,
-                      style: TextStyle(color: upNextSubscription.status.contains("until") ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                      style: TextStyle(color: upNextSubscription.status.contains("until") ? Colors.orangeAccent : SC_MAIN, fontSize: 12),
                     ),
                   )
                 ],
@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                   getUpNextSubscriptions();
                   Future.delayed(Duration.zero, () => router.pop(context));
                 },
-                color: SB_NAVY,
+                color: SC_MAIN,
                 child: const Text("Done"),
               ),
             )

@@ -124,7 +124,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
               type: CoolAlertType.warning,
               title: "Update Available",
               text: "A new version of Storke Central is available. Please update to receive the latest bug fixes and use our newest features.",
-              backgroundColor: SB_NAVY,
+              backgroundColor: SC_MAIN,
               confirmBtnText: "UPDATE",
               confirmBtnColor: SB_AMBER,
               onConfirmBtnTap: () {
@@ -145,7 +145,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
               type: CoolAlertType.warning,
               title: "New Beta Available",
               text: "A new version of the Storke Central Beta is available. Please update your app from TestFlight to receive the latest bug fixes and use our newest features.",
-              backgroundColor: SB_NAVY,
+              backgroundColor: SC_MAIN,
               confirmBtnText: "UPDATE",
               confirmBtnColor: SB_AMBER,
               onConfirmBtnTap: () {
@@ -437,7 +437,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: SC_MAIN,
         title: Text(
           pageTitles[_currPage],
           style: const TextStyle(fontWeight: FontWeight.bold)

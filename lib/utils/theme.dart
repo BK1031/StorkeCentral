@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+Color SC_MAIN = const Color(0xFFCA84AE);
+
 Color SB_NAVY = const Color(0xFF003660);
 Color SB_GOLD = const Color(0xFFfebc11);
 
@@ -8,7 +10,7 @@ Color SB_RED = const Color(0xFFf33535);
 Color SB_AMBER = const Color(0xFFffca28);
 Color SB_GREEN = const Color(0xFF00ca70);
 
-List<Color> SB_COLORS = [SB_NAVY, SB_GOLD, SB_LT_BLUE, SB_RED, SB_AMBER, SB_GREEN];
+List<Color> SB_COLORS = [SC_MAIN, SB_GOLD, SB_LT_BLUE, SB_RED, SB_AMBER, SB_GREEN];
 
 // LIGHT THEME
 const lightTextColor = Colors.black;
@@ -18,22 +20,21 @@ const lightDividerColor = Color(0xFFA8A8A8);
 
 // Dark theme
 const darkTextColor = Color(0xFFFFFFFF);
-const darkBackgroundColor = Color(0xFF1F1F1F);
-const darkCanvasColor = Color(0xFF242424);
-const darkCardColor = Color(0xFF272727);
+const darkBackgroundColor = Color(0xFF1C1B22);
+const darkCardColor = Color(0xFF23202B);
 const darkDividerColor = Color(0xFF545454);
 
 /// Light style
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
   colorScheme: const ColorScheme.light().copyWith(
-    primary: SB_NAVY,
-    secondary: SB_NAVY,
+    primary: SC_MAIN,
+    secondary: SC_MAIN,
     onSecondary: Colors.white,
     background: lightBackgroundColor,
   ),
   fontFamily: "Product Sans",
-  primaryColor: SB_NAVY,
+  primaryColor: SC_MAIN,
   scaffoldBackgroundColor: lightBackgroundColor,
   cardColor: lightCardColor,
   cardTheme: CardTheme(
@@ -61,13 +62,12 @@ final ThemeData lightTheme = ThemeData(
 final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark().copyWith(
-    primary: SB_NAVY,
-    secondary: SB_NAVY,
+    primary: SC_MAIN,
+    secondary: SC_MAIN,
     background: darkBackgroundColor,
   ),
   fontFamily: "Product Sans",
-  primaryColor: SB_NAVY,
-  canvasColor: darkCanvasColor,
+  primaryColor: SC_MAIN,
   scaffoldBackgroundColor: darkBackgroundColor,
   cardColor: darkCardColor,
   cardTheme: CardTheme(

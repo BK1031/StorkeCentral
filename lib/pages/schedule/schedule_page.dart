@@ -305,7 +305,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                             padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                             child: Icon(
                                               passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
-                                              color: passtimeExpanded ? SB_NAVY : Colors.grey,
+                                              color: passtimeExpanded ? SC_MAIN : Colors.grey,
                                               size: 35,
                                             ),
                                           ),
@@ -385,7 +385,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Card(
-                        color: SB_NAVY,
+                        color: SC_MAIN,
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           width: MediaQuery.of(context).size.width,
@@ -412,7 +412,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                   borderRadius: BorderRadius.circular(8),
                                   underline: Container(),
                                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                  dropdownColor: SB_NAVY,
+                                  dropdownColor: SC_MAIN,
                                   isDense: true,
                                   alignment: Alignment.centerRight,
                                   icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
@@ -437,7 +437,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                               borderRadius: BorderRadius.circular(8),
                               underline: Container(),
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              dropdownColor: SB_NAVY,
+                              dropdownColor: SC_MAIN,
                               isDense: true,
                               alignment: Alignment.center,
                               icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
@@ -528,7 +528,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                               width: MediaQuery.of(context).size.width,
                               child: CupertinoButton(
                                 padding: EdgeInsets.zero,
-                                color: SB_NAVY,
+                                color: SC_MAIN,
                                 onPressed: () {
                                   router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
                                 },
@@ -549,7 +549,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                   child: Column(
                     children: [
                       Card(
-                        color: SB_NAVY,
+                        color: SC_MAIN,
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           width: MediaQuery.of(context).size.width,
@@ -565,7 +565,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                               borderRadius: BorderRadius.circular(8),
                               underline: Container(),
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              dropdownColor: SB_NAVY,
+                              dropdownColor: SC_MAIN,
                               isDense: true,
                               alignment: Alignment.center,
                               icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
@@ -587,7 +587,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                 visible: loading,
                 child: Center(
                   child: RefreshProgressIndicator(
-                    backgroundColor: SB_NAVY,
+                    backgroundColor: SC_MAIN,
                     color: Colors.white,
                   ),
                 ),

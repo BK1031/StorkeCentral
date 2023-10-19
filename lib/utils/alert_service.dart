@@ -41,7 +41,7 @@ class AlertService {
       desktopSnackBarPosition: DesktopSnackBarPosition.bottomRight,
       builder: (context) {
         return Card(
-          color: SB_NAVY,
+          color: SC_MAIN,
           child: Container(
             padding: const EdgeInsets.all(8),
             child: Row(
@@ -93,9 +93,9 @@ class AlertService {
       showCancelBtn: true,
       confirmBtnText: "YES",
       cancelBtnText: "CANCEL",
-      confirmBtnColor: SB_NAVY,
+      confirmBtnColor: SC_MAIN,
       onConfirmBtnTap: () => onConfirm(),
-      backgroundColor: SB_NAVY,
+      backgroundColor: SC_MAIN,
     );
   }
 
@@ -107,9 +107,9 @@ class AlertService {
       title: title,
       text: message,
       confirmBtnText: "OK",
-      confirmBtnColor: SB_NAVY,
+      confirmBtnColor: SC_MAIN,
       onConfirmBtnTap: () => onConfirm(),
-      backgroundColor: SB_NAVY,
+      backgroundColor: SC_MAIN,
     );
   }
 
@@ -121,9 +121,9 @@ class AlertService {
       title: title,
       text: message,
       confirmBtnText: "OK",
-      confirmBtnColor: SB_NAVY,
+      confirmBtnColor: SC_MAIN,
       onConfirmBtnTap: () => onConfirm(),
-      backgroundColor: SB_NAVY,
+      backgroundColor: SC_MAIN,
     );
   }
 
@@ -135,9 +135,9 @@ class AlertService {
       title: title,
       text: message,
       confirmBtnText: "OK",
-      confirmBtnColor: SB_NAVY,
+      confirmBtnColor: SC_MAIN,
       onConfirmBtnTap: () => onConfirm(),
-      backgroundColor: SB_NAVY,
+      backgroundColor: SC_MAIN,
     );
   }
 

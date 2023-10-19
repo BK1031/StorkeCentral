@@ -388,8 +388,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 barrierDismissible: false,
                 title: "Account Created",
                 text: "Your account has been successfully created. Welcome to StorkeCentral!",
-                backgroundColor: SB_NAVY,
-                confirmBtnColor: SB_NAVY,
+                backgroundColor: SC_MAIN,
+                confirmBtnColor: SC_MAIN,
                 confirmBtnText: "OK",
                 onConfirmBtnTap: () {
                   Future.delayed(Duration.zero, () {
@@ -481,7 +481,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             SizedBox(
                               width: MediaQuery.of(context).size.width,
                               child: CupertinoButton(
-                                color: SB_NAVY,
+                                color: SC_MAIN,
                                 onPressed: () {
                                   if (code == "STORKE") {
                                     demoMode = true;
@@ -514,7 +514,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                       child: Text(
                         "Invited By",
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SC_MAIN : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     Padding(
@@ -629,7 +629,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                     child: Text(
                       "Invited By",
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SC_MAIN : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Padding(
@@ -777,7 +777,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           type: CoolAlertType.error,
                           title: "Invalid Username",
                           widget: const Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
-                          backgroundColor: SB_NAVY,
+                          backgroundColor: SC_MAIN,
                           confirmBtnColor: SB_RED,
                           confirmBtnText: "OK"
                       );
@@ -917,7 +917,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             type: CoolAlertType.error,
                             title: "Empty Name",
                             widget: const Text("Please enter your first and last name."),
-                            backgroundColor: SB_NAVY,
+                            backgroundColor: SC_MAIN,
                             confirmBtnColor: SB_RED,
                             confirmBtnText: "OK"
                         );
@@ -928,7 +928,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           type: CoolAlertType.error,
                           title: "Invalid Username",
                           widget: const Text("Unfortunately, someone already has that username. If you really want that name, reach out to us on Discord and we might be able to help."),
-                          backgroundColor: SB_NAVY,
+                          backgroundColor: SC_MAIN,
                           confirmBtnColor: SB_RED,
                           confirmBtnText: "OK",
                           onConfirmBtnTap: () {

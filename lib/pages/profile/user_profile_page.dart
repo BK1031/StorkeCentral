@@ -240,7 +240,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: SC_MAIN,
         title: Text(
           "@${user.userName}",
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -253,7 +253,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: Center(
                 child: RefreshProgressIndicator(
                     color: Colors.white,
-                    backgroundColor: SB_NAVY
+                    backgroundColor: SC_MAIN
                 )
             )
         ) : Column(
@@ -289,7 +289,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               visible: loading,
               child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Center(child: RefreshProgressIndicator(color: Colors.white, backgroundColor: SB_NAVY,))
+                  child: Center(child: RefreshProgressIndicator(color: Colors.white, backgroundColor: SC_MAIN,))
               ),
             ),
             Visibility(
@@ -300,7 +300,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   width: double.infinity,
                   child: CupertinoButton(
                     padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                    color: SB_NAVY,
+                    color: SC_MAIN,
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -350,7 +350,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   width: double.infinity,
                   child: CupertinoButton(
                     padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                    color: SB_NAVY,
+                    color: SC_MAIN,
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

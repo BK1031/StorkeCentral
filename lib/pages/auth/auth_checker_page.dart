@@ -345,7 +345,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
                     animation: true,
                     percent: percent,
                     // progressColor: Colors.white,
-                    progressColor: SB_NAVY,
+                    progressColor: SC_MAIN,
                     // backgroundColor: sbNavy,
                     backgroundColor: Colors.white
                   ),

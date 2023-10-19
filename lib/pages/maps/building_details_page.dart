@@ -111,7 +111,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
         "fills",
         "lines",
         LineLayerProperties(
-          lineColor: SB_NAVY.toHexStringRGB(),
+          lineColor: SC_MAIN.toHexStringRGB(),
           lineOpacity: 0.8,
           lineCap: "round",
           lineJoin: "round",
@@ -269,7 +269,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                               width: 45,
                                               child: CupertinoButton(
                                                 padding: EdgeInsets.zero,
-                                                color: navType == "walking" ? SB_NAVY : null,
+                                                color: navType == "walking" ? SC_MAIN : null,
                                                 onPressed: () {
                                                   setState(() {
                                                     navType = "walking";
@@ -284,7 +284,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                               width: 45,
                                               child: CupertinoButton(
                                                 padding: EdgeInsets.zero,
-                                                color: navType == "cycling" ? SB_NAVY : null,
+                                                color: navType == "cycling" ? SC_MAIN : null,
                                                 onPressed: () {
                                                   setState(() {
                                                     navType = "cycling";
@@ -340,7 +340,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                         Expanded(
                           child: CupertinoButton(
                             padding: EdgeInsets.zero,
-                            color: currPage == 0 ? SB_NAVY : null,
+                            color: currPage == 0 ? SC_MAIN : null,
                             onPressed: () {
                               setState(() {
                                 currPage = 0;
@@ -353,7 +353,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                         Expanded(
                           child: CupertinoButton(
                               padding: EdgeInsets.zero,
-                              color: currPage == 1 ? SB_NAVY : null,
+                              color: currPage == 1 ? SC_MAIN : null,
                               onPressed: () {
                                 setState(() {
                                   currPage = 1;
@@ -366,7 +366,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                         Expanded(
                           child: CupertinoButton(
                               padding: EdgeInsets.zero,
-                              color: currPage == 2 ? SB_NAVY : null,
+                              color: currPage == 2 ? SC_MAIN : null,
                               onPressed: () {
                                 setState(() {
                                   currPage = 2;
