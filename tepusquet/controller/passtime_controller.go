@@ -45,6 +45,7 @@ func FetchPasstimeForUserForQuarter(c *gin.Context) {
 	}
 	err := service.CreatePasstimeForUser(passtime)
 	if err != nil {
+		utils.SugarLogger.Errorln("error creating passtime for user: " + err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, service.GetPasstimeForUserForQuarter(c.Param("userID"), c.Param("quarter")))
