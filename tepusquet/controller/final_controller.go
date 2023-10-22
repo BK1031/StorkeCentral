@@ -29,10 +29,18 @@ func FetchFinalsForUserForQuarter(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials."})
 		return
 	}
-	//err := service.CreatePasstimeForUser(passtime)
-	//if err != nil {
-	//	utils.SugarLogger.Errorln("error creating passtime for user: " + err.Error())
-	//	return
-	//}
-	//c.JSON(http.StatusOK, service.GetPasstimeForUserForQuarter(c.Param("userID"), c.Param("quarter")))
+	err := service.CreateAllFinalsForUser(finals)
+	if err != nil {
+		utils.SugarLogger.Errorln("error creating finals for user: " + err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, service.GetFinalsForUserForQuarter(c.Param("userID"), c.Param("quarter")))
+}
+
+func GetFinalsForUserForQuarter(c *gin.Context) {
+	// Start tracing span
+	span := utils.BuildSpan(c.Request.Context(), "GetFinalsForUserForQuarter", oteltrace.WithAttributes(attribute.Key("Request-ID").String(c.GetHeader("Request-ID"))))
+	defer span.End()
+
+	c.JSON(http.StatusOK, service.GetFinalsForUserForQuarter(c.Param("userID"), c.Param("quarter")))
 }

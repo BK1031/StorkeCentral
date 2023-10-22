@@ -127,14 +127,16 @@ func FetchFinalsForUserForQuarter(credential model.UserCredential, quarter strin
 			page.MustWaitIdle()
 			utils.SugarLogger.Infoln("Selected quarter " + quarter)
 			finalNameElements := page.MustElements("div.col-sm-5.col-xs-12")
-			utils.SugarLogger.Infoln("Found " + strconv.Itoa(len(finalNameElements)) + " final names")
+			var finalNames []string
 			for _, courseElement := range finalNameElements {
-				if courseElement.MustText() != "" {
+				if courseElement.MustText() != "" && !strings.Contains(courseElement.MustText(), "Drop") {
 					utils.SugarLogger.Infoln(courseElement.MustText())
+					finalNames = append(finalNames, courseElement.MustText())
 				}
 			}
+			utils.SugarLogger.Infoln("Found " + strconv.Itoa(len(finalNames)) + " finals")
 			finalElements := page.MustElements("div.col-sm-7.col-xs-12")
-			utils.SugarLogger.Infoln("Found " + strconv.Itoa(len(finalElements)) + " finals")
+			counter := 0
 			for _, courseElement := range finalElements {
 				if courseElement.MustText() != "" {
 					utils.SugarLogger.Infoln(courseElement.MustText())
@@ -152,30 +154,24 @@ func FetchFinalsForUserForQuarter(credential model.UserCredential, quarter strin
 					// December 11, 2023 12:00 PM
 					startParseString := monthday + ", " + year + " " + startTime
 					startDate, _ := time.Parse("January 02, 2006 3:04 PM (MST)", startParseString+" ("+currentZone+")")
-					dateZone, _ := startDate.Zone()
-					// Really fucking cringe daylight saving handler
-					if currentZone == "PDT" && dateZone == "PST" {
-						// Add 1 hour to account for shift out of daylight savings
-						startDate = startDate.Add(time.Hour * 1)
-					} else if currentZone == "PST" && dateZone == "PDT" {
-						// Subtract 1 hour to account for shift into daylight savings
-						startDate = startDate.Add(-time.Hour * 1)
-					}
+					startDate = HandleDaylightSavings(startDate)
 					utils.SugarLogger.Infoln(startDate.String())
 
 					// December 11, 2023 3:00 PM
 					endParseString := monthday + ", " + year + " " + endTime
 					endDate, _ := time.Parse("January 02, 2006 3:04 PM (MST)", endParseString+" ("+currentZone+")")
-					dateZone, _ = endDate.Zone()
-					// Really fucking cringe daylight saving handler
-					if currentZone == "PDT" && dateZone == "PST" {
-						// Add 1 hour to account for shift out of daylight savings
-						endDate = endDate.Add(time.Hour * 1)
-					} else if currentZone == "PST" && dateZone == "PDT" {
-						// Subtract 1 hour to account for shift into daylight savings
-						endDate = endDate.Add(-time.Hour * 1)
-					}
+					endDate = HandleDaylightSavings(endDate)
 					utils.SugarLogger.Infoln(endDate.String())
+
+					finals = append(finals, model.UserFinal{
+						UserID:    credential.UserID,
+						Title:     strings.ReplaceAll(strings.Split(finalNames[counter], " - ")[0], " ", ""),
+						Name:      strings.Split(finalNames[counter], " - ")[1],
+						StartTime: startDate,
+						EndTime:   endDate,
+						Quarter:   quarter,
+					})
+					counter++
 				}
 			}
 		}).Element("#pageContent_errorLabel > ul").MustHandle(func(e *rod.Element) {
