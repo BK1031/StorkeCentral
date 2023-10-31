@@ -1,6 +1,10 @@
+// ignore_for_file: non_constant_identifier_names
 import 'package:flutter/material.dart';
 
 Color SC_MAIN = const Color(0xFFCA84AE);
+
+Color SC_SUNSET_PINK = const Color(0xFFCA84AE);
+Color SC_SUNSET_PURPLE = const Color(0xFFCA84AE);
 
 Color SB_NAVY = const Color(0xFF003660);
 Color SB_GOLD = const Color(0xFFfebc11);
@@ -13,16 +17,19 @@ Color SB_GREEN = const Color(0xFF00ca70);
 List<Color> SB_COLORS = [SC_MAIN, SB_GOLD, SB_LT_BLUE, SB_RED, SB_AMBER, SB_GREEN];
 
 // LIGHT THEME
-const lightTextColor = Colors.black;
 const lightBackgroundColor = Color(0xFFf9f9f9);
 const lightCardColor = Colors.white;
 const lightDividerColor = Color(0xFFA8A8A8);
 
 // Dark theme
-const darkTextColor = Color(0xFFFFFFFF);
 const darkBackgroundColor = Color(0xFF1C1B22);
 const darkCardColor = Color(0xFF23202B);
 const darkDividerColor = Color(0xFF545454);
+
+final ThemeData m3light = ThemeData(
+  colorSchemeSeed: SB_NAVY,
+  brightness: Brightness.light,
+);
 
 /// Light style
 final ThemeData lightTheme = ThemeData(

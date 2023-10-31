@@ -437,7 +437,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SC_MAIN,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark ? darkCardColor : SC_MAIN,
         title: Text(
           pageTitles[_currPage],
           style: const TextStyle(fontWeight: FontWeight.bold)

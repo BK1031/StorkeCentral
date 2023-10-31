@@ -41,8 +41,7 @@ Future<void> main() async {
 
   ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
     return const Scaffold(
-        body: Center(
-            child: Text("Unexpected error. See log for details.")));
+        body: Center(child: Text("Unexpected error. See log for details.")));
   };
 
   await dotenv.load(fileName: ".env");
@@ -57,88 +56,112 @@ Future<void> main() async {
   prefs = await SharedPreferences.getInstance();
 
   log("StorkeCentral v${appVersion.toString()} – ${appVersion.getVersionCode()}");
-  FirebaseApp app = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseApp app = await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform);
   log("Initialized default app $app");
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   OneSignal.initialize(ONESIGNAL_APP_ID);
 
   // ROUTE DEFINITIONS
-  router.define("/", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const OnboardingPage();
   }));
-  router.define("/features", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/features", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const FeaturesPage();
   }));
-  router.define("/beta", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/beta", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const BetaPage();
   }));
-  router.define("/download", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/download", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const DownloadPage();
   }));
 
-  router.define("/check-auth", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/check-auth", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const AuthCheckerPage();
   }));
-  router.define("/server-status", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/server-status", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const ServerStatusPage();
   }));
-  router.define("/register", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/register", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const RegisterPage();
   }));
 
-  router.define("/home", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/home", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const TabBarController();
   }));
-  router.define("/notifications", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/notifications", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const NotificationPage();
   }));
 
-  router.define("/dining/:diningHallID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/dining/:diningHallID", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return DiningHallPage(diningHallID: params!["diningHallID"][0]);
   }));
 
-  router.define("/schedule/load", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/schedule/load", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoadSchedulePage();
   }));
-  router.define("/schedule/view/:courseID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/schedule/view/:courseID", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return ScheduleCoursePage(courseID: params!["courseID"][0]);
   }));
-  router.define("/schedule/user/:userID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/schedule/user/:userID", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return UserSchedulePage(userID: params!["userID"][0]);
   }));
 
-  router.define("/maps/buildings/:buildingID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/maps/buildings/:buildingID", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return BuildingDetailsPage(buildingID: params!["buildingID"][0]);
   }));
 
-  router.define("/profile", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/profile", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const ProfilePage();
   }));
-  router.define("/profile/edit", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/profile/edit", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const EditProfilePage();
   }));
-  router.define("/profile/beta", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/profile/beta", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const BetaInvitePage();
   }));
-  router.define("/profile/friends", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/profile/friends", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const FriendsPage();
   }));
-  router.define("/profile/friends/add", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/profile/friends/add", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const AddFriendPage();
   }));
-  router.define("/profile/user/:userID", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/profile/user/:userID", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return UserProfilePage(userID: params!["userID"][0]);
   }));
 
-  router.define("/settings", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/settings", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const SettingsPage();
   }));
-  router.define("/settings/about", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/settings/about", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const SettingsAboutPage();
   }));
 
-  router.define("/developer/logger", handler: Handler(handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
+  router.define("/developer/logger", handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, dynamic>? params) {
     return const LoggerPage();
   }));
 
