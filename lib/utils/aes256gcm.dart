@@ -29,8 +29,8 @@ class Aes256Gcm {
     for (int i = 0; i < NONCE_LENGTH; i++) {
       nonceGen[i] = random.nextInt(256);
     }
-    print("nonce: ${hex.encode(nonceGen)}");
-    print("ecrypting using: $key");
+    // print("nonce: ${hex.encode(nonceGen)}");
+    // print("ecrypting using: $key");
 
     final keyParam = KeyParameter(keyBytes);
     final cipher = GCMBlockCipher(AESEngine());
@@ -38,14 +38,14 @@ class Aes256Gcm {
     cipher.init(true, params);
 
     final ciphertext = cipher.process(plaintextBytes);
-    print("ciphertext: ${hex.encode(ciphertext)}");
+    // print("ciphertext: ${hex.encode(ciphertext)}");
 
     final encryptedData = Uint8List.fromList(ciphertext);
     final nonce = params.nonce;
     final encryptedBytes = Uint8List.fromList([...nonce, ...encryptedData]);
 
     final encryptedString = hex.encode(encryptedBytes);
-    print("encryptedData: $encryptedString");
+    // print("encryptedData: $encryptedString");
     return encryptedString;
   }
 

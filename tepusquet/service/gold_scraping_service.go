@@ -11,9 +11,14 @@ import (
 	"time"
 )
 
-func VerifyCredential(credential model.UserCredential, retry int) bool {
-	maxRetries := 25
+// VerifyCredential uses a headless browser to verify a user's credentials
+// Returns 0 if credentials are valid, 1 if invalid, 2 if MFA failed
+func VerifyCredential(credential model.UserCredential, retry int) int {
+	status := 0
 	validCredential := false
+	duoAuthenticated := false
+
+	maxRetries := 25
 	path, _ := launcher.LookPath()
 	url := launcher.New().
 		//Headless(false).
@@ -22,26 +27,45 @@ func VerifyCredential(credential model.UserCredential, retry int) bool {
 	defer page.MustClose()
 	page.MustEmulate(devices.LaptopWithHiDPIScreen)
 	err := rod.Try(func() {
-		page.MustElement("#pageContent_userNameText").MustInput(credential.Username)
-		page.MustElement("#pageContent_passwordText").MustInput(credential.Password)
-		page.MustElement("#pageContent_loginButton").MustClick()
-		page.Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a").MustHandle(func(e *rod.Element) {
-			utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
+		page.MustElement("#pageContent_loginButtonCurrentStudent").MustClick()
+		page.MustElement("#username").MustInput(credential.Username)
+		time.Sleep(100 * time.Millisecond)
+		page.MustElement("#password").MustInput(credential.Password)
+		page.MustElement("#fm1 > input.btn.btn-block.btn-submit").MustClick()
+		// Attempt to login to UCSB SSO
+		page.Race().Element("#duo_iframe").MustHandle(func(e *rod.Element) {
+			utils.SugarLogger.Infoln("Waiting for Duo MFA for " + credential.Username + "@ucsb.edu")
 			validCredential = true
-		}).Element("#pageContent_errorLabel > ul").MustHandle(func(e *rod.Element) {
+		}).Element("#fm1 > div").MustHandle(func(e *rod.Element) {
 			utils.SugarLogger.Infoln(e.MustText())
 		}).MustDo()
+
+		if validCredential {
+			// Wait for Duo MFA
+			page.Timeout(5 * time.Second).Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a").MustHandle(func(e *rod.Element) {
+				utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
+				duoAuthenticated = true
+			}).MustDo()
+		} else {
+			utils.SugarLogger.Errorln("Invalid credentials for " + credential.Username + "@ucsb.edu")
+			status = 1
+		}
 	})
 	if err != nil {
+		if !duoAuthenticated {
+			utils.SugarLogger.Errorln("Duo MFA failed for " + credential.Username + "@ucsb.edu")
+			status = 2
+			return status
+		}
 		if retry < maxRetries {
 			retry++
 			utils.SugarLogger.Infoln("WebDriver error, retrying " + strconv.Itoa(retry) + " of " + strconv.Itoa(maxRetries))
 			return VerifyCredential(credential, retry)
 		} else {
-			return false
+			return status
 		}
 	}
-	return validCredential
+	return status
 }
 
 func FetchCoursesForUserForQuarter(credential model.UserCredential, quarter string, retry int) []model.UserCourse {

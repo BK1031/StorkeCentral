@@ -49,14 +49,20 @@ func SetCredentialForUser(c *gin.Context) {
 	utils.SugarLogger.Infoln("Credentials set for user " + input.UserID)
 	// Verify that the credentials are valid
 	creds := service.GetCredentialForUser(input.UserID, deviceKey)
-	if service.VerifyCredential(creds, 0) {
+	credStatus := service.VerifyCredential(creds, 0)
+	if credStatus == 0 {
 		utils.SugarLogger.Infoln("Credentials are valid!")
 		c.JSON(http.StatusOK, gin.H{"message": "Credentials encrypted and stored"})
 		return
+	} else if credStatus == 1 {
+		utils.SugarLogger.Errorln("Credentials are invalid!")
+		service.DeleteCredentialForUser(input.UserID)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials"})
+		return
+	} else if credStatus == 2 {
+		utils.SugarLogger.Errorln("Duo MFA timed out!")
+		service.DeleteCredentialForUser(input.UserID)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Duo MFA prompt timed out"})
+		return
 	}
-	// If not valid, delete the credentials and return an error
-	utils.SugarLogger.Errorln("Invalid credentials, deleting...")
-	service.DeleteCredentialForUser(input.UserID)
-	c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials"})
-	return
 }

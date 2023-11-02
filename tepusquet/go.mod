@@ -1,6 +1,6 @@
 module tepusquet
 
-go 1.20
+go 1.21
 
 require (
 	firebase.google.com/go/v4 v4.12.0
