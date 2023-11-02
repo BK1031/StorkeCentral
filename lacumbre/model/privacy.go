@@ -13,6 +13,8 @@ type Privacy struct {
 	PushNotifications     string    `json:"push_notifications"`
 	PushNotificationToken string    `json:"push_notification_token"`
 	ScheduleReminders     string    `json:"schedule_reminders"`
+	PasstimeReminders     string    `json:"passtime_reminders"`
+	FinalReminders        string    `json:"final_reminders"`
 	UpdatedAt             time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	CreatedAt             time.Time `gorm:"autoCreateTime" json:"created_at"`
 }
