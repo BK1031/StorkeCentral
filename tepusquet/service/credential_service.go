@@ -22,19 +22,27 @@ func GetCredentialForUser(userID string, deviceKey string) model.UserCredential 
 		decryptedUsername, err := DecryptAES256GCM(config.CredEncryptionKey, cred.Username)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
+			cred.Username = "error"
+			return cred
 		}
 		decryptedPassword, err := DecryptAES256GCM(config.CredEncryptionKey, cred.Password)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
+			cred.Username = "error"
+			return cred
 		}
 		// Second decrypt using user generated key
 		decryptedUsername2, err := DecryptAES256GCM(deviceKey, decryptedUsername)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
+			cred.Username = "error"
+			return cred
 		}
 		decryptedPassword2, err := DecryptAES256GCM(deviceKey, decryptedPassword)
 		if err != nil {
 			utils.SugarLogger.Errorln(err)
+			cred.Username = "error"
+			return cred
 		}
 		cred.Username = decryptedUsername2
 		cred.Password = decryptedPassword2
@@ -50,10 +58,12 @@ func SetCredentialForUser(cred model.UserCredential) error {
 	encryptedUsername2, err := EncryptAES256GCM(config.CredEncryptionKey, cred.Username)
 	if err != nil {
 		utils.SugarLogger.Errorln(err)
+		return err
 	}
 	encryptedPassword2, err := EncryptAES256GCM(config.CredEncryptionKey, cred.Password)
 	if err != nil {
 		utils.SugarLogger.Errorln(err)
+		return err
 	}
 	cred.Username = encryptedUsername2
 	cred.Password = encryptedPassword2

@@ -37,12 +37,23 @@ func FetchPasstimeForUserForQuarter(c *gin.Context) {
 	if creds.Username == "" {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Credentials not found for user, please set them first"})
 		return
-	}
-	passtime := service.FetchPasstimeForUserForQuarter(creds, c.Param("quarter"), 0)
-	if passtime.UserID == "AUTH ERROR" {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials."})
+	} else if creds.Username == "error" {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error decrypting credentials for user, check device key!"})
 		return
 	}
+
+	status, page := service.LoginGOLD(creds)
+	if status == 1 {
+		utils.SugarLogger.Errorln("Credentials are invalid!")
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials"})
+		return
+	} else if status == 2 {
+		utils.SugarLogger.Errorln("Duo MFA timed out!")
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Duo MFA prompt timed out"})
+		return
+	}
+
+	passtime := service.FetchPasstimeForUserForQuarter(page, creds, c.Param("quarter"), 0)
 	err := service.CreatePasstimeForUser(passtime)
 	if err != nil {
 		utils.SugarLogger.Errorln("error creating passtime for user: " + err.Error())

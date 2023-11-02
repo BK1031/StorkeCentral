@@ -19,6 +19,9 @@ func GetCredentialForUser(c *gin.Context) {
 	if result.UserID == "" {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Credentials not found for user: " + c.Param("userID")})
 		return
+	} else if result.Username == "error" {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error decrypting credentials for user, check device key!"})
+		return
 	}
 	c.JSON(http.StatusOK, result)
 }
@@ -57,12 +60,12 @@ func SetCredentialForUser(c *gin.Context) {
 	} else if credStatus == 1 {
 		utils.SugarLogger.Errorln("Credentials are invalid!")
 		service.DeleteCredentialForUser(input.UserID)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials"})
 		return
 	} else if credStatus == 2 {
 		utils.SugarLogger.Errorln("Duo MFA timed out!")
 		service.DeleteCredentialForUser(input.UserID)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Duo MFA prompt timed out"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Duo MFA prompt timed out"})
 		return
 	}
 }
