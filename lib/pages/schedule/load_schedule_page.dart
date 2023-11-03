@@ -31,13 +31,15 @@ class LoadSchedulePage extends StatefulWidget {
 class _LoadSchedulePageState extends State<LoadSchedulePage> {
 
   // 0 = fetching gold schedule
-  // 1 = invalid credentials
+  // 1 = invalid credentials / Duo MFA timed out
   // 2 = have gold courses, getting course information
   // 3 = waiting for user to confirm courses
   // 4 = generating schedule
   // 5 = saving schedule
   // 6 = done
   int state = 0;
+  bool showDuo = false;
+  bool duoTimedOut = false;
 
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -100,18 +102,35 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     try {
       setState(() {
         state = 0;
+        duoTimedOut = false;
+      });
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        setState(() {
+          showDuo = true;
+        });
       });
       await AuthService.getAuthToken();
       await httpClient.get(Uri.parse("$API_HOST/users/courses/${currentUser.id}/fetch/${selectedQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN", "SC-Device-Key": deviceKey}).then((value) {
+        setState(() {
+          showDuo = false;
+        });
         if (value.statusCode == 200) {
           userCourses = jsonDecode(value.body)["data"].map<UserCourse>((json) => UserCourse.fromJson(json)).toList();
           log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
           getCourseInformation(selectedQuarter.id);
         } else {
-          log("[load_schedule_page] Invalid credentials, launching login page", LogLevel.warn);
+          log("[load_schedule_page] Fetch error: ${jsonDecode(value.body)["data"]["message"]}", LogLevel.error);
           setState(() {
             state = 1;
           });
+          if (jsonDecode(value.body)["data"]["message"] == "Duo MFA prompt timed out") {
+            log("[load_schedule_page] Duo MFA prompt timed out!", LogLevel.warn);
+            setState(() {
+              duoTimedOut = true;
+            });
+          } else {
+            AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"]);
+          }
         }
       });
     } catch(err) {
@@ -119,6 +138,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       AlertService.showErrorDialog(context, "Error Fetching Courses", err.toString(), () {});
       setState(() {
         state = 0;
+        showDuo = false;
       });
     }
     trace.stop();
@@ -137,10 +157,6 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
 
       final encryptedUsername = await Aes256Gcm.encrypt(usernameController.value.text, encryptionKey);
       final encryptedPassword = await Aes256Gcm.encrypt(passwordController.value.text, encryptionKey);
-      // print(encryptedUsername);
-      // print(encryptedPassword);
-      // print(encryptionKey);
-      // return;
       await http.post(Uri.parse("$API_HOST/users/credentials/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN", "SC-Device-Key": encryptionKey}, body: jsonEncode({
         "user_id": currentUser.id,
         "username": encryptedUsername,
@@ -152,7 +168,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           deviceKey = encryptionKey;
           fetchGoldSchedule();
         } else {
-          log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]}", LogLevel.error);
+          log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]["message"]}", LogLevel.error);
           passwordController.clear();
           setState(() {
             state = 1;
@@ -161,7 +177,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
             context: context,
             type: CoolAlertType.error,
             title: "GOLD Login Error",
-            text: "Error saving credentials: ${jsonDecode(value.body)["data"]}",
+            text: "Error saving credentials: ${jsonDecode(value.body)["data"]["message"]}",
             backgroundColor: SB_NAVY,
             confirmBtnColor: SB_RED,
             confirmBtnText: "OK",
@@ -333,8 +349,78 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   const Text("Fetching courses from GOLD", style: TextStyle(fontSize: 16))
                 ],
               ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                height: showDuo ? 200 : 0,
+                curve: Curves.easeInOut,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const Text("Waiting for Duo MFA", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                        const Padding(padding: EdgeInsets.all(2)),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset("images/icons/duo.png", width: 32, height: 32)
+                                  )
+                                ),
+                                const Padding(padding: EdgeInsets.all(2)),
+                                const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("TIME SENSITIVE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                    Padding(padding: EdgeInsets.all(2)),
+                                    Text("Verify your identity", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    Padding(padding: EdgeInsets.all(2)),
+                                    Text("Are you logging in to UCSB Single Sign-on?", style: TextStyle(fontSize: 14)),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        const Padding(padding: EdgeInsets.all(4)),
+                        const Text("You should have received a Duo notification like the one above. Please approve it to allow us to fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               Visibility(
-                visible: state == 1,
+                visible: state == 1 && duoTimedOut,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      const Text("Duo MFA Timed Out", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                      const Padding(padding: EdgeInsets.all(4)),
+                      const Text("Please approve the Duo MFA prompt so we can fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16),),
+                      const Padding(padding: EdgeInsets.all(4)),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        padding: const EdgeInsets.all(8),
+                        child: CupertinoButton(
+                          color: SB_NAVY,
+                          onPressed: () {
+                            fetchGoldSchedule();
+                          },
+                          child: const Text("Try Again", style: TextStyle(color: Colors.white),),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: state == 1 && !duoTimedOut,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(

@@ -8,7 +8,9 @@ class Privacy {
   String status = "PUBLIC";
   String pushNotifications = "DISABLED";
   String pushNotificationToken = "";
-  String scheduleReminders = "DISABLED";
+  String scheduleReminders = "ALERT_15";
+  String passtimeReminders = "ENABLED";
+  String finalReminders = "ALERT_15";
   DateTime updatedAt = DateTime.now().toUtc();
   DateTime createdAt = DateTime.now().toUtc();
 
@@ -24,7 +26,9 @@ class Privacy {
     status = json["status"] ?? "PUBLIC";
     pushNotifications = json["push_notifications"] ?? "DISABLED";
     pushNotificationToken = json["push_notification_token"] ?? "";
-    scheduleReminders = json["schedule_reminders"] ?? "DISABLED";
+    scheduleReminders = json["schedule_reminders"] ?? "ALERT_15";
+    passtimeReminders = json["passtime_reminders"] ?? "ENABLED";
+    finalReminders = json["final_reminders"] ?? "ALERT_15";
     updatedAt = DateTime.tryParse(json["updated_at"]) ?? DateTime.now().toUtc();
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
@@ -41,6 +45,8 @@ class Privacy {
       "push_notifications": pushNotifications,
       "push_notification_token": pushNotificationToken,
       "schedule_reminders": scheduleReminders,
+      "passtime_reminders": passtimeReminders,
+      "final_reminders": finalReminders,
       "updated_at": updatedAt.toIso8601String(),
       "created_at": createdAt.toIso8601String()
     };
