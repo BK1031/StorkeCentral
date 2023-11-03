@@ -103,11 +103,32 @@ Map<String, double> UNITS_CONVERSION = {
 // Quarter Information
 Quarter currentQuarter = fall23;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [fall23];
+List<Quarter> availableQuarters = [fall23, winter24];
 // Quarter for the next passtime
-Quarter currentPassQuarter = fall23;
+Quarter currentPassQuarter = winter24;
 
 // Quarters
+Quarter winter24 = Quarter.fromJson({
+  "id": "20241",
+  "name": "Winter 2024",
+  "firstDayOfClasses": "2024-01-08 00:00:00.000",
+  "lastDayOfClasses": "2024-03-15 23:59:00.000",
+  "firstDayOfFinals": "2024-03-16 00:00:00.000",
+  "lastDayOfFinals": "2024-03-22 00:00:00.000",
+  "weeks": [
+    "2024-01-06 00:00:00.000", // Week 0
+    "2024-01-07 00:00:00.000", // Week 1
+    "2024-01-14 00:00:00.000", // Week 2
+    "2024-01-21 00:00:00.000", // Week 3
+    "2024-01-28 00:00:00.000", // Week 4
+    "2024-02-04 00:00:00.000", // Week 5
+    "2024-02-11 00:00:00.000", // Week 6
+    "2024-02-18 00:00:00.000", // Week 7
+    "2024-02-25 00:00:00.000", // Week 8
+    "2024-03-03 00:00:00.000", // Week 9
+    "2024-03-10 00:00:00.000", // Week 10
+  ]
+});
 
 Quarter fall23 = Quarter.fromJson({
   "id": "20234",

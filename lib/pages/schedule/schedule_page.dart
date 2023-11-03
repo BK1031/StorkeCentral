@@ -28,6 +28,8 @@ class SchedulePage extends StatefulWidget {
 
 class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticKeepAliveClientMixin {
 
+  int currTab = 0;
+
   int color = 0;
   bool classesFound = true;
   bool loading = false;
@@ -268,7 +270,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               children: [
                 Expanded(
                   child: Visibility(
-                      visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeStart.add(const Duration(days: 7)).isAfter(DateTime.now()) && userPasstime.userID != "",
+                      visible: true,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -381,6 +383,41 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
             children: [
               Column(
                 children: [
+                  // Container(
+                  //   padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+                  //   child: Card(
+                  //     child: Row(
+                  //       children: [
+                  //         Expanded(
+                  //           child: CupertinoButton(
+                  //             padding: EdgeInsets.zero,
+                  //             color: currTab == 0 ? SB_NAVY : null,
+                  //             onPressed: () {
+                  //               setState(() {
+                  //                 currTab = 0;
+                  //               });
+                  //               // pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                  //             },
+                  //             child: Text("My Friends", style: TextStyle(color: currTab == 0 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                  //           ),
+                  //         ),
+                  //         Expanded(
+                  //           child: CupertinoButton(
+                  //             padding: EdgeInsets.zero,
+                  //             color: currTab == 1 ? SB_NAVY : null,
+                  //             onPressed: () {
+                  //               setState(() {
+                  //                 currTab = 1;
+                  //               });
+                  //               // pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                  //             },
+                  //             child: Text("Requests", style: TextStyle(color: currTab == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                  //           ),
+                  //         )
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -458,6 +495,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                         controller: _controller,
                         // firstDayOfWeek: 1,
                         view: CalendarView.week,
+                        // allowViewNavigation: true,
+                        viewNavigationMode: ViewNavigationMode.none,
                         timeSlotViewSettings: const TimeSlotViewSettings(
                           timeIntervalHeight: 40,
                           timeFormat: "h a",
@@ -482,17 +521,19 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                               ),
                               width: details.bounds.width,
                               height: details.bounds.height,
-                              child: Column(
-                                children: [
-                                  FittedBox(
-                                      fit: BoxFit.fitWidth,
-                                      child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
-                                  ),
-                                  FittedBox(
-                                      fit: BoxFit.fitWidth,
-                                      child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
-                                  ),
-                                ],
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    FittedBox(
+                                        fit: BoxFit.fitWidth,
+                                        child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
+                                    ),
+                                    FittedBox(
+                                        fit: BoxFit.fitWidth,
+                                        child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
