@@ -19,6 +19,7 @@ import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:storke_central/widgets/schedule/duo_card.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class LoadSchedulePage extends StatefulWidget {
@@ -353,42 +354,16 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                 duration: const Duration(milliseconds: 500),
                 height: showDuo ? 200 : 0,
                 curve: Curves.easeInOut,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        const Text("Waiting for Duo MFA", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                        const Padding(padding: EdgeInsets.all(2)),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.asset("images/icons/duo.png", width: 32, height: 32)
-                                  )
-                                ),
-                                const Padding(padding: EdgeInsets.all(2)),
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("TIME SENSITIVE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
-                                    Padding(padding: EdgeInsets.all(2)),
-                                    Text("Verify your identity", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                    Padding(padding: EdgeInsets.all(2)),
-                                    Text("Are you logging in to UCSB Single Sign-on?", style: TextStyle(fontSize: 14)),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        const Padding(padding: EdgeInsets.all(4)),
-                        const Text("You should have received a Duo notification like the one above. Please approve it to allow us to fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16)),
+                        Text("Waiting for Duo MFA", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                        Padding(padding: EdgeInsets.all(2)),
+                        DuoCard(),
+                        Padding(padding: EdgeInsets.all(4)),
+                        Text("You should have received a Duo notification like the one above. Please approve it to allow us to fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16)),
                       ],
                     ),
                   ),

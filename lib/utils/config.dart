@@ -16,6 +16,7 @@ import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/subscribed_up_next.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
+import 'package:storke_central/models/user_final.dart';
 import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
@@ -79,8 +80,11 @@ List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
 List<Meeting> calendarMeetings = [];
-UserPasstime userPasstime = UserPasstime();
 DateTime lastScheduleFetch = DateTime.now();
+
+List<UserFinal> userFinals = [];
+
+UserPasstime userPasstime = UserPasstime();
 
 List<String> upNextUserIDs = [];
 List<SubscribedUpNext> upNextSubscriptions = [];

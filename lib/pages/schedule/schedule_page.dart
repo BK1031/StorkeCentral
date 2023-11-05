@@ -6,10 +6,11 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:storke_central/models/quarter.dart';
+import 'package:storke_central/models/user_final.dart';
 import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/pages/schedule/schedule_finals_page.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -51,6 +52,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   void initState() {
     super.initState();
     getUserSchedule(selectedQuarter.id);
+    getFinals(selectedQuarter.id);
+    getPasstime();
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
@@ -115,6 +118,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       log("[schedule_page] Offline mode, searching cache for schedule...");
       if (quarter == currentQuarter.id) {
         loadOfflineSchedule();
+      } else {
+        log("[schedule_page] Can't load offline schedule for this quarter!", LogLevel.warn);
+        AlertService.showErrorSnackbar(context, "Can't load offline schedule for this quarter!");
       }
     }
   }
@@ -135,9 +141,61 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     trace.stop();
   }
 
+  Future<void> getFinals(String quarter) async {
+    if (!offlineMode) {
+      try {
+        Trace trace = FirebasePerformance.instance.newTrace("getFinals()");
+        await trace.start();
+        await AuthService.getAuthToken();
+        await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter/finals"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
+          print(value.body);
+          if (value.statusCode == 200) {
+            // Successfully got finals
+            setState(() {
+              userFinals = jsonDecode(value.body)["data"].map<UserFinal>((json) => UserFinal.fromJson(json)).toList();
+            });
+            // if (quarter == currentQuarter.id && userFinals.isNotEmpty) {
+            //   prefs.setStringList("USER_FINALS", userFinals.map((e) => jsonEncode(e).toString()).toList());
+            // }
+          } else {
+            log("[schedule_page] Failed to get finals: ${value.body}", LogLevel.error);
+          }
+        });
+        trace.stop();
+      } catch(err) {
+        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get finals!"));
+        log("[schedule_page] ${err.toString()}", LogLevel.error);
+      }
+    } else {
+      log("[schedule_page] Offline mode, searching cache for finals...");
+      if (quarter == currentQuarter.id) {
+        loadOfflineFinals();
+      } else {
+        log("[schedule_page] Can't load offline finals for this quarter!", LogLevel.warn);
+        AlertService.showErrorSnackbar(context, "Can't load offline finals for this quarter!");
+      }
+    }
+  }
+
+  void loadOfflineFinals() async {
+    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineFinals()");
+    await trace.start();
+    if (prefs.containsKey("USER_FINALS")) {
+      setState(() {
+        userFinals = prefs.getStringList("USER_FINALS")!.map((e) => UserFinal.fromJson(jsonDecode(e))).toList();
+      });
+      log("[schedule_page] Loaded ${userFinals.length} finals from cache.");
+      if (offlineMode) {
+        Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline finals!"));
+      }
+    }
+    trace.stop();
+  }
+
   Future<void> getPasstime() async {
     Trace trace = FirebasePerformance.instance.newTrace("getPasstime()");
     await trace.start();
+    await AuthService.getAuthToken();
     await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
       if (value.statusCode == 200) {
         // Successfully got passtime
@@ -145,31 +203,12 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
         });
         if (DateTime.now().difference(userPasstime.createdAt).inDays > 7) {
-          log("[schedule_page] Passtime is older than 7 days, fetching new passtime...");
-          fetchPasstime();
+          log("[schedule_page] Passtime is older than 7 days!", LogLevel.warn);
         }
       } else if (value.statusCode == 404) {
-        // Passtime not found, fetch it
-        fetchPasstime();
+        log("[schedule_page] No passtime found for this quarter.", LogLevel.warn);
       } else {
         log("[schedule_page] Failed to get passtime: ${value.body}", LogLevel.error);
-      }
-    });
-    trace.stop();
-  }
-
-  Future<void> fetchPasstime() async {
-    Trace trace = FirebasePerformance.instance.newTrace("fetchPasstime()");
-    await trace.start();
-    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}/fetch"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
-      if (value.statusCode == 200) {
-        // Successfully got passtime
-        setState(() {
-          userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
-        });
-      } else {
-        AlertService.showErrorSnackbar(context, "Failed to fetch passtime!");
-        log("[schedule_page] Failed to fetch passtime: ${value.body}", LogLevel.error);
       }
     });
     trace.stop();
@@ -286,72 +325,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                   duration: const Duration(milliseconds: 200),
                                   curve: Curves.easeInOut,
                                   padding: const EdgeInsets.all(8),
-                                  height: passtimeExpanded ? 150 : 55,
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first.toLocal())}",
-                                                  style: const TextStyle(fontSize: 14)
-                                              )
-                                            ],
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                            child: Icon(
-                                              passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
-                                              color: passtimeExpanded ? SB_NAVY : Colors.grey,
-                                              size: 35,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        children: passtimeExpanded ? [
-                                          const Padding(padding: EdgeInsets.all(4),),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Text("Pass 1:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passOneStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passOneEnd.toLocal())}",
-                                                  style: const TextStyle(fontSize: 16)
-                                              )
-                                            ],
-                                          ),
-                                          const Padding(padding: EdgeInsets.all(4),),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Text("Pass 2:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passTwoStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passTwoEnd.toLocal())}",
-                                                  style: const TextStyle(fontSize: 16)
-                                              )
-                                            ],
-                                          ),
-                                          const Padding(padding: EdgeInsets.all(4),),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Text("Pass 3:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passThreeStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passThreeEnd.toLocal())}",
-                                                  style: const TextStyle(fontSize: 16)
-                                              )
-                                            ],
-                                          )
-                                        ] : [],
-                                      )
-                                    ],
-                                  )
+                                  height: passtimeExpanded ? 350 : 55,
+                                  child: const ScheduleFinalsPage()
                               ),
                             ),
                           )
@@ -383,41 +358,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
             children: [
               Column(
                 children: [
-                  // Container(
-                  //   padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
-                  //   child: Card(
-                  //     child: Row(
-                  //       children: [
-                  //         Expanded(
-                  //           child: CupertinoButton(
-                  //             padding: EdgeInsets.zero,
-                  //             color: currTab == 0 ? SB_NAVY : null,
-                  //             onPressed: () {
-                  //               setState(() {
-                  //                 currTab = 0;
-                  //               });
-                  //               // pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-                  //             },
-                  //             child: Text("My Friends", style: TextStyle(color: currTab == 0 ? Colors.white : Theme.of(context).textTheme.button!.color)),
-                  //           ),
-                  //         ),
-                  //         Expanded(
-                  //           child: CupertinoButton(
-                  //             padding: EdgeInsets.zero,
-                  //             color: currTab == 1 ? SB_NAVY : null,
-                  //             onPressed: () {
-                  //               setState(() {
-                  //                 currTab = 1;
-                  //               });
-                  //               // pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-                  //             },
-                  //             child: Text("Requests", style: TextStyle(color: currTab == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
-                  //           ),
-                  //         )
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),

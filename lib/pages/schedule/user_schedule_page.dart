@@ -113,7 +113,6 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
   // TODO: Add finals to calendar
   void buildCalendar() {
     log("[user_schedule_page] Building calendar...");
-    lastScheduleFetch = DateTime.now();
     clearCalendar();
     for (var item in localUserScheduleItems) {
       for (var day in dayStringToInt(item.days)) {
