@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+	"errors"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/devices"
 	"github.com/go-rod/rod/lib/launcher"
@@ -34,7 +36,7 @@ func VerifyCredential(credential model.UserCredential, retry int) int {
 		page.MustElement("#fm1 > input.btn.btn-block.btn-submit").MustClick()
 		// Attempt to login to UCSB SSO
 		page.Race().Element("#duo_iframe").MustHandle(func(e *rod.Element) {
-			utils.SugarLogger.Infoln("Waiting for Duo MFA for " + credential.Username + "@ucsb.edu")
+			utils.SugarLogger.Infoln("Reached Duo MFA page for " + credential.Username + "@ucsb.edu")
 			validCredential = true
 		}).Element("#fm1 > div").MustHandle(func(e *rod.Element) {
 			utils.SugarLogger.Infoln(e.MustText())
@@ -46,6 +48,7 @@ func VerifyCredential(credential model.UserCredential, retry int) int {
 		}
 	})
 	if err != nil {
+		utils.SugarLogger.Errorln("Webdriver error occurred: " + err.Error())
 		if retry < maxRetries {
 			retry++
 			utils.SugarLogger.Infoln("WebDriver error, retrying " + strconv.Itoa(retry) + " of " + strconv.Itoa(maxRetries))
@@ -60,11 +63,12 @@ func VerifyCredential(credential model.UserCredential, retry int) int {
 // LoginGOLD uses a headless browser to login to GOLD with a user's credentials
 // Returns 0 if credentials are valid, 1 if invalid, 2 if Duo MFA failed
 // Returns the page object if successful
-func LoginGOLD(credential model.UserCredential) (int, *rod.Page) {
+func LoginGOLD(credential model.UserCredential, retry int) (int, *rod.Page) {
 	status := 0
 	validCredential := false
 	duoAuthenticated := false
 
+	maxRetries := 25
 	path, _ := launcher.LookPath()
 	url := launcher.New().
 		//Headless(false).
@@ -96,10 +100,18 @@ func LoginGOLD(credential model.UserCredential) (int, *rod.Page) {
 			status = 1
 		}
 	})
-	if err != nil {
-		if !duoAuthenticated {
-			utils.SugarLogger.Errorln("Duo MFA failed for " + credential.Username + "@ucsb.edu")
-			status = 2
+	utils.SugarLogger.Infoln("Valid Credentials: " + strconv.FormatBool(validCredential))
+	utils.SugarLogger.Infoln("Duo Authenticated: " + strconv.FormatBool(duoAuthenticated))
+	if errors.Is(err, context.DeadlineExceeded) {
+		utils.SugarLogger.Errorln(err.Error())
+		utils.SugarLogger.Errorln("Duo MFA failed for " + credential.Username + "@ucsb.edu")
+		status = 2
+	} else if err != nil {
+		utils.SugarLogger.Errorln("Webdriver error occurred: " + err.Error())
+		if retry < maxRetries {
+			retry++
+			utils.SugarLogger.Infoln("WebDriver error, retrying " + strconv.Itoa(retry) + " of " + strconv.Itoa(maxRetries))
+			return LoginGOLD(credential, retry)
 		}
 	}
 	if status != 0 {

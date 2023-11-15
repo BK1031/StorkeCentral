@@ -46,7 +46,7 @@ func FetchCoursesForUserForQuarter(c *gin.Context) {
 		return
 	}
 
-	status, page := service.LoginGOLD(creds)
+	status, page := service.LoginGOLD(creds, 0)
 	if status == 1 {
 		utils.SugarLogger.Errorln("Credentials are invalid!")
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid credentials"})
