@@ -18,6 +18,18 @@ class UserFinal {
     quarter = json["quarter"] ?? "";
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "user_id": userID,
+      "title": title,
+      "name": name,
+      "start_time": startTime.toIso8601String(),
+      "end_time": endTime.toIso8601String(),
+      "quarter": quarter,
+      "created_at": createdAt.toIso8601String()
+    };
+  }
 }
 
 

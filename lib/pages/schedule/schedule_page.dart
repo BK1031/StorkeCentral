@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:storke_central/models/quarter.dart';
-import 'package:storke_central/models/user_final.dart';
 import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/pages/schedule/schedule_finals_page.dart';
@@ -52,7 +51,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   void initState() {
     super.initState();
     getUserSchedule(selectedQuarter.id);
-    getFinals(selectedQuarter.id);
     getPasstime();
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
@@ -136,57 +134,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       buildCalendar();
       if (offlineMode) {
         Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline schedule!"));
-      }
-    }
-    trace.stop();
-  }
-
-  Future<void> getFinals(String quarter) async {
-    if (!offlineMode) {
-      try {
-        Trace trace = FirebasePerformance.instance.newTrace("getFinals()");
-        await trace.start();
-        await AuthService.getAuthToken();
-        await httpClient.get(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/$quarter/finals"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
-          print(value.body);
-          if (value.statusCode == 200) {
-            // Successfully got finals
-            setState(() {
-              userFinals = jsonDecode(value.body)["data"].map<UserFinal>((json) => UserFinal.fromJson(json)).toList();
-            });
-            // if (quarter == currentQuarter.id && userFinals.isNotEmpty) {
-            //   prefs.setStringList("USER_FINALS", userFinals.map((e) => jsonEncode(e).toString()).toList());
-            // }
-          } else {
-            log("[schedule_page] Failed to get finals: ${value.body}", LogLevel.error);
-          }
-        });
-        trace.stop();
-      } catch(err) {
-        Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get finals!"));
-        log("[schedule_page] ${err.toString()}", LogLevel.error);
-      }
-    } else {
-      log("[schedule_page] Offline mode, searching cache for finals...");
-      if (quarter == currentQuarter.id) {
-        loadOfflineFinals();
-      } else {
-        log("[schedule_page] Can't load offline finals for this quarter!", LogLevel.warn);
-        AlertService.showErrorSnackbar(context, "Can't load offline finals for this quarter!");
-      }
-    }
-  }
-
-  void loadOfflineFinals() async {
-    Trace trace = FirebasePerformance.instance.newTrace("loadOfflineFinals()");
-    await trace.start();
-    if (prefs.containsKey("USER_FINALS")) {
-      setState(() {
-        userFinals = prefs.getStringList("USER_FINALS")!.map((e) => UserFinal.fromJson(jsonDecode(e))).toList();
-      });
-      log("[schedule_page] Loaded ${userFinals.length} finals from cache.");
-      if (offlineMode) {
-        Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline finals!"));
       }
     }
     trace.stop();
@@ -325,7 +272,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                   duration: const Duration(milliseconds: 200),
                                   curve: Curves.easeInOut,
                                   padding: const EdgeInsets.all(8),
-                                  height: passtimeExpanded ? 350 : 55,
+                                  height: passtimeExpanded ? 550 : 255,
                                   child: const ScheduleFinalsPage()
                               ),
                             ),
