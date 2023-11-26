@@ -31,11 +31,11 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.5.2+4");
+Version appVersion = Version("2.6.0+1");
 Version stableVersion = Version("1.0.0+1");
 
 // String API_HOST = "https://api.storkecentr.al";
-String API_HOST = "https://a7ff-169-231-102-109.ngrok-free.app";
+String API_HOST = "https://68be-73-231-46-234.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
