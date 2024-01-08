@@ -236,7 +236,6 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).cardColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8),
         child: Column(
@@ -317,7 +316,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                     children: [
                       Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       Text(e.name, style: const TextStyle()),
-                      Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime)} - ${DateFormat("h:mm a").format(e.endTime)}", style: TextStyle(color: SB_NAVY)),
+                      Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: SB_NAVY)),
                     ],
                   )
                 )).toList(),
