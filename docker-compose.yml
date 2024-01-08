@@ -144,6 +144,16 @@ services:
     image: bk1031/sc_tepusquet
     ports:
       - "${TEPUSQUET_PORT}:${TEPUSQUET_PORT}"
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 2gb
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     environment:
       ENV: $ENV
       SERVICE_NAME: "Tepusquet"
