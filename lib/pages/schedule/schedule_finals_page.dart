@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:storke_central/models/user_final.dart';
@@ -251,7 +252,16 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(512),
                     onTap: () {
-                      fetchFinals(selectedQuarter.id);
+                      if (kIsWeb) {
+                        AlertService.showWarningDialog(
+                            context,
+                            "Finals Fetch Unavailable",
+                            "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                () {}
+                        );
+                      } else {
+                        fetchFinals(selectedQuarter.id);
+                      }
                     },
                     child: const Padding(
                       padding: EdgeInsets.all(2.0),
