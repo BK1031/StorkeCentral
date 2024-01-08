@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -105,7 +106,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
         state = 0;
         duoTimedOut = false;
       });
-      Future.delayed(const Duration(milliseconds: 1400), () {
+      Timer duoPromptTimer = Timer(const Duration(milliseconds: 1400), () {
         setState(() {
           showDuo = true;
         });
@@ -121,6 +122,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           getCourseInformation(selectedQuarter.id);
         } else {
           log("[load_schedule_page] Fetch error: ${jsonDecode(value.body)["data"]["message"]}", LogLevel.error);
+          duoPromptTimer.cancel();
           setState(() {
             state = 1;
           });
@@ -227,17 +229,25 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   Future<void> createUserSchedule(String quarter) async {
     Trace trace = FirebasePerformance.instance.newTrace("createUserSchedule()");
     await trace.start();
-    for (GoldCourse course in goldCourses) {
-      log("[load_schedule_page] Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
-      for (GoldSection section in course.sections) {
-        if (section.enrollCode == course.enrollCode || section.section == "0100") {
-          log("[load_schedule_page] [x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
-          goldSectionMap[section] = true;
-        } else {
-          log("[load_schedule_page] [ ] ${section.enrollCode}");
-          goldSectionMap[section] = false;
+    try {
+      for (GoldCourse course in goldCourses) {
+        log("[load_schedule_page] Generating stock schedule for ${course.toString()} (${course.enrollCode}) - ${course.units} units, ${course.instructionType}");
+        for (GoldSection section in course.sections) {
+          if (section.enrollCode == course.enrollCode || section.section == "0100") {
+            log("[load_schedule_page] [x] ${section.enrollCode} ${section.section == "0100" ? " (Lecture)" : ""}");
+            goldSectionMap[section] = true;
+          } else {
+            log("[load_schedule_page] [ ] ${section.enrollCode}");
+            goldSectionMap[section] = false;
+          }
         }
       }
+    } catch (err) {
+      log("[load_schedule_page] ${err.toString()}", LogLevel.error);
+      setState(() {
+        state = 0;
+      });
+      AlertService.showErrorDialog(context, "Error Creating Schedule", err.toString(), () {});
     }
     setState(() => state = 3);
     trace.stop();
@@ -352,7 +362,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
               ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
-                height: showDuo ? 200 : 0,
+                height: showDuo ? 250 : 0,
                 curve: Curves.easeInOut,
                 child: const Padding(
                   padding: EdgeInsets.all(8.0),
@@ -461,7 +471,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                           children: [
                             Icon(Icons.security),
                             Padding(padding: EdgeInsets.all(4)),
-                            Text("Important Security Information", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                            Expanded(child: Text("Important Security Information", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),)),
                           ],
                         ),
                         controlAffinity: ListTileControlAffinity.platform,
@@ -545,9 +555,9 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text("${s.enrollCode} - ${s.section == "0100" ? "Lecture" : "Section"} @ ${s.times.first.building} ${s.times.first.room}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      Text("${s.enrollCode} - ${s.section == "0100" ? "Lecture" : "Section"} @ ${s.times.isNotEmpty ? "${s.times.first.building} ${s.times.first.room}" : "TBA"}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                       // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
-                                      Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)),
+                                      s.times.isNotEmpty ? Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)) : Container(),
                                     ],
                                   ),
                                 ),

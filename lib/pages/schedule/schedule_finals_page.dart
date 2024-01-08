@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_performance/firebase_performance.dart';
@@ -96,7 +97,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
   }
 
   Future<void> fetchFinals(String quarter) async {
-    // prefs.setString("CREDENTIALS_KEY", "arzjydwigSjRj0OEit8cVWyKLmThdfRv"); // TODO: REMOVE THIS FOR DEBUG ONLY
+    prefs.setString("CREDENTIALS_KEY", "arzjydwigSjRj0OEit8cVWyKLmThdfRv"); // TODO: REMOVE THIS FOR DEBUG ONLY
     if (prefs.containsKey("CREDENTIALS_KEY")) {
       log("[schedule_finals_page] Found device key, fetching finals");
       deviceKey = prefs.getString("CREDENTIALS_KEY")!;
@@ -106,8 +107,10 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
       return;
     }
     setState(() => fetchFinalsLoading = true);
-    Future.delayed(const Duration(milliseconds: 100), () {
-      setState(() => showFinalsDuo = true);
+    Timer duoPromptTimer = Timer(const Duration(milliseconds: 1400), () {
+      setState(() {
+        showFinalsDuo = true;
+      });
     });
     try {
       Trace trace = FirebasePerformance.instance.newTrace("fetchFinals()");
@@ -124,6 +127,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
           }
         } else {
           AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch finals!");
+          duoPromptTimer.cancel();
           log("[schedule_finals_page] Failed to fetch finals: ${value.body}", LogLevel.error);
         }
       });
