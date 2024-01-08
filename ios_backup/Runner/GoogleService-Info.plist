@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>464569478608-3ll4urkmohn5qeg3j90h7fnuvlnthkgn.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.464569478608-3ll4urkmohn5qeg3j90h7fnuvlnthkgn</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>464569478608-msoktm0bpa65m42sglahlq17vuavsusi.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD5kW1KDb4twuUAHUUD9gnWy19jsx8_dK4</string>
+	<key>GCM_SENDER_ID</key>
+	<string>464569478608</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.bk1031.storkeCentral</string>
+	<key>PROJECT_ID</key>
+	<string>storke-central</string>
+	<key>STORAGE_BUCKET</key>
+	<string>storke-central.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:464569478608:ios:8e9c8391509b54d83d5dd5</string>
+</dict>
+</plist>

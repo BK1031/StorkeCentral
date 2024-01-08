@@ -34,8 +34,8 @@ late SharedPreferences prefs;
 Version appVersion = Version("2.6.0+1");
 Version stableVersion = Version("1.0.0+1");
 
-// String API_HOST = "https://api.storkecentr.al";
-String API_HOST = "https://68be-73-231-46-234.ngrok-free.app";
+String API_HOST = "https://api.storkecentr.al";
+// String API_HOST = "https://68be-73-231-46-234.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
@@ -105,7 +105,7 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = fall23;
+Quarter currentQuarter = winter24;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [fall23, winter24];
 // Quarter for the next passtime
@@ -221,31 +221,6 @@ Quarter fall22 = Quarter.fromJson({
     "2022-11-20 00:00:00.000",
     "2022-11-27 00:00:00.000",
   ]
-});
-
-Quarter summer22 = Quarter.fromJson({
-  "id": "20223",
-  "name": "Summer 2022",
-  "firstDayOfClasses": "2022-06-21 00:00:00.000",
-  "lastDayOfClasses": "2022-09-09 23:59:00.000"
-});
-Quarter spring22 = Quarter.fromJson({
-  "id": "20222",
-  "name": "Spring 2022",
-  "firstDayOfClasses": "2022-03-28 00:00:00.000",
-  "lastDayOfClasses": "2022-06-03 23:59:00.000"
-});
-Quarter winter22 = Quarter.fromJson({
-  "id": "20221",
-  "name": "Winter 2022",
-  "firstDayOfClasses": "2022-01-03 00:00:00.000",
-  "lastDayOfClasses": "2022-03-11 23:59:00.000"
-});
-Quarter fall21 = Quarter.fromJson({
-  "id": "20214",
-  "name": "Fall 2021",
-  "firstDayOfClasses": "2021-09-23 00:00:00.000",
-  "lastDayOfClasses": "2021-12-03 23:59:00.000"
 });
 
 Map<int, String> weatherCodeToIcon = {
