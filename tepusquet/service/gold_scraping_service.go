@@ -174,8 +174,16 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 		utils.SugarLogger.Infoln("Selected quarter " + quarter)
 		finalNameElements := page.MustElements("div.col-sm-5.col-xs-12")
 		var finalNames []string
+		filterWords := []string{"Contact Professor", "Course Info", "Drop", "Modify", "Remove"}
 		for _, courseElement := range finalNameElements {
-			if courseElement.MustText() != "" && !strings.Contains(courseElement.MustText(), "Drop") {
+			filtered := false
+			for _, filterWord := range filterWords {
+				if strings.Contains(courseElement.MustText(), filterWord) {
+					utils.SugarLogger.Infoln("Filtered out " + filterWord)
+					filtered = true
+				}
+			}
+			if !filtered && courseElement.MustText() != "" {
 				utils.SugarLogger.Infoln(courseElement.MustText())
 				finalNames = append(finalNames, courseElement.MustText())
 			}
@@ -183,8 +191,16 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 		utils.SugarLogger.Infoln("Found " + strconv.Itoa(len(finalNames)) + " finals")
 		finalElements := page.MustElements("div.col-sm-7.col-xs-12")
 		counter := 0
+
 		for _, courseElement := range finalElements {
-			if courseElement.MustText() != "" {
+			filtered := false
+			for _, filterWord := range filterWords {
+				if strings.Contains(courseElement.MustText(), filterWord) {
+					utils.SugarLogger.Infoln("Filtered out from final times: " + filterWord)
+					filtered = true
+				}
+			}
+			if !filtered && courseElement.MustText() != "" {
 				utils.SugarLogger.Infoln(courseElement.MustText())
 				// Monday, December 11, 2023 12:00 PM - 3:00 PM
 				finalString := courseElement.MustText()
@@ -199,13 +215,21 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 
 				// December 11, 2023 12:00 PM
 				startParseString := monthday + ", " + year + " " + startTime
-				startDate, _ := time.Parse("January 02, 2006 3:04 PM (MST)", startParseString+" ("+currentZone+")")
+				startDate, err := time.Parse("January 02, 2006 3:04 PM (MST)", startParseString+" ("+currentZone+")")
+				if err != nil {
+					utils.SugarLogger.Errorln(err.Error())
+					break
+				}
 				startDate = HandleDaylightSavings(startDate)
 				utils.SugarLogger.Infoln(startDate.String())
 
 				// December 11, 2023 3:00 PM
 				endParseString := monthday + ", " + year + " " + endTime
-				endDate, _ := time.Parse("January 02, 2006 3:04 PM (MST)", endParseString+" ("+currentZone+")")
+				endDate, err := time.Parse("January 02, 2006 3:04 PM (MST)", endParseString+" ("+currentZone+")")
+				if err != nil {
+					utils.SugarLogger.Errorln(err.Error())
+					break
+				}
 				endDate = HandleDaylightSavings(endDate)
 				utils.SugarLogger.Infoln(endDate.String())
 
