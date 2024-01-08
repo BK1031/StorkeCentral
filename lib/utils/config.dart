@@ -16,6 +16,7 @@ import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/subscribed_up_next.dart';
 import 'package:storke_central/models/user.dart';
 import 'package:storke_central/models/user_course.dart';
+import 'package:storke_central/models/user_final.dart';
 import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
 import 'package:storke_central/models/version.dart';
@@ -30,10 +31,11 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.5.2+4");
+Version appVersion = Version("2.6.0+1");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
+// String API_HOST = "https://68be-73-231-46-234.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
@@ -78,8 +80,11 @@ List<UserCourse> userCourses = [];
 List<GoldCourse> goldCourses = [];
 List<UserScheduleItem> userScheduleItems = [];
 List<Meeting> calendarMeetings = [];
-UserPasstime userPasstime = UserPasstime();
 DateTime lastScheduleFetch = DateTime.now();
+
+List<UserFinal> userFinals = [];
+
+UserPasstime userPasstime = UserPasstime();
 
 List<String> upNextUserIDs = [];
 List<SubscribedUpNext> upNextSubscriptions = [];
@@ -100,13 +105,34 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = fall23;
+Quarter currentQuarter = winter24;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [fall23];
+List<Quarter> availableQuarters = [fall23, winter24];
 // Quarter for the next passtime
-Quarter currentPassQuarter = fall23;
+Quarter currentPassQuarter = winter24;
 
 // Quarters
+Quarter winter24 = Quarter.fromJson({
+  "id": "20241",
+  "name": "Winter 2024",
+  "firstDayOfClasses": "2024-01-08 00:00:00.000",
+  "lastDayOfClasses": "2024-03-15 23:59:00.000",
+  "firstDayOfFinals": "2024-03-16 00:00:00.000",
+  "lastDayOfFinals": "2024-03-22 00:00:00.000",
+  "weeks": [
+    "2024-01-06 00:00:00.000", // Week 0
+    "2024-01-07 00:00:00.000", // Week 1
+    "2024-01-14 00:00:00.000", // Week 2
+    "2024-01-21 00:00:00.000", // Week 3
+    "2024-01-28 00:00:00.000", // Week 4
+    "2024-02-04 00:00:00.000", // Week 5
+    "2024-02-11 00:00:00.000", // Week 6
+    "2024-02-18 00:00:00.000", // Week 7
+    "2024-02-25 00:00:00.000", // Week 8
+    "2024-03-03 00:00:00.000", // Week 9
+    "2024-03-10 00:00:00.000", // Week 10
+  ]
+});
 
 Quarter fall23 = Quarter.fromJson({
   "id": "20234",
@@ -195,31 +221,6 @@ Quarter fall22 = Quarter.fromJson({
     "2022-11-20 00:00:00.000",
     "2022-11-27 00:00:00.000",
   ]
-});
-
-Quarter summer22 = Quarter.fromJson({
-  "id": "20223",
-  "name": "Summer 2022",
-  "firstDayOfClasses": "2022-06-21 00:00:00.000",
-  "lastDayOfClasses": "2022-09-09 23:59:00.000"
-});
-Quarter spring22 = Quarter.fromJson({
-  "id": "20222",
-  "name": "Spring 2022",
-  "firstDayOfClasses": "2022-03-28 00:00:00.000",
-  "lastDayOfClasses": "2022-06-03 23:59:00.000"
-});
-Quarter winter22 = Quarter.fromJson({
-  "id": "20221",
-  "name": "Winter 2022",
-  "firstDayOfClasses": "2022-01-03 00:00:00.000",
-  "lastDayOfClasses": "2022-03-11 23:59:00.000"
-});
-Quarter fall21 = Quarter.fromJson({
-  "id": "20214",
-  "name": "Fall 2021",
-  "firstDayOfClasses": "2021-09-23 00:00:00.000",
-  "lastDayOfClasses": "2021-12-03 23:59:00.000"
 });
 
 Map<int, String> weatherCodeToIcon = {

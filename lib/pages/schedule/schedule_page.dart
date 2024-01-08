@@ -6,10 +6,10 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:storke_central/models/quarter.dart';
 import 'package:storke_central/models/user_passtime.dart';
 import 'package:storke_central/models/user_schedule_item.dart';
+import 'package:storke_central/pages/schedule/schedule_finals_page.dart';
 import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
@@ -27,6 +27,8 @@ class SchedulePage extends StatefulWidget {
 }
 
 class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticKeepAliveClientMixin {
+
+  int currTab = 0;
 
   int color = 0;
   bool classesFound = true;
@@ -49,6 +51,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   void initState() {
     super.initState();
     getUserSchedule(selectedQuarter.id);
+    getPasstime();
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
@@ -113,6 +116,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       log("[schedule_page] Offline mode, searching cache for schedule...");
       if (quarter == currentQuarter.id) {
         loadOfflineSchedule();
+      } else {
+        log("[schedule_page] Can't load offline schedule for this quarter!", LogLevel.warn);
+        AlertService.showErrorSnackbar(context, "Can't load offline schedule for this quarter!");
       }
     }
   }
@@ -136,6 +142,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   Future<void> getPasstime() async {
     Trace trace = FirebasePerformance.instance.newTrace("getPasstime()");
     await trace.start();
+    await AuthService.getAuthToken();
     await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
       if (value.statusCode == 200) {
         // Successfully got passtime
@@ -143,31 +150,12 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
         });
         if (DateTime.now().difference(userPasstime.createdAt).inDays > 7) {
-          log("[schedule_page] Passtime is older than 7 days, fetching new passtime...");
-          fetchPasstime();
+          log("[schedule_page] Passtime is older than 7 days!", LogLevel.warn);
         }
       } else if (value.statusCode == 404) {
-        // Passtime not found, fetch it
-        fetchPasstime();
+        log("[schedule_page] No passtime found for this quarter.", LogLevel.warn);
       } else {
         log("[schedule_page] Failed to get passtime: ${value.body}", LogLevel.error);
-      }
-    });
-    trace.stop();
-  }
-
-  Future<void> fetchPasstime() async {
-    Trace trace = FirebasePerformance.instance.newTrace("fetchPasstime()");
-    await trace.start();
-    await httpClient.get(Uri.parse("$API_HOST/users/passtime/${currentUser.id}/${currentPassQuarter.id}/fetch"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}).then((value) async {
-      if (value.statusCode == 200) {
-        // Successfully got passtime
-        setState(() {
-          userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
-        });
-      } else {
-        AlertService.showErrorSnackbar(context, "Failed to fetch passtime!");
-        log("[schedule_page] Failed to fetch passtime: ${value.body}", LogLevel.error);
       }
     });
     trace.stop();
@@ -260,147 +248,73 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     super.build(context);
     return SafeArea(
       child: Scaffold(
-          floatingActionButton: Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Visibility(
-                      visible: (selectedQuarter == currentQuarter || selectedQuarter == currentPassQuarter) && userPasstime.passThreeStart.add(const Duration(days: 7)).isAfter(DateTime.now()) && userPasstime.userID != "",
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Card(
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: () {
-                                setState(() {
-                                  passtimeExpanded = !passtimeExpanded;
-                                });
-                              },
-                              child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  curve: Curves.easeInOut,
-                                  padding: const EdgeInsets.all(8),
-                                  height: passtimeExpanded ? 150 : 55,
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${getNextPasstime(userPasstime).keys.first} starts ${DateFormat("M/d h:mm a").format(getNextPasstime(userPasstime).values.first.toLocal())}",
-                                                  style: const TextStyle(fontSize: 14)
-                                              )
-                                            ],
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                            child: Icon(
-                                              passtimeExpanded ? Icons.expand_more_rounded : Icons.expand_less_outlined,
-                                              color: passtimeExpanded ? SB_NAVY : Colors.grey,
-                                              size: 35,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        children: passtimeExpanded ? [
-                                          const Padding(padding: EdgeInsets.all(4),),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Text("Pass 1:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passOneStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passOneEnd.toLocal())}",
-                                                  style: const TextStyle(fontSize: 16)
-                                              )
-                                            ],
-                                          ),
-                                          const Padding(padding: EdgeInsets.all(4),),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Text("Pass 2:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passTwoStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passTwoEnd.toLocal())}",
-                                                  style: const TextStyle(fontSize: 16)
-                                              )
-                                            ],
-                                          ),
-                                          const Padding(padding: EdgeInsets.all(4),),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              const Text("Pass 3:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                              Text(
-                                                  "${DateFormat("M/d h:mm a").format(userPasstime.passThreeStart.toLocal())} - ${DateFormat("M/d h:mm a").format(userPasstime.passThreeEnd.toLocal())}",
-                                                  style: const TextStyle(fontSize: 16)
-                                              )
-                                            ],
-                                          )
-                                        ] : [],
-                                      )
-                                    ],
-                                  )
-                              ),
-                            ),
-                          )
-                        ],
-                      )
-                  ),
-                ),
-                const Padding(padding: EdgeInsets.all(4),),
-                FloatingActionButton(
-                  child: const Icon(Icons.refresh),
-                  onPressed: () {
-                    if (kIsWeb) {
-                      AlertService.showWarningDialog(
-                        context,
-                        "Schedule Sync Unavailable",
-                        "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
-                        () {}
-                      );
-                    } else {
-                      router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
-                    }
-                  },
-                ),
-              ],
-            ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: SB_NAVY,
+            child: const Icon(Icons.refresh),
+            onPressed: () {
+              if (kIsWeb) {
+                AlertService.showWarningDialog(
+                  context,
+                  "Schedule Sync Unavailable",
+                  "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                  () {}
+                );
+              } else {
+                router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+              }
+            },
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-          body: Stack(
+          body: PageView(
             children: [
-              Column(
+              Stack(
                 children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Card(
-                        color: SB_NAVY,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: MediaQuery.of(context).size.width,
-                          child: selectedQuarter.getWeek(getNextWeekDay(1)) > 0 ? Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  selectedQuarter.getWeek(getNextWeekDay(1)) <= 10 ? "Week ${selectedQuarter.getWeek(getNextWeekDay(1))}" : "Finals Week",
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              const Icon(Icons.circle, color: Colors.white, size: 8,),
-                              const Padding(padding: EdgeInsets.all(8),),
-                              Expanded(
+                  Column(
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Card(
+                            color: SB_NAVY,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              width: MediaQuery.of(context).size.width,
+                              child: selectedQuarter.getWeek(getNextWeekDay(1)) > 0 ? Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      selectedQuarter.getWeek(getNextWeekDay(1)) <= 10 ? "Week ${selectedQuarter.getWeek(getNextWeekDay(1))}" : "Finals Week",
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  const Icon(Icons.circle, color: Colors.white, size: 8,),
+                                  const Padding(padding: EdgeInsets.all(8),),
+                                  Expanded(
+                                    child: DropdownButton<String>(
+                                      value: selectedQuarter.id,
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                        });
+                                        getUserSchedule(selectedQuarter.id);
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      underline: Container(),
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                      dropdownColor: SB_NAVY,
+                                      isDense: true,
+                                      alignment: Alignment.centerRight,
+                                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                                      items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                        return DropdownMenuItem<String>(
+                                            value: quarter.id,
+                                            child: Text(quarter.name)
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ],
+                              ) : Center(
                                 child: DropdownButton<String>(
                                   value: selectedQuarter.id,
                                   onChanged: (String? newValue) {
@@ -414,184 +328,166 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                                   dropdownColor: SB_NAVY,
                                   isDense: true,
-                                  alignment: Alignment.centerRight,
+                                  alignment: Alignment.center,
                                   icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
                                   items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
                                     return DropdownMenuItem<String>(
-                                        value: quarter.id,
-                                        child: Text(quarter.name)
+                                      value: quarter.id,
+                                      child: Text(quarter.name),
                                     );
                                   }).toList(),
                                 ),
                               ),
-                            ],
-                          ) : Center(
-                            child: DropdownButton<String>(
-                              value: selectedQuarter.id,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                });
-                                getUserSchedule(selectedQuarter.id);
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              underline: Container(),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              dropdownColor: SB_NAVY,
-                              isDense: true,
-                              alignment: Alignment.center,
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                return DropdownMenuItem<String>(
-                                  value: quarter.id,
-                                  child: Text(quarter.name),
-                                );
-                              }).toList(),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: SfCalendar(
-                        controller: _controller,
-                        // firstDayOfWeek: 1,
-                        view: CalendarView.week,
-                        timeSlotViewSettings: const TimeSlotViewSettings(
-                          timeIntervalHeight: 40,
-                          timeFormat: "h a",
-                          startHour: 7,
-                          endHour: 24,
-                        ),
-                        selectionDecoration: const BoxDecoration(),
-                        allowDragAndDrop: false,
-                        dataSource: MeetingDataSource(calendarMeetings),
-                        cellEndPadding: 0,
-                        headerHeight: 0,
-                        appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
-                          return InkWell(
-                            onTap: () {
-                              router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
-                            },
-                            borderRadius: BorderRadius.circular(4),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: details.appointments.first.background.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              width: details.bounds.width,
-                              height: details.bounds.height,
-                              child: Column(
-                                children: [
-                                  FittedBox(
-                                      fit: BoxFit.fitWidth,
-                                      child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
-                                  ),
-                                  FittedBox(
-                                      fit: BoxFit.fitWidth,
-                                      child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
-                                  ),
-                                ],
-                              ),
+                      Expanded(
+                        child: SfCalendar(
+                            controller: _controller,
+                            // firstDayOfWeek: 1,
+                            view: CalendarView.week,
+                            // allowViewNavigation: true,
+                            viewNavigationMode: ViewNavigationMode.none,
+                            timeSlotViewSettings: const TimeSlotViewSettings(
+                              timeIntervalHeight: 40,
+                              timeFormat: "h a",
+                              startHour: 7,
+                              endHour: 24,
                             ),
-                          );
-                        }
-                    ),
-                  ),
-                ],
-              ),
-              Visibility(
-                visible: !classesFound,
-                child: Container(
-                  color: Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: Card(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        width: 250,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.event_busy, size: 65, color: Theme.of(context).textTheme.caption!.color,),
-                            const Padding(padding: EdgeInsets.all(4),),
-                            const Text(
-                              "No Classes Found",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const Padding(padding: EdgeInsets.all(4),),
-                            const Text(
-                                "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
-                            ),
-                            const Padding(padding: EdgeInsets.all(8),),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              child: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                color: SB_NAVY,
-                                onPressed: () {
-                                  router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
+                            selectionDecoration: const BoxDecoration(),
+                            allowDragAndDrop: false,
+                            dataSource: MeetingDataSource(calendarMeetings),
+                            cellEndPadding: 0,
+                            headerHeight: 0,
+                            appointmentBuilder: (BuildContext context, CalendarAppointmentDetails details) {
+                              return InkWell(
+                                onTap: () {
+                                  router.navigateTo(context, "/schedule/view/${details.appointments.first.eventName.toString().split("\n")[0]}", transition: TransitionType.nativeModal);
                                 },
-                                child: const Text("Sync Classes", style: TextStyle(color: Colors.white),),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: !classesFound,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    children: [
-                      Card(
-                        color: SB_NAVY,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: MediaQuery.of(context).size.width,
-                          child: Center(
-                            child: DropdownButton<String>(
-                              value: selectedQuarter.id,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
-                                });
-                                getUserSchedule(selectedQuarter.id);
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              underline: Container(),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              dropdownColor: SB_NAVY,
-                              isDense: true,
-                              alignment: Alignment.center,
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
-                              items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
-                                return DropdownMenuItem<String>(
-                                  value: quarter.id,
-                                  child: Text(quarter.name),
-                                );
-                              }).toList(),
-                            ),
-                          ),
+                                borderRadius: BorderRadius.circular(4),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: details.appointments.first.background.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  width: details.bounds.width,
+                                  height: details.bounds.height,
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      children: [
+                                        FittedBox(
+                                            fit: BoxFit.fitWidth,
+                                            child: Text(details.appointments.first.eventName.toString().split("\n")[0], style: const TextStyle(color: Colors.white))
+                                        ),
+                                        FittedBox(
+                                            fit: BoxFit.fitWidth,
+                                            child: Text(details.appointments.first.eventName.toString().split("\n")[1], style: const TextStyle(color: Colors.white))
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              Visibility(
-                visible: loading,
-                child: Center(
-                  child: RefreshProgressIndicator(
-                    backgroundColor: SB_NAVY,
-                    color: Colors.white,
+                  Visibility(
+                    visible: !classesFound,
+                    child: Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: Center(
+                        child: Card(
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            width: 250,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_busy, size: 65, color: Theme.of(context).textTheme.caption!.color,),
+                                const Padding(padding: EdgeInsets.all(4),),
+                                const Text(
+                                  "No Classes Found",
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                const Padding(padding: EdgeInsets.all(4),),
+                                const Text(
+                                    "We didn't find any classes for you this week! Would you like us to try and sync your classes from GOLD?"
+                                ),
+                                const Padding(padding: EdgeInsets.all(8),),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    color: SB_NAVY,
+                                    onPressed: () {
+                                      router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal);
+                                    },
+                                    child: const Text("Sync Classes", style: TextStyle(color: Colors.white),),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  Visibility(
+                    visible: !classesFound,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        children: [
+                          Card(
+                            color: SB_NAVY,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              width: MediaQuery.of(context).size.width,
+                              child: Center(
+                                child: DropdownButton<String>(
+                                  value: selectedQuarter.id,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      selectedQuarter = availableQuarters.firstWhere((element) => element.id == newValue);
+                                    });
+                                    getUserSchedule(selectedQuarter.id);
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  underline: Container(),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                  dropdownColor: SB_NAVY,
+                                  isDense: true,
+                                  alignment: Alignment.center,
+                                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
+                                  items: availableQuarters.map<DropdownMenuItem<String>>((Quarter quarter) {
+                                    return DropdownMenuItem<String>(
+                                      value: quarter.id,
+                                      child: Text(quarter.name),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: loading,
+                    child: Center(
+                      child: RefreshProgressIndicator(
+                        backgroundColor: SB_NAVY,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const ScheduleFinalsPage()
             ],
           )
       ),

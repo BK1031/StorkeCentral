@@ -14,9 +14,10 @@ func RegisterNotificationsCronJob() {
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":alarm_clock: Starting Notifications CRON Job")
 		println("Starting Notifications CRON Job...")
 		var wg sync.WaitGroup
-		wg.Add(2)
+		wg.Add(3)
 		go service.CheckUpNextNotificationsForAllUsers(&wg)
 		go service.CheckPasstimeNotificationsForAllUsers(&wg)
+		go service.CheckFinalNotificationsForAllUsers(&wg)
 		wg.Wait()
 		println("Finished Notifications CRON Job!")
 		_, _ = service.Discord.ChannelMessageSend(config.DiscordChannel, ":white_check_mark: Finished notifications job!")
