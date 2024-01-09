@@ -78,8 +78,6 @@ func LoginGOLD(credential model.UserCredential, retry int) (int, *rod.Page) {
 	page := rod.New().ControlURL(url).MustConnect().MustPage("https://my.sa.ucsb.edu/gold/Login.aspx")
 	page.MustEmulate(devices.LaptopWithHiDPIScreen)
 
-	println(credential.Username)
-	println(credential.Password)
 	err := rod.Try(func() {
 		page.MustElement("#pageContent_loginButtonCurrentStudent").MustClick()
 		page.MustElement("#username").MustInput(credential.Username)
@@ -97,7 +95,7 @@ func LoginGOLD(credential model.UserCredential, retry int) (int, *rod.Page) {
 		if validCredential {
 			// Wait for Duo MFA
 			page.MustWaitRequestIdle()
-			time.Sleep(5 * time.Second)
+			time.Sleep(1500 * time.Millisecond)
 			utils.SugarLogger.Infoln("clicking duo")
 			// fuck duo man stupid cringe way to click the send push button
 			page.MustElement("body > header > nav").MustClick()
@@ -105,7 +103,7 @@ func LoginGOLD(credential model.UserCredential, retry int) (int, *rod.Page) {
 			page.KeyActions().Press(input.Enter).MustDo()
 			utils.SugarLogger.Infoln("sent duo push")
 
-			page.Timeout(45 * time.Second).Race().Element("#MainForm > header > div > div > div > div > div.search-bundle-wrapper.header-functions.col-sm-6.col-md-5.col-md-offset-1.col-lg-4.col-lg-offset-3.hidden-xs > div > div:nth-child(4) > a").MustHandle(func(e *rod.Element) {
+			page.Timeout(45 * time.Second).Race().Element("#MainForm > header > div > div.navbar-header.navbar-fixed-top").MustHandle(func(e *rod.Element) {
 				utils.SugarLogger.Infoln("Logged in successfully as " + credential.Username + "@ucsb.edu")
 				duoAuthenticated = true
 			}).MustDo()
