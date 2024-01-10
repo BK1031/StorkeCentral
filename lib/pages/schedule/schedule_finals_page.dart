@@ -59,7 +59,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             setState(() {
               userFinals = jsonDecode(value.body)["data"].map<UserFinal>((json) => UserFinal.fromJson(json)).toList();
             });
-            if (quarter == currentQuarter.id && userFinals.isNotEmpty) {
+            if (quarter == currentQuarter.id) {
               prefs.setStringList("USER_FINALS", userFinals.map((e) => jsonEncode(e).toString()).toList());
             }
           } else {
@@ -126,9 +126,10 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
           if (quarter == currentQuarter.id && userFinals.isNotEmpty) {
             prefs.setStringList("USER_FINALS", userFinals.map((e) => jsonEncode(e).toString()).toList());
           }
+          Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Fetched ${userFinals.length} finals!"));
         } else {
-          AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch finals!");
           duoPromptTimer.cancel();
+          AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch finals!");
           log("[schedule_finals_page] Failed to fetch finals: ${value.body}", LogLevel.error);
         }
       });
@@ -136,6 +137,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
     } catch(err) {
       Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get finals!"));
       log("[schedule_finals_page] ${err.toString()}", LogLevel.error);
+      duoPromptTimer.cancel();
       setState(() {
         fetchFinalsLoading = false;
         showFinalsDuo = false;
@@ -201,8 +203,10 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
       return;
     }
     setState(() => fetchPasstimesLoading = true);
-    Future.delayed(const Duration(milliseconds: 1400), () {
-      setState(() => showPasstimesDuo = true);
+    Timer duoPromptTimer = Timer(const Duration(milliseconds: 1400), () {
+      setState(() {
+        showPasstimesDuo = true;
+      });
     });
     try {
       Trace trace = FirebasePerformance.instance.newTrace("fetchPasstime()");
@@ -214,7 +218,9 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             userPasstime = UserPasstime.fromJson(jsonDecode(value.body)["data"]);
           });
           prefs.setString("USER_PASSTIME", jsonEncode(userPasstime).toString());
+          Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Fetched passtimes!"));
         } else {
+          duoPromptTimer.cancel();
           AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch passtime!");
           log("[schedule_finals_page] Failed to fetch passtime: ${value.body}", LogLevel.error);
         }
@@ -223,6 +229,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
     } catch(err) {
       Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get passtimes!"));
       log("[schedule_finals_page] ${err.toString()}", LogLevel.error);
+      duoPromptTimer.cancel();
       setState(() {
         fetchPasstimesLoading = false;
         showPasstimesDuo = false;
@@ -286,7 +293,6 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                     ),
                   ) : SizedBox(
                     width: double.infinity,
-                    height: 35,
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
                       color: SB_NAVY,
@@ -339,7 +345,6 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             const Padding(padding: EdgeInsets.all(4)),
             SizedBox(
               width: double.infinity,
-              height: 35,
               child: CupertinoButton(
                 padding: EdgeInsets.zero,
                 color: SB_NAVY,
