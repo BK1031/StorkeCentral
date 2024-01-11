@@ -252,66 +252,71 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           floatingActionButton: Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 16.0, right: 8.0),
             child: Row(
-              mainAxisAlignment: currTab == 0 ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+              mainAxisAlignment: currTab == 0 ? MainAxisAlignment.end : MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Visibility(
-                  visible: currTab == 0,
-                  child: FloatingActionButton(
-                    backgroundColor: SB_NAVY,
-                    child: const Icon(Icons.refresh),
-                    onPressed: () {
-                      if (kIsWeb) {
-                        AlertService.showWarningDialog(
-                            context,
-                            "Schedule Sync Unavailable",
-                            "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
-                                () {}
-                        );
-                      } else {
-                        router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
-                      }
-                    },
-                  ),
-                ),
-                currTab == 1 ? Card(
-                    color: SB_NAVY,
-                    elevation: 4,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () {
-                        _pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
-                            Padding(padding: EdgeInsets.all(4)),
-                            Text("Schedule", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),),
-                          ],
-                        ),
-                      ),
-                    )
-                ) : Card(
-                  color: SB_NAVY,
-                  elevation: 4,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () {
-                      _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
-                      child: const Row(
-                        children: [
-                          Text("Finals & Registration", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                          Padding(padding: EdgeInsets.all(4)),
-                          Icon(Icons.arrow_forward_ios_rounded, color: Colors.white)
-                        ],
+                Column(
+                  children: [
+                    Visibility(
+                      visible: currTab == 0,
+                      child: FloatingActionButton(
+                        backgroundColor: SB_NAVY,
+                        child: const Icon(Icons.refresh),
+                        onPressed: () {
+                          if (kIsWeb) {
+                            AlertService.showWarningDialog(
+                                context,
+                                "Schedule Sync Unavailable",
+                                "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                    () {}
+                            );
+                          } else {
+                            router.navigateTo(context, "/schedule/load", transition: TransitionType.nativeModal).then((value) => buildCalendar());
+                          }
+                        },
                       ),
                     ),
-                  )
+                    const Padding(padding: EdgeInsets.all(4)),
+                    currTab == 1 ? Card(
+                        color: SB_NAVY,
+                        elevation: 4,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            _pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 8),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.arrow_back_ios_rounded, color: Colors.white,),
+                                Padding(padding: EdgeInsets.all(4)),
+                                Text("Schedule", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),),
+                              ],
+                            ),
+                          ),
+                        )
+                    ) : Card(
+                        color: SB_NAVY,
+                        elevation: 4,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
+                            child: const Row(
+                              children: [
+                                Text("Finals & Registration", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                                Padding(padding: EdgeInsets.all(4)),
+                                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white)
+                              ],
+                            ),
+                          ),
+                        )
+                    ),
+                  ],
                 ),
               ],
             ),
