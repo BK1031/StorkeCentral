@@ -10,7 +10,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
@@ -63,7 +62,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (AuthService.verifyUserSession(context, "/home")) {
       checkAppVersion();
       _determinePosition();
-      if (!kIsWeb) _registerFirebaseDynamicLinkListener();
       // if (!kIsWeb) _registerOneSignalListeners();
       firebaseAnalytics();
       fetchBuildings();
@@ -137,7 +135,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
               }
           );
         }
-      } else if (currentUser.roles.where((r) => r.role == "PRIVATE_BETA").isNotEmpty && appVersion.getVersionCode() < beta.getVersionCode()) {
+      } else if (currentUser.hasRole("PRIVATE_BETA") && appVersion.getVersionCode() < beta.getVersionCode()) {
         log("[tab_bar_controller] App is behind beta version (${appVersion.toString()} < ${beta.toString()})");
         if (!kIsWeb) {
           CoolAlert.show(
@@ -168,26 +166,6 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
         currentPosition = position;
       });
     }
-  }
-
-  void _registerFirebaseDynamicLinkListener() {
-    // Handle initial link if app is opened from a dynamic link
-    if (launchDynamicLink != "") {
-      Future.delayed(const Duration(milliseconds: 900), () {
-        router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
-        launchDynamicLink = "";
-      });
-    }
-    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      launchDynamicLink = dynamicLinkData.link.toString();
-      log("[tab_bar_controller] Firebase Dynamic Link received: ${dynamicLinkData.link}");
-      Future.delayed(const Duration(milliseconds: 200), () {
-        router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
-        launchDynamicLink = "";
-      });
-    }).onError((error) {
-      log("[tab_bar_controller] Firebase Dynamic Link error: $error", LogLevel.error);
-    });
   }
 
   // void _registerOneSignalListeners() {

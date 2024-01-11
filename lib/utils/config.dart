@@ -55,8 +55,6 @@ bool demoMode = false;
 bool appUnderReview = false;
 String appReviewUserID = "RPrcOUuQPrQEcL7vIF0BHTNxojY2";
 
-String launchDynamicLink = "";
-
 User currentUser = User();
 List<Friend> friends = [];
 List<Friend> requests = [];
