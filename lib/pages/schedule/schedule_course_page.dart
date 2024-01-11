@@ -143,15 +143,19 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
   }
 
   String to12HourTime(String time) {
-    int hour = int.parse(time.split(":")[0]);
-    int minute = int.parse(time.split(":")[1]);
-    String ampm = "AM";
-    if (hour == 12) ampm = "PM";
-    if (hour > 12) {
-      hour -= 12;
-      ampm = "PM";
+    try {
+      int hour = int.parse(time.split(":")[0]);
+      int minute = int.parse(time.split(":")[1]);
+      String ampm = "AM";
+      if (hour == 12) ampm = "PM";
+      if (hour > 12) {
+        hour -= 12;
+        ampm = "PM";
+      }
+      return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
+    } catch(err) {
+      return time;
     }
-    return "$hour:${minute.toString().padLeft(2, "0")} $ampm";
   }
 
   void _onMapCreated(MapboxMapController controller) {
@@ -172,9 +176,9 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(scheduleItems.first.description.split("\n")[0], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Text(scheduleItems.isEmpty ? "Class Not Found" : scheduleItems.first.description.split("\n")[0], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const Padding(padding: EdgeInsets.all(4),),
-              Text(scheduleItems.first.description.split("\n")[1], style: const TextStyle(fontSize: 16)),
+              Text(scheduleItems.isEmpty ? "No class description found." : scheduleItems.first.description.split("\n")[1], style: const TextStyle(fontSize: 16)),
               const Padding(padding: EdgeInsets.all(4),),
               SizedBox(
                 height: 250,

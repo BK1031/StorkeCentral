@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             setState(() {
               userFinals = jsonDecode(value.body)["data"].map<UserFinal>((json) => UserFinal.fromJson(json)).toList();
             });
-            if (quarter == currentQuarter.id && userFinals.isNotEmpty) {
+            if (quarter == currentQuarter.id) {
               prefs.setStringList("USER_FINALS", userFinals.map((e) => jsonEncode(e).toString()).toList());
             }
           } else {
@@ -98,7 +99,6 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
   }
 
   Future<void> fetchFinals(String quarter) async {
-    prefs.setString("CREDENTIALS_KEY", "arzjydwigSjRj0OEit8cVWyKLmThdfRv"); // TODO: REMOVE THIS FOR DEBUG ONLY
     if (prefs.containsKey("CREDENTIALS_KEY")) {
       log("[schedule_finals_page] Found device key, fetching finals");
       deviceKey = prefs.getString("CREDENTIALS_KEY")!;
@@ -126,9 +126,10 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
           if (quarter == currentQuarter.id && userFinals.isNotEmpty) {
             prefs.setStringList("USER_FINALS", userFinals.map((e) => jsonEncode(e).toString()).toList());
           }
+          Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Fetched ${userFinals.length} finals!"));
         } else {
-          AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch finals!");
           duoPromptTimer.cancel();
+          AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch finals!");
           log("[schedule_finals_page] Failed to fetch finals: ${value.body}", LogLevel.error);
         }
       });
@@ -136,6 +137,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
     } catch(err) {
       Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get finals!"));
       log("[schedule_finals_page] ${err.toString()}", LogLevel.error);
+      duoPromptTimer.cancel();
       setState(() {
         fetchFinalsLoading = false;
         showFinalsDuo = false;
@@ -201,8 +203,10 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
       return;
     }
     setState(() => fetchPasstimesLoading = true);
-    Future.delayed(const Duration(milliseconds: 1400), () {
-      setState(() => showPasstimesDuo = true);
+    Timer duoPromptTimer = Timer(const Duration(milliseconds: 1400), () {
+      setState(() {
+        showPasstimesDuo = true;
+      });
     });
     try {
       Trace trace = FirebasePerformance.instance.newTrace("fetchPasstime()");
@@ -214,7 +218,9 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             userPasstime = UserPasstime.fromJson(jsonDecode(value.body)["data"]);
           });
           prefs.setString("USER_PASSTIME", jsonEncode(userPasstime).toString());
+          Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Fetched passtimes!"));
         } else {
+          duoPromptTimer.cancel();
           AlertService.showErrorSnackbar(context, jsonDecode(value.body)["data"]["message"] ?? "Failed to fetch passtime!");
           log("[schedule_finals_page] Failed to fetch passtime: ${value.body}", LogLevel.error);
         }
@@ -223,6 +229,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
     } catch(err) {
       Future.delayed(Duration.zero, () => AlertService.showErrorSnackbar(context, "Failed to get passtimes!"));
       log("[schedule_finals_page] ${err.toString()}", LogLevel.error);
+      duoPromptTimer.cancel();
       setState(() {
         fetchPasstimesLoading = false;
         showPasstimesDuo = false;
@@ -246,26 +253,34 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("${selectedQuarter.name} Finals", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
-                  color: SB_NAVY,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(512),
-                    onTap: () {
-                      if (kIsWeb) {
-                        AlertService.showWarningDialog(
-                            context,
-                            "Finals Fetch Unavailable",
-                            "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
-                                () {}
-                        );
-                      } else {
-                        fetchFinals(selectedQuarter.id);
-                      }
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(2.0),
-                      child: Icon(Icons.refresh_rounded, color: Colors.white),
+                Visibility(
+                  visible: userFinals.isNotEmpty,
+                  child: fetchFinalsLoading ? Center(
+                    child: RefreshProgressIndicator(
+                      backgroundColor: SB_NAVY,
+                      color: Colors.white,
+                    ),
+                  ) : Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
+                    color: SB_NAVY,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(512),
+                      onTap: () {
+                        if (kIsWeb) {
+                          AlertService.showWarningDialog(
+                              context,
+                              "Finals Fetch Unavailable",
+                              "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                  () {}
+                          );
+                        } else {
+                          fetchFinals(selectedQuarter.id);
+                        }
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(Icons.refresh_rounded, color: Colors.white),
+                      ),
                     ),
                   ),
                 )
@@ -286,13 +301,21 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                     ),
                   ) : SizedBox(
                     width: double.infinity,
-                    height: 35,
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
                       color: SB_NAVY,
                       child: const Text("Fetch Finals"),
                       onPressed: () {
-                        fetchFinals(selectedQuarter.id);
+                        if (kIsWeb) {
+                          AlertService.showWarningDialog(
+                              context,
+                              "Finals Fetch Unavailable",
+                              "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                  () {}
+                          );
+                        } else {
+                          fetchFinals(selectedQuarter.id);
+                        }
                       },
                     ),
                   ),
@@ -301,7 +324,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             ),
             AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              height: showFinalsDuo ? 200 : 0,
+              height: showFinalsDuo ? 250 : 0,
               curve: Curves.easeInOut,
               child: const Padding(
                 padding: EdgeInsets.all(8.0),
@@ -321,88 +344,157 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: userFinals.map((e) => Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(e.name, style: const TextStyle()),
-                      Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: SB_NAVY)),
-                    ],
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      router.navigateTo(context, "/schedule/view/${e.title}", transition: TransitionType.nativeModal);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(e.name, style: const TextStyle()),
+                                Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: SB_NAVY)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey)
+                        ],
+                      ),
+                    ),
                   )
                 )).toList(),
               ),
             ),
             const Padding(padding: EdgeInsets.all(8)),
-            Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Visibility(
+                    visible: userPasstime.userID != "",
+                    child: fetchPasstimesLoading ? Center(
+                      child: RefreshProgressIndicator(
+                        backgroundColor: SB_NAVY,
+                        color: Colors.white,
+                      ),
+                    ) : Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
+                      color: SB_NAVY,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(512),
+                        onTap: () {
+                          if (kIsWeb) {
+                            AlertService.showWarningDialog(
+                                context,
+                                "Passtime Fetch Unavailable",
+                                "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                    () {}
+                            );
+                          } else {
+                            fetchPasstime();
+                          }
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Icon(Icons.refresh_rounded, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  )
+                ]
+            ),
             const Padding(padding: EdgeInsets.all(4)),
-            const Text("No passtimes found for you."),
-            const Padding(padding: EdgeInsets.all(4)),
-            SizedBox(
-              width: double.infinity,
-              height: 35,
-              child: CupertinoButton(
-                padding: EdgeInsets.zero,
-                color: SB_NAVY,
-                child: const Text("Fetch Passtimes"),
-                onPressed: () {
-                  fetchPasstime();
-                },
+            Visibility(
+              visible: userPasstime.userID == "",
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("No passtimes found for you this quarter."),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  fetchPasstimesLoading ? Center(
+                    child: RefreshProgressIndicator(
+                      backgroundColor: SB_NAVY,
+                      color: Colors.white,
+                    ),
+                  ) : SizedBox(
+                    width: double.infinity,
+                    child: CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      color: SB_NAVY,
+                      child: const Text("Fetch Passtimes"),
+                      onPressed: () {
+                        if (kIsWeb) {
+                          AlertService.showWarningDialog(
+                              context,
+                              "Passtime Fetch Unavailable",
+                              "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                  () {}
+                          );
+                        } else {
+                          fetchPasstime();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              height: showPasstimesDuo ? 250 : 0,
+              curve: Curves.easeInOut,
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      DuoCard(),
+                      Padding(padding: EdgeInsets.all(4)),
+                      Text("You should have received a Duo notification like the one above. Please approve it to allow us to fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                ),
               ),
             ),
             Visibility(
               visible: userPasstime.userID != "",
               child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Pass 1:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passOneStart.toLocal()), style: const TextStyle()),
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passOneEnd.toLocal()), style: const TextStyle(color: Colors.grey)),
-                          ],
+                children: [1, 2, 3].map((e) => Card(
+                  color: userPasstime.getCurrentPasstime() == e ? SB_NAVY : Theme.of(context).cardColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Pass $e:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                DateFormat("M/dd/yyyy hh:mm a").format(userPasstime.getPasstime(e)[0].toLocal()),
+                                style: TextStyle(color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)
+                              ),
+                              Text(
+                                DateFormat("M/dd/yyyy hh:mm a").format(userPasstime.getPasstime(e)[1].toLocal()),
+                                style: TextStyle(color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Padding(padding: EdgeInsets.all(4)),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Pass 2:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passTwoStart.toLocal()), style: const TextStyle()),
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passTwoEnd.toLocal()), style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Padding(padding: EdgeInsets.all(4)),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Pass 3:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passThreeStart.toLocal()), style: const TextStyle()),
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passThreeEnd.toLocal()), style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                ],
+                )).toList(),
               ),
             ),
+            const Padding(padding: EdgeInsets.all(32)),
           ],
         ),
       ),

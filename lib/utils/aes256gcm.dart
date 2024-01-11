@@ -16,7 +16,8 @@ class Aes256Gcm {
   static String keygen(int length) {
     const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     Random rnd = Random.secure();
-    return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+    // return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
+    return "arzjydwigSjRj0OEit8cVWyKLmThdfRv"; // TODO: REMOVE THIS FOR DEBUG ONLY
   }
 
   static String encrypt(String plaintext, String key) {

@@ -35,7 +35,6 @@ Version appVersion = Version("2.6.1+2");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
-// String API_HOST = "https://68be-73-231-46-234.ngrok-free.app";
 
 String SC_API_KEY = "sc-api-key";
 String SC_AUTH_TOKEN = "sc-auth-token";
