@@ -4,10 +4,8 @@ import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cool_alert/cool_alert.dart';
-import 'package:extended_image/extended_image.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -16,7 +14,6 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:storke_central/models/user.dart';
@@ -25,7 +22,6 @@ import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -42,14 +38,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final PageController _pageController = PageController();
   User registerUser = User();
   bool validUsername = true;
-
-  bool requireInvite = false;
-  String inviteCode = "";
-  bool validInvite = false;
-  DateTime expires = DateTime.now();
-  int codeCap = 5;
-  List<String> invitedUsers = [];
-  User invitedBy = User();
 
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
@@ -75,14 +63,6 @@ class _RegisterPageState extends State<RegisterPage> {
   initState() {
     super.initState();
     checkAppUnderReview();
-    checkAppInviteRequired();
-    _registerFirebaseDynamicLinkListener();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (ModalRoute.of(context)!.settings.name!.contains("?invite=")) {
-        inviteCode = ModalRoute.of(context)!.settings.name!.split("?invite=")[1];
-        verifyInvite();
-      }
-    });
   }
 
   @override
@@ -101,34 +81,6 @@ class _RegisterPageState extends State<RegisterPage> {
         log("[registration_page] App is currently under review, features may be disabled when logged in anonymously", LogLevel.warn);
       }
     });
-  }
-
-  void checkAppInviteRequired() {
-    FirebaseFirestore.instance.doc("meta/invite").get().then((value) {
-      setState(() {
-        requireInvite = value.get("require");
-      });
-      if (requireInvite) {
-        log("[registration_page] Invite codes are required for new accounts!", LogLevel.warn);
-      }
-    });
-  }
-
-  void _registerFirebaseDynamicLinkListener() {
-    // Additional handler just for invite links since `initialLink` doesn't work reliably on iOS
-    if (!kIsWeb) {
-      _dynamicLinkSubscription =
-          FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-            log("[registration_page] Firebase Dynamic Link received: ${dynamicLinkData.link}");
-            if (dynamicLinkData.link.toString().contains("?invite=")) {
-              inviteCode = dynamicLinkData.link.toString().split("?invite=")[1];
-              verifyInvite();
-            }
-          });
-      _dynamicLinkSubscription?.onError((error) {
-        log("[registration_page] Firebase Dynamic Link error: $error", LogLevel.error);
-      });
-    }
   }
 
   Future<void> loginGoogle() async {
@@ -171,11 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 firstNameController.text = registerUser.firstName;
                 lastNameController.text = registerUser.lastName;
                 emailController.text = registerUser.email;
-                if (!requireInvite || (validInvite && DateTime.now().isBefore(expires) && invitedUsers.length < codeCap)) {
-                  _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                } else {
-                  _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                }
+                _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
               }
             }
           });
@@ -190,47 +138,6 @@ class _RegisterPageState extends State<RegisterPage> {
       Future.delayed(Duration.zero, () {
         AlertService.showErrorDialog(context, "Google Sign-in Error", err.toString(), () {});
       });
-    }
-  }
-
-  void verifyInvite() {
-    try {
-      FirebaseFirestore.instance.doc("beta/$inviteCode").get().then((value) async {
-        if (value.exists) {
-          setState(() {
-            expires = value.get("expires").toDate();
-            expires = expires.toLocal();
-            codeCap = value.get("cap");
-            validInvite = true;
-          });
-          invitedUsers.clear();
-          value.get("uses").forEach((element) {
-            invitedUsers.add(element.toString());
-          });
-          // await AuthService.getAuthToken();
-          var response = await http.get(Uri.parse("$API_HOST/users/${value.get("createdBy")}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
-          if (response.statusCode == 200) {
-            setState(() {
-              invitedBy = User.fromJson(jsonDecode(response.body)["data"]);
-            });
-          }
-        } else {
-          setState(() => validInvite = false);
-        }
-      });
-    } catch (err) {
-      // Invalid code
-      setState(() => validInvite = false);
-    }
-  }
-
-  void registerInviteCode() {
-    try {
-      FirebaseFirestore.instance.doc("beta/$inviteCode").update({
-        "uses": FieldValue.arrayUnion([registerUser.id])
-      });
-    } catch (err) {
-      log("[registration_page] $err", LogLevel.error);
     }
   }
 
@@ -376,9 +283,6 @@ class _RegisterPageState extends State<RegisterPage> {
         await AuthService.getAuthToken();
         var createUser = await http.post(Uri.parse("$API_HOST/users/${registerUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(registerUser));
         FirebaseAnalytics.instance.logSignUp(signUpMethod: "Google");
-        if (requireInvite) {
-          registerInviteCode();
-        }
         if (createUser.statusCode == 200) {
           log("[registration_page] User created successfully");
           Future.delayed(Duration.zero, () {
@@ -503,215 +407,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: validInvite && requireInvite ? 150 : 0,
-            child: Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
-                      child: Text(
-                        "Invited By",
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            child: ExtendedImage.network(
-                              invitedBy.profilePictureURL,
-                              height: 50,
-                              width: 50,
-                              fit: BoxFit.cover,
-                              borderRadius: const BorderRadius.all(Radius.circular(125)),
-                              shape: BoxShape.rectangle,
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "${invitedBy.firstName} ${invitedBy.lastName}",
-                                  style: const TextStyle(fontSize: 18),
-                                ),
-                                Text(
-                                  "@${invitedBy.userName}",
-                                  style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
-                                )
-                              ],
-                            ),
-                          ),
-                          Text(
-                            "${invitedUsers.length}/$codeCap",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: invitedUsers.length >= codeCap ? SB_RED : SB_GREEN),
-                          )
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: DateTime.now().isBefore(expires),
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
-                          child: Text(
-                            "Invite code expires ${DateFormat("MMMMd").format(expires)} (in ${timeago.format(expires, locale: "en_short", allowFromNow: true)})",
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Visibility(
-                      visible: DateTime.now().isAfter(expires),
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
-                          child: Text(
-                            "Invite code expired ${DateFormat("MMMMd").format(expires)} (${timeago.format(expires, locale: "en_short", allowFromNow: true)} ago)",
-                            style: TextStyle(fontSize: 16, color: SB_RED),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                )
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildBetaPage(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text("Enter your invite code to get started.", style: TextStyle(fontSize: 18),),
-          TextField(
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              hintText: "XXX-XXX",
-            ),
-            textCapitalization: TextCapitalization.characters,
-            keyboardType: TextInputType.text,
-            autocorrect: false,
-            style: const TextStyle(fontSize: 25),
-            onChanged: (input) {
-              inviteCode = input;
-              const duration = Duration(milliseconds: 800);
-              if (searchOnStoppedTyping != null) {
-                setState(() => searchOnStoppedTyping?.cancel());
-              }
-              setState(() => searchOnStoppedTyping = Timer(duration, () {
-                if (inviteCode != "") verifyInvite();
-              }));
-            },
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: validInvite ? 150 : 0,
-            child: Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
-                    child: Text(
-                      "Invited By",
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          child: ExtendedImage.network(
-                            invitedBy.profilePictureURL,
-                            height: 50,
-                            width: 50,
-                            fit: BoxFit.cover,
-                            borderRadius: const BorderRadius.all(Radius.circular(125)),
-                            shape: BoxShape.rectangle,
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "${invitedBy.firstName} ${invitedBy.lastName}",
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                              Text(
-                                "@${invitedBy.userName}",
-                                style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
-                              )
-                            ],
-                          ),
-                        ),
-                        Text(
-                          "${invitedUsers.length}/$codeCap",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: invitedUsers.length >= codeCap ? SB_RED : SB_GREEN),
-                        )
-                      ],
-                    ),
-                  ),
-                  Visibility(
-                    visible: DateTime.now().isBefore(expires),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
-                        child: Text(
-                          "Invite code expires ${DateFormat("MMMMd").format(expires)} (in ${timeago.format(expires, locale: "en_short", allowFromNow: true)})",
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                    visible: DateTime.now().isAfter(expires),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
-                        child: Text(
-                          "Invite code expired ${DateFormat("MMMMd").format(expires)} (${timeago.format(expires, locale: "en_short", allowFromNow: true)} ago)",
-                          style: TextStyle(fontSize: 16, color: SB_RED),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              )
-            ),
-          ),
-          const Padding(padding: EdgeInsets.all(8),),
-          Visibility(
-            visible: validInvite && DateTime.now().isBefore(expires) && invitedUsers.length < codeCap,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: CupertinoButton.filled(
-                child: const Text("Next"),
-                onPressed: () {
-                  _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-                },
-              ),
-            ),
-          )
         ],
       ),
     );
@@ -770,7 +465,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: const Text("Next"),
                   onPressed: () {
                     if (validUsername && registerUser.userName != "") {
-                      _pageController.animateToPage(3, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                      _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                     } else {
                       CoolAlert.show(
                           context: context,
@@ -909,7 +604,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: () {
                     if (validUsername && registerUser.userName != "") {
                       if (registerUser.firstName != "" && registerUser.lastName != "") {
-                        _pageController.animateToPage(4, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                        _pageController.animateToPage(3, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                       }
                       else {
                         CoolAlert.show(
@@ -933,7 +628,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           confirmBtnText: "OK",
                           onConfirmBtnTap: () {
                             router.pop(context);
-                            _pageController.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                            _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
                           }
                       );
                     }
@@ -1098,7 +793,6 @@ class _RegisterPageState extends State<RegisterPage> {
               controller: _pageController,
               children: [
                 buildPage1(context),
-                buildBetaPage(context),
                 buildPage2(context),
                 buildPage3(context),
                 buildPage4(context)

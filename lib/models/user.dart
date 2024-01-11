@@ -42,6 +42,15 @@ class User {
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
 
+  bool hasRole(String role) {
+    for (int i = 0; i < roles.length; i++) {
+      if (roles[i].role == role) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,

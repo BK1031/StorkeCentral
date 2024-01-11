@@ -155,7 +155,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                 ),
               ),
               Visibility(
-                visible: !demoMode,
+                visible: currentUser.hasRole("PUBLIC_BETA_PARTICIPANT"),
                 child: Container(
                   padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
                   child: Card(

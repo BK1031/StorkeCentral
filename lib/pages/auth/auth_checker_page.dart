@@ -5,10 +5,8 @@ import 'dart:convert';
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:storke_central/models/building.dart';
@@ -41,24 +39,13 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
   @override
   void initState() {
     super.initState();
-    checkInitialDynamicLink().then((_) {
-      checkServerStatus().then((value) => checkAuthState());
-    });
+    checkServerStatus().then((value) => checkAuthState());
   }
 
   @override
   void dispose() {
     super.dispose();
     _fbAuthSubscription?.cancel();
-  }
-
-  Future<void> checkInitialDynamicLink() async {
-    if (!kIsWeb) {
-      final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
-      if (initialLink != null) {
-        launchDynamicLink = initialLink.link.toString();
-      }
-    }
   }
 
   Future<void> checkServerStatus() async {
@@ -89,14 +76,6 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
       if (user == null) {
         // Not logged in
         if (!offlineMode) {
-          if (launchDynamicLink.contains("/#/register")) {
-            Future.delayed(const Duration(milliseconds: 0), () {
-              router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
-              launchDynamicLink = "";
-            });
-            trace.stop();
-            return;
-          }
           router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
           trace.stop();
           return;
@@ -132,14 +111,6 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
               await AuthService.getUser(user.uid);
               if (currentUser.id == "") {
                 // Failed to get user data from server, go to register page
-                if (launchDynamicLink.contains("/#/register")) {
-                  Future.delayed(const Duration(milliseconds: 0), () {
-                    router.navigateTo(context, launchDynamicLink.split("/#")[1], transition: TransitionType.native);
-                    launchDynamicLink = "";
-                  });
-                  trace.stop();
-                  return;
-                }
                 router.navigateTo(context, "/register", transition: TransitionType.fadeIn, replace: true, clearStack: true);
                 trace.stop();
                 return;

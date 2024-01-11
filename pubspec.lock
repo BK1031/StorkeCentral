@@ -313,22 +313,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
-  firebase_dynamic_links:
-    dependency: "direct main"
-    description:
-      name: firebase_dynamic_links
-      sha256: c604cebcc4c2baf978a8c286ab618d8472aaa813497ab4002cb968cd73b03ed8
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.3.5"
-  firebase_dynamic_links_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_dynamic_links_platform_interface
-      sha256: "2a6f77434fcb36c8409d29785fee45a262deffc9d36205a81cbe0093802e72bd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.6+5"
   firebase_performance:
     dependency: "direct main"
     description:

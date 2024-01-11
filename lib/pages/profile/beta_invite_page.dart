@@ -1,24 +1,17 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:fluro/fluro.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:storke_central/models/user.dart';
-import 'package:storke_central/utils/alert_service.dart';
 import 'package:storke_central/utils/auth_service.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/logger.dart';
 import 'package:storke_central/utils/theme.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 class BetaInvitePage extends StatefulWidget {
   const BetaInvitePage({Key? key}) : super(key: key);
@@ -46,56 +39,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   @override
   void initState() {
     super.initState();
-    getExistingCode();
     getPreviousCodes();
-  }
-
-  void getExistingCode() {
-    FirebaseFirestore.instance.doc("beta/users").get().then((value) {
-      try {
-        log("[beta_invite_page] Found existing invite code: ${value.get(currentUser.id)}");
-        setState(() {
-          inviteCode = value.get(currentUser.id);
-        });
-        FirebaseFirestore.instance.doc("beta/$inviteCode").get().then((value) async {
-          setState(() {
-            inviteURL = value.get("url");
-            expires = value.get("expires").toDate();
-            expires = expires.toLocal();
-            codeCap = value.get("cap");
-          });
-          if (expires.isBefore(DateTime.now())) {
-            log("[beta_invite_page] Invite code has expired, generating new code...");
-            if (!kIsWeb) {
-              setState(() {
-                codeCap = 5;
-                inviteCode = generateInviteCode();
-                expires = DateTime.now().add(const Duration(days: 7));
-              });
-              await generateInviteLink().then((value) => uploadNewCode());
-            } else {
-              AlertService.showInfoSnackbar(context, "Unfortunately, we cannot generate an invite code for you on the web. Please try again in our mobile app.");
-            }
-          }
-          value.get("uses").forEach((element) {
-            log("[beta_invite_page] Adding user $element to invited users list");
-            addUserToInvitedList(element.toString());
-          });
-        });
-      } catch (err) {
-        // No existing code
-        if (!kIsWeb) {
-          setState(() {
-            codeCap = 5;
-            inviteCode = generateInviteCode();
-            expires = DateTime.now().add(const Duration(days: 7));
-          });
-          generateInviteLink().then((value) => uploadNewCode());
-        } else {
-          AlertService.showInfoSnackbar(context, "Unfortunately, we cannot generate an invite code for you on the web. Please try again in our mobile app.");
-        }
-      }
-    });
   }
 
   void getPreviousCodes() {
@@ -109,15 +53,6 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
     });
   }
 
-  Future<void> addUserToInvitedList(String userID) async {
-    await AuthService.getAuthToken();
-    var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
-    if (response.statusCode == 200) {
-      setState(() {
-        currentInvitedUsers.add(User.fromJson(jsonDecode(response.body)["data"]));
-      });
-    }
-  }
   Future<void> addUserToPreviousInvitedList(String userID) async {
     await AuthService.getAuthToken();
     var response = await httpClient.get(Uri.parse("$API_HOST/users/$userID"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"});
@@ -126,53 +61,6 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
         invitedUsers.add(User.fromJson(jsonDecode(response.body)["data"]));
       });
     }
-  }
-
-  void uploadNewCode() {
-    FirebaseFirestore.instance.doc("beta/users").update({currentUser.id: inviteCode}).then((value) {
-      FirebaseFirestore.instance.doc("beta/$inviteCode").set({
-        "createdBy": currentUser.id,
-        "url": inviteURL,
-        "expires": Timestamp.fromDate(DateTime.now().add(const Duration(days: 7))),
-        "cap": codeCap,
-        "uses": []
-      });
-    });
-  }
-
-  // Generate 6 character invite code
-  String generateInviteCode() {
-    var code = "";
-    for (var i = 0; i < 6; i++) {
-      code += math.Random().nextInt(26).toRadixString(26);
-    }
-    log("Generated invite code: $code");
-    return code.toUpperCase();
-  }
-
-  Future<void> generateInviteLink() async {
-    final dynamicLinkParams = DynamicLinkParameters(
-      link: Uri.parse("https://storkecentr.al/#/register?invite=$inviteCode"),
-      uriPrefix: "https://launch.storkecentr.al",
-      androidParameters: const AndroidParameters(
-        packageName: "com.bk1031.storke_central"
-      ),
-      iosParameters: IOSParameters(
-        bundleId: "com.bk1031.storkeCentral",
-        customScheme: "storkecentral",
-        appStoreId: APP_STORE_URL.split("id")[1]
-      ),
-      socialMetaTagParameters: SocialMetaTagParameters(
-        title: "StorkeCentral – Public Beta",
-        description: "${currentUser.firstName} has invited you to join the StorkeCentral Public Beta!",
-        imageUrl: Uri.parse("https://storkecentr.al/static/storke-banner-navy.png")
-      )
-    );
-    final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
-    log("[beta_invite_page] Generated invite link: $inviteURL");
-    setState(() {
-      inviteURL = dynamicLink.shortUrl.toString();
-    });
   }
 
   @override
@@ -205,116 +93,15 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
             ),
             const Padding(padding: EdgeInsets.all(8)),
             const Text(
-              "Thank you for being a part of the StorkeCentral Public Beta! Your feedback is very important to us and we are excited to hear what you think about the app.",
+              "Thank you for being a part of the StorkeCentral Public Beta! We were very excited to hear all the positive feedback from everyone. We will continue to work hard to make StorkeCentral the best app it can be",
               style: TextStyle(fontSize: 16),
             ),
             const Padding(padding: EdgeInsets.all(8)),
             const Text(
-              "You can share the code below with your friends to invite them to the beta. Come back here to get more invites each week!",
+              "Thanks for all the new users you've invited throughout the beta! You can check out the list of users you've invited below.",
               style: TextStyle(fontSize: 16),
             ),
             const Padding(padding: EdgeInsets.all(8)),
-            Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
-                    child: Text(
-                      "My Invite Code",
-                      // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(inviteCode != "" ? inviteCode : "XXX-XXX", style: TextStyle(fontSize: 26, letterSpacing: 4, color: inviteCode != "" ? null : Colors.grey), textAlign: TextAlign.center),
-                    subtitle: Text(inviteURL != "" ? inviteURL.replaceAll("https://", "") : "Generating invite url...", style: TextStyle(color: SB_NAVY, fontSize: 18), textAlign: TextAlign.center),
-                    trailing: const Icon(Icons.copy),
-                    onTap: () async {
-                      await Clipboard.setData(ClipboardData(text: "Hey, here's an invite code for StorkeCentral, the cool new app I was talking about: $inviteCode\n\n$inviteURL"));
-                      AlertService.showInfoSnackbar(context, "Copied invite code to clipboard!");
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16, left: 16, bottom: 8),
-                    child: Text("Invite code expires ${DateFormat("MMMMd").format(expires)} (in ${timeago.format(expires, locale: "en_short", allowFromNow: true)})"),
-                  )
-                ],
-              ),
-            ),
-            const Padding(padding: EdgeInsets.all(4)),
-            Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
-                    child: Text(
-                      "Current Invites (${currentInvitedUsers.length}/$codeCap)",
-                      // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Visibility(
-                    visible: currentInvitedUsers.isEmpty,
-                    child: const ListTile(
-                      title: Text("No users have joined yet."),
-                    ),
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(8),
-                    itemCount: currentInvitedUsers.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        child: InkWell(
-                          onTap: () {
-                            router.navigateTo(context, "/profile/user/${currentInvitedUsers[index].id}", transition: TransitionType.native);
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: ExtendedImage.network(
-                                    currentInvitedUsers[index].profilePictureURL,
-                                    height: 50,
-                                    width: 50,
-                                    fit: BoxFit.cover,
-                                    borderRadius: const BorderRadius.all(Radius.circular(125)),
-                                    shape: BoxShape.rectangle,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "${currentInvitedUsers[index].firstName} ${currentInvitedUsers[index].lastName}",
-                                        style: const TextStyle(fontSize: 18),
-                                      ),
-                                      Text(
-                                        "@${currentInvitedUsers[index].userName}",
-                                        style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const Padding(padding: EdgeInsets.all(4)),
             Card(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
