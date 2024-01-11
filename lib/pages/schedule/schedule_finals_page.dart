@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -277,7 +278,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                         }
                       },
                       child: const Padding(
-                        padding: EdgeInsets.all(2.0),
+                        padding: EdgeInsets.all(4.0),
                         child: Icon(Icons.refresh_rounded, color: Colors.white),
                       ),
                     ),
@@ -343,13 +344,29 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: userFinals.map((e) => Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(e.name, style: const TextStyle()),
-                      Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: SB_NAVY)),
-                    ],
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      router.navigateTo(context, "/schedule/view/${e.title}", transition: TransitionType.nativeModal);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(e.name, style: const TextStyle()),
+                                Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: SB_NAVY)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey)
+                        ],
+                      ),
+                    ),
                   )
                 )).toList(),
               ),
@@ -384,7 +401,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                           }
                         },
                         child: const Padding(
-                          padding: EdgeInsets.all(2.0),
+                          padding: EdgeInsets.all(4.0),
                           child: Icon(Icons.refresh_rounded, color: Colors.white),
                         ),
                       ),

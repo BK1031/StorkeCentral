@@ -329,6 +329,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
           body: PageView(
             controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
             onPageChanged: (int page) {
               setState(() {
                 currTab = page;
