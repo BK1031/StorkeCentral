@@ -23,5 +23,19 @@ class UserPasstime {
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      "user_id": userID,
+      "quarter": quarter,
+      "pass_one_start": passOneStart.toIso8601String(),
+      "pass_one_end": passOneEnd.toIso8601String(),
+      "pass_two_start": passTwoStart.toIso8601String(),
+      "pass_two_end": passTwoEnd.toIso8601String(),
+      "pass_three_start": passThreeStart.toIso8601String(),
+      "pass_three_end": passThreeEnd.toIso8601String(),
+      "created_at": createdAt.toIso8601String()
+    };
+  }
+
 }
 

@@ -98,7 +98,6 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
   }
 
   Future<void> fetchFinals(String quarter) async {
-    prefs.setString("CREDENTIALS_KEY", "arzjydwigSjRj0OEit8cVWyKLmThdfRv"); // TODO: REMOVE THIS FOR DEBUG ONLY
     if (prefs.containsKey("CREDENTIALS_KEY")) {
       log("[schedule_finals_page] Found device key, fetching finals");
       deviceKey = prefs.getString("CREDENTIALS_KEY")!;
@@ -253,26 +252,34 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("${selectedQuarter.name} Finals", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
-                  color: SB_NAVY,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(512),
-                    onTap: () {
-                      if (kIsWeb) {
-                        AlertService.showWarningDialog(
-                            context,
-                            "Finals Fetch Unavailable",
-                            "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
-                                () {}
-                        );
-                      } else {
-                        fetchFinals(selectedQuarter.id);
-                      }
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(2.0),
-                      child: Icon(Icons.refresh_rounded, color: Colors.white),
+                Visibility(
+                  visible: userFinals.isNotEmpty,
+                  child: fetchFinalsLoading ? Center(
+                    child: RefreshProgressIndicator(
+                      backgroundColor: SB_NAVY,
+                      color: Colors.white,
+                    ),
+                  ) : Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
+                    color: SB_NAVY,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(512),
+                      onTap: () {
+                        if (kIsWeb) {
+                          AlertService.showWarningDialog(
+                              context,
+                              "Finals Fetch Unavailable",
+                              "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                  () {}
+                          );
+                        } else {
+                          fetchFinals(selectedQuarter.id);
+                        }
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(2.0),
+                        child: Icon(Icons.refresh_rounded, color: Colors.white),
+                      ),
                     ),
                   ),
                 )
@@ -298,7 +305,16 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                       color: SB_NAVY,
                       child: const Text("Fetch Finals"),
                       onPressed: () {
-                        fetchFinals(selectedQuarter.id);
+                        if (kIsWeb) {
+                          AlertService.showWarningDialog(
+                              context,
+                              "Finals Fetch Unavailable",
+                              "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                  () {}
+                          );
+                        } else {
+                          fetchFinals(selectedQuarter.id);
+                        }
                       },
                     ),
                   ),
@@ -307,7 +323,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             ),
             AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              height: showFinalsDuo ? 200 : 0,
+              height: showFinalsDuo ? 250 : 0,
               curve: Curves.easeInOut,
               child: const Padding(
                 padding: EdgeInsets.all(8.0),
@@ -339,19 +355,94 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
               ),
             ),
             const Padding(padding: EdgeInsets.all(8)),
-            Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("${currentPassQuarter.name} Registration", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Visibility(
+                    visible: userPasstime.userID != "",
+                    child: fetchPasstimesLoading ? Center(
+                      child: RefreshProgressIndicator(
+                        backgroundColor: SB_NAVY,
+                        color: Colors.white,
+                      ),
+                    ) : Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
+                      color: SB_NAVY,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(512),
+                        onTap: () {
+                          if (kIsWeb) {
+                            AlertService.showWarningDialog(
+                                context,
+                                "Passtime Fetch Unavailable",
+                                "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                    () {}
+                            );
+                          } else {
+                            fetchPasstime();
+                          }
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(2.0),
+                          child: Icon(Icons.refresh_rounded, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  )
+                ]
+            ),
             const Padding(padding: EdgeInsets.all(4)),
-            const Text("No passtimes found for you."),
-            const Padding(padding: EdgeInsets.all(4)),
-            SizedBox(
-              width: double.infinity,
-              child: CupertinoButton(
-                padding: EdgeInsets.zero,
-                color: SB_NAVY,
-                child: const Text("Fetch Passtimes"),
-                onPressed: () {
-                  fetchPasstime();
-                },
+            Visibility(
+              visible: userPasstime.userID == "",
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("No passtimes found for you this quarter."),
+                  const Padding(padding: EdgeInsets.all(4)),
+                  fetchPasstimesLoading ? Center(
+                    child: RefreshProgressIndicator(
+                      backgroundColor: SB_NAVY,
+                      color: Colors.white,
+                    ),
+                  ) : SizedBox(
+                    width: double.infinity,
+                    child: CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      color: SB_NAVY,
+                      child: const Text("Fetch Passtimes"),
+                      onPressed: () {
+                        if (kIsWeb) {
+                          AlertService.showWarningDialog(
+                              context,
+                              "Passtime Fetch Unavailable",
+                              "In order to keep your credentials as secure as possible, you can only sync your schedule from our mobile app.\n\nWe apologize for the inconvenience!",
+                                  () {}
+                          );
+                        } else {
+                          fetchPasstime();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              height: showPasstimesDuo ? 250 : 0,
+              curve: Curves.easeInOut,
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      DuoCard(),
+                      Padding(padding: EdgeInsets.all(4)),
+                      Text("You should have received a Duo notification like the one above. Please approve it to allow us to fetch your course schedule from GOLD.", style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                ),
               ),
             ),
             Visibility(
