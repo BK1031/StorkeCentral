@@ -184,6 +184,9 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     log("[schedule_page] Building calendar...");
     lastScheduleFetch = DateTime.now();
     clearCalendar();
+    if (userScheduleItems.isNotEmpty) {
+      setState(() => classesFound = true);
+    }
     for (var item in userScheduleItems) {
       for (var day in dayStringToInt(item.days)) {
         DateTime cursor = getNextWeekDay(day);
@@ -256,6 +259,8 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Visibility(
                       visible: currTab == 0,
