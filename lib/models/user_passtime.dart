@@ -23,6 +23,38 @@ class UserPasstime {
     createdAt = DateTime.tryParse(json["created_at"]) ?? DateTime.now().toUtc();
   }
 
+  List<DateTime> getPasstime(int i) {
+    switch (i) {
+      case 1:
+        return [passOneStart, passOneEnd];
+      case 2:
+        return [passTwoStart, passTwoEnd];
+      case 3:
+        return [passThreeStart, passThreeEnd];
+      default:
+        return [passOneStart, passOneEnd];
+    }
+  }
+
+  int getCurrentPasstime() {
+    DateTime now = DateTime.now().toUtc();
+    if (now.isBefore(passOneStart)) {
+      return 0;
+    } else if (now.isBefore(passOneEnd)) {
+      return 1;
+    } else if (now.isBefore(passTwoStart)) {
+      return 0;
+    } else if (now.isBefore(passTwoEnd)) {
+      return 2;
+    } else if (now.isBefore(passThreeStart)) {
+      return 0;
+    } else if (now.isBefore(passThreeEnd)) {
+      return 3;
+    } else {
+      return 0;
+    }
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "user_id": userID,

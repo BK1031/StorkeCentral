@@ -465,57 +465,36 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             Visibility(
               visible: userPasstime.userID != "",
               child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Pass 1:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passOneStart.toLocal()), style: const TextStyle()),
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passOneEnd.toLocal()), style: const TextStyle(color: Colors.grey)),
-                          ],
+                children: [1, 2, 3].map((e) => Card(
+                  color: userPasstime.getCurrentPasstime() == e ? SB_NAVY : Theme.of(context).cardColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Pass $e:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                DateFormat("M/dd/yyyy hh:mm a").format(userPasstime.getPasstime(e)[0].toLocal()),
+                                style: TextStyle(color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)
+                              ),
+                              Text(
+                                DateFormat("M/dd/yyyy hh:mm a").format(userPasstime.getPasstime(e)[1].toLocal()),
+                                style: TextStyle(color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Padding(padding: EdgeInsets.all(4)),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Pass 2:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passTwoStart.toLocal()), style: const TextStyle()),
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passTwoEnd.toLocal()), style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Padding(padding: EdgeInsets.all(4)),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Pass 3:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passThreeStart.toLocal()), style: const TextStyle()),
-                            Text(DateFormat("MM/dd/yyyy hh:mm a").format(userPasstime.passThreeEnd.toLocal()), style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                ],
+                )).toList(),
               ),
             ),
+            const Padding(padding: EdgeInsets.all(32)),
           ],
         ),
       ),
