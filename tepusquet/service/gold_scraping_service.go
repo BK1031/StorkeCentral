@@ -187,7 +187,7 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 		utils.SugarLogger.Infoln("Selected quarter " + quarter)
 		finalNameElements := page.MustElements("div.col-sm-5.col-xs-12")
 		var finalNames []string
-		filterWords := []string{"Contact Professor", "Course Info", "Drop", "Modify", "Remove"}
+		filterWords := []string{"Unknown Date", "Contact Professor", "Course Info", "Drop", "Modify", "Remove"}
 		for _, courseElement := range finalNameElements {
 			filtered := false
 			for _, filterWord := range filterWords {
@@ -211,6 +211,7 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 				if strings.Contains(courseElement.MustText(), filterWord) {
 					utils.SugarLogger.Infoln("Filtered out from final times: " + filterWord)
 					filtered = true
+					counter++
 				}
 			}
 			if !filtered && courseElement.MustText() != "" {
