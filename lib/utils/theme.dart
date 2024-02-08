@@ -93,6 +93,7 @@ final ThemeData darkTheme = ThemeData(
   fontFamily: "Product Sans",
   primaryColor: SC_PINK,
   scaffoldBackgroundColor: darkBackgroundColor,
+  iconTheme: const IconThemeData(color: Colors.grey),
   cardColor: darkCardColor,
   appBarTheme: const AppBarTheme(
     foregroundColor: Colors.white,
@@ -110,6 +111,7 @@ final ThemeData darkTheme = ThemeData(
   ),
   listTileTheme: ListTileThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    iconColor: Colors.grey,
   ),
   buttonTheme: ButtonThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

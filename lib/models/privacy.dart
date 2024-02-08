@@ -8,7 +8,7 @@ class Privacy {
   String status = "PUBLIC";
   String pushNotifications = "DISABLED";
   String pushNotificationToken = "";
-  String scheduleReminders = "ALERT_15";
+  String scheduleReminders = "DISABLED";
   String passtimeReminders = "ENABLED";
   String finalReminders = "ALERT_15";
   DateTime updatedAt = DateTime.now().toUtc();

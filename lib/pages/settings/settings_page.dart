@@ -42,7 +42,6 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
           "Settings",
             style: TextStyle(fontWeight: FontWeight.bold)
@@ -62,7 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Text(
                         "General",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -122,12 +121,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Text(
                         "Preferences",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     SwitchListTile.adaptive(
                       title: const Text("Dark Mode"),
-                      activeColor: SB_LT_BLUE,
+                      activeColor: ACTIVE_ACCENT_COLOR,
                       value: AdaptiveTheme.of(context).mode.isDark,
                       onChanged: (val) {
                         val ? AdaptiveTheme.of(context).setDark() : AdaptiveTheme.of(context).setLight();
@@ -138,7 +137,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     SwitchListTile.adaptive(
                       title: const Text("Push Notifications"),
-                      activeColor: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : SB_LT_BLUE,
+                      activeColor: ACTIVE_ACCENT_COLOR,
                       value: currentUser.privacy.pushNotifications == "ENABLED",
                       onChanged: (val) {
                         currentUser.privacy.pushNotifications = val ? "ENABLED" : "DISABLED";
@@ -166,6 +165,54 @@ class _SettingsPageState extends State<SettingsPage> {
                               "ALERT_15": "15 Minutes Before",
                               "ALERT_10": "10 Minutes Before",
                               "ALERT_5": "5 Minutes Before",
+                            }[value]!),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Final Reminders"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.finalReminders,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            currentUser.privacy.finalReminders = newValue!;
+                          });
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["DISABLED", "ALERT_15", "ALERT_10", "ALERT_5"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text({
+                              "DISABLED": "Off",
+                              "ALERT_15": "15 Minutes Before",
+                              "ALERT_10": "10 Minutes Before",
+                              "ALERT_5": "5 Minutes Before",
+                            }[value]!),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text("Passtime Reminders"),
+                      trailing: DropdownButton<String>(
+                        value: currentUser.privacy.passtimeReminders,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            currentUser.privacy.passtimeReminders = newValue!;
+                          });
+                          savePreferences();
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        underline: Container(),
+                        items: <String>["DISABLED", "ENABLED"].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text({
+                              "DISABLED": "Off",
+                              "ENABLED": "On",
                             }[value]!),
                           );
                         }).toList(),
@@ -203,7 +250,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                       child: Text(
                         "Privacy",
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -295,7 +342,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Text(
                           "Developer",
                           // "Developer".toUpperCase(),
-                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       ListTile(
