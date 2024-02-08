@@ -304,7 +304,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
                     circularStrokeCap: CircularStrokeCap.round,
                     percent: 1,
                     // progressColor: sbNavy,
-                    progressColor: Colors.white,
+                    progressColor: Theme.of(context).cardColor,
                   ),
                   CircularPercentIndicator(
                     radius: 48,
@@ -312,7 +312,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
                     circularStrokeCap: CircularStrokeCap.round,
                     percent: 1,
                     // progressColor: sbNavy,
-                    progressColor: Colors.white,
+                    progressColor: Theme.of(context).cardColor,
                   ),
                   CircularPercentIndicator(
                     radius: 45,
@@ -321,10 +321,9 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
                     animateFromLastPercent: true,
                     animation: true,
                     percent: percent,
-                    // progressColor: Colors.white,
                     progressColor: ACTIVE_ACCENT_COLOR,
                     // backgroundColor: sbNavy,
-                    backgroundColor: Colors.white
+                    backgroundColor: Theme.of(context).cardColor,
                   ),
                 ],
               )
