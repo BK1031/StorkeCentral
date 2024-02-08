@@ -77,7 +77,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
           "Edit Profile",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -216,11 +216,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Center(
                     child: RefreshProgressIndicator(
                       color: Colors.white,
-                      backgroundColor: SB_NAVY
+                      backgroundColor: ACTIVE_ACCENT_COLOR
                     )
                   )
                 ) : CupertinoButton(
-                  color: SB_NAVY,
+                  color: ACTIVE_ACCENT_COLOR,
                   onPressed: () {
                     saveUser();
                     router.pop(context);

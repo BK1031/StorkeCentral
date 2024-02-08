@@ -234,7 +234,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                   children: selectedDiningHall.meals.map((e) => Expanded(
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
-                      color: selectedMeal == e.name ? SB_NAVY : null,
+                      color: selectedMeal == e.name ? ACTIVE_ACCENT_COLOR : null,
                       onPressed: () {
                         _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == e.name), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
@@ -242,7 +242,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(e.name.capitalize(), style: TextStyle(color: selectedMeal == e.name ? Colors.white : Theme.of(context).textTheme.labelLarge!.color)),
-                          Text("${DateFormat("jm").format(e.open.toLocal())} - ${DateFormat("jm").format(e.close.toLocal())}", style: TextStyle(fontSize: 13, color: selectedMeal == e.name ? Colors.white : SB_NAVY)),
+                          Text("${DateFormat("jm").format(e.open.toLocal())} - ${DateFormat("jm").format(e.close.toLocal())}", style: TextStyle(fontSize: 13, color: selectedMeal == e.name ? Colors.white : ACTIVE_ACCENT_COLOR)),
                         ],
                       ),
                     ),
@@ -258,7 +258,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                   child: Center(
                       child: RefreshProgressIndicator(
                           color: Colors.white,
-                          backgroundColor: SB_NAVY
+                          backgroundColor: ACTIVE_ACCENT_COLOR
                       )
                   )
               ) : selectedDiningHall.meals.isEmpty ? SizedBox(
@@ -297,7 +297,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                   elements: e.menuItems,
                   groupBy: (element) => element.station,
                   groupSeparatorBuilder: (String groupByValue) => Card(
-                    color: SB_NAVY,
+                    color: ACTIVE_ACCENT_COLOR,
                     child: Container(
                       height: 35,
                       padding: const EdgeInsets.all(8),
@@ -333,7 +333,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                   children: dates.map((e) => SizedBox(
                     width: 45,
                     child: CupertinoButton(
-                      color: e.day == selectedDate.day ? SB_NAVY : null,
+                      color: e.day == selectedDate.day ? ACTIVE_ACCENT_COLOR : null,
                       padding: EdgeInsets.zero,
                       onPressed: () {
                         setState(() {
@@ -344,7 +344,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                       child: Column(
                         children: [
                           Text(DateFormat("d").format(e), style: TextStyle(fontSize: 17, color: e.day == selectedDate.day ? Colors.white : Theme.of(context).textTheme.labelLarge!.color),),
-                          Text(DateFormat("MMM").format(e), style: TextStyle(fontSize: 13, color: e.day == selectedDate.day ? Colors.white : SB_NAVY)),
+                          Text(DateFormat("MMM").format(e), style: TextStyle(fontSize: 13, color: e.day == selectedDate.day ? Colors.white : ACTIVE_ACCENT_COLOR)),
                         ],
                       ),
                     ),

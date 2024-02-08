@@ -65,7 +65,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
           "About",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -85,7 +85,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Device",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -124,7 +124,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Network",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -163,7 +163,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Contributors",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -189,7 +189,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Supporters",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(

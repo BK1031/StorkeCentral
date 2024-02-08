@@ -8,13 +8,13 @@ class Weather {
   double feelsLike = 0.0;
   double tempMin = 0.0;
   double tempMax = 0.0;
-  int pressure = 0;
-  int humidity = 0;
+  double pressure = 0;
+  double humidity = 0;
 
-  int visibility = 0;
+  double visibility = 0;
 
   double windSpeed = 0.0;
-  int windDeg = 0;
+  double windDeg = 0;
 
   double longitude = 0.0;
   double latitude = 0.0;
@@ -27,17 +27,17 @@ class Weather {
     description = json["weather"][0]["description"];
     icon = json["weather"][0]["icon"];
 
-    temp = json["main"]["temp"];
-    feelsLike = json["main"]["feels_like"];
-    tempMin = json["main"]["temp_min"];
-    tempMax = json["main"]["temp_max"];
-    pressure = json["main"]["pressure"];
-    humidity = json["main"]["humidity"];
+    temp = double.parse(json["main"]["temp"].toString());
+    feelsLike = double.parse(json["main"]["feels_like"].toString());
+    tempMin = double.parse(json["main"]["temp_min"].toString());
+    tempMax = double.parse(json["main"]["temp_max"].toString());
+    pressure = double.parse(json["main"]["pressure"].toString());
+    humidity = double.parse(json["main"]["humidity"].toString());
 
-    visibility = json["visibility"];
+    visibility = double.parse(json["visibility"].toString());
 
-    windSpeed = json["wind"]["speed"];
-    windDeg = json["wind"]["deg"];
+    windSpeed = double.parse(json["wind"]["speed"].toString());
+    windDeg = double.parse(json["wind"]["deg"].toString());
 
     longitude = json["coord"]["lon"];
     latitude = json["coord"]["lat"];

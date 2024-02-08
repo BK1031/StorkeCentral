@@ -49,8 +49,8 @@ class _NotificationPageState extends State<NotificationPage> {
         });
       });
     } catch(err) {
-      AlertService.showErrorSnackbar(context, "Failed to mark notification as read");
-      log("[notifications_page] {err.toString()}", LogLevel.error);
+      AlertService.showErrorSnackbar(context, "Failed to get notifications");
+      log("[notifications_page] ${err.toString()}", LogLevel.error);
     }
     setState(() => loading = false);
   }
@@ -81,7 +81,6 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
         title: const Text(
           "Notifications",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -117,7 +116,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   child: Center(
                       child: RefreshProgressIndicator(
                           color: Colors.white,
-                          backgroundColor: SB_NAVY
+                          backgroundColor: ACTIVE_ACCENT_COLOR
                       )
                   )
               ),
@@ -159,7 +158,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               width: 35,
                               child: Icon(
                                 notifications[index].read ? Icons.notifications_rounded : Icons.notifications_active_rounded,
-                                color: notifications[index].read ? Colors.grey : SB_NAVY,
+                                color: notifications[index].read ? Colors.grey : ACTIVE_ACCENT_COLOR,
                               ),
                             ),
                             const Padding(padding: EdgeInsets.all(4)),
@@ -180,11 +179,11 @@ class _NotificationPageState extends State<NotificationPage> {
                             const Padding(padding: EdgeInsets.all(1)),
                             Text(
                                 DateTime.now().difference(notifications[index].createdAt).inDays > 6 ? DateFormat("MMM d").format(notifications[index].createdAt) : timeago.format(notifications[index].createdAt, locale: "en_short"),
-                                style: TextStyle(color: notifications[index].read ? Colors.grey : SB_NAVY,)
+                                style: TextStyle(color: notifications[index].read ? Colors.grey : ACTIVE_ACCENT_COLOR,)
                             ),
                             Icon(
                               notifications[index].route != "" || notifications[index].launchURL != "" ? Icons.arrow_forward_ios_rounded : null,
-                              color: notifications[index].read ? Colors.grey : SB_NAVY,
+                              color: notifications[index].read ? Colors.grey : ACTIVE_ACCENT_COLOR,
                             ),
                           ],
                         ),

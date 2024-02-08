@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
           "Settings",
             style: TextStyle(fontWeight: FontWeight.bold)
@@ -62,7 +62,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Text(
                         "General",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -122,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Text(
                         "Preferences",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     SwitchListTile.adaptive(
@@ -131,12 +131,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: AdaptiveTheme.of(context).mode.isDark,
                       onChanged: (val) {
                         val ? AdaptiveTheme.of(context).setDark() : AdaptiveTheme.of(context).setLight();
-                        setState(() {});
+                        setState(() {
+                          ACTIVE_ACCENT_COLOR = AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : SC_PINK;
+                        });
                       },
                     ),
                     SwitchListTile.adaptive(
                       title: const Text("Push Notifications"),
-                      activeColor: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : SB_LT_BLUE,
+                      activeColor: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : SB_LT_BLUE,
                       value: currentUser.privacy.pushNotifications == "ENABLED",
                       onChanged: (val) {
                         currentUser.privacy.pushNotifications = val ? "ENABLED" : "DISABLED";
@@ -201,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                       child: Text(
                         "Privacy",
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -293,7 +295,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Text(
                           "Developer",
                           // "Developer".toUpperCase(),
-                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       ListTile(

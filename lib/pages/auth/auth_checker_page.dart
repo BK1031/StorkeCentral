@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_performance/firebase_performance.dart';
@@ -154,6 +155,11 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
     PREF_UNITS = prefs.getString("PREF_UNITS")!;
     lastBuildingFetch = DateTime.parse(prefs.getString("BUILDINGS_LAST_FETCH")!);
     loadOfflineBuildings();
+    if (AdaptiveTheme.of(context).brightness == Brightness.dark) {
+      setState(() {
+        ACTIVE_ACCENT_COLOR = SC_PINK;
+      });
+    }
   }
 
   Future<void> loadOfflineMode() async {
@@ -316,7 +322,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
                     animation: true,
                     percent: percent,
                     // progressColor: Colors.white,
-                    progressColor: SB_NAVY,
+                    progressColor: ACTIVE_ACCENT_COLOR,
                     // backgroundColor: sbNavy,
                     backgroundColor: Colors.white
                   ),

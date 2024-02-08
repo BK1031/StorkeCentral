@@ -67,7 +67,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
+        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
             "Public Beta",
             style: TextStyle(fontWeight: FontWeight.bold)
@@ -111,7 +111,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                     child: Text(
                       "Invited Users",
                       // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Visibility(

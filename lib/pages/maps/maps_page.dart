@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
@@ -167,12 +170,14 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
       body: Stack(
         children: [
           MapboxMap(
+            styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
             accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
             onMapCreated: _onMapCreated,
             initialCameraPosition: const CameraPosition(
               target: LatLng(34.412278, -119.847787),
               zoom: 14.0,
             ),
+            attributionButtonMargins: const Point(-32, -32),
             myLocationEnabled: true,
             dragEnabled: true,
           ),
@@ -195,8 +200,9 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                             child: TextField(
                               controller: _searchController,
                               focusNode: _searchFocus,
-                              decoration: const InputDecoration(
-                                icon: Icon(Icons.search_rounded),
+                              decoration: InputDecoration(
+                                icon: const Icon(Icons.search_rounded),
+                                iconColor: _searchFocus.hasFocus ? ACTIVE_ACCENT_COLOR : Theme.of(context).textTheme.bodyLarge!.color,
                                 border: InputBorder.none,
                                 hintText: "Search for building name",
                               ),
@@ -235,11 +241,12 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                               style: const TextStyle(fontSize: 14),
                                             ),
                                           ),
+                                          const Padding(padding: EdgeInsets.all(4)),
                                           Text(
                                             "${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}",
-                                            style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.caption!.color),
+                                            style: TextStyle(fontSize: 14, color: ACTIVE_ACCENT_COLOR),
                                           ),
-                                          Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).textTheme.caption!.color),
+                                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey,),
                                         ],
                                       ),
                                     ),
@@ -314,7 +321,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                                               ),
                                             ],
                                           ),
-                                          Text("${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: TextStyle(color: Colors.grey, fontSize: 12),)
+                                          Text("${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(color: Colors.grey, fontSize: 12),)
                                         ],
                                       ),
                                     ),
@@ -434,12 +441,12 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                           padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
                           child: Row(
                             children: [
-                              Text("Navigate me here (${(selectedBuilding.distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text("Navigate me here (${(selectedBuilding.distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()})", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               const Padding(padding: EdgeInsets.all(4)),
                               Expanded(
                                 child: CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  color: SB_NAVY,
+                                  color: ACTIVE_ACCENT_COLOR,
                                   onPressed: () {
                                     // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
                                     router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?walking", transition: TransitionType.native);
@@ -451,7 +458,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                               Expanded(
                                 child: CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  color: SB_NAVY,
+                                  color: ACTIVE_ACCENT_COLOR,
                                   onPressed: () {
                                     // navigateToBuilding(selectedBuilding, MapBoxNavigationMode.cycling);
                                     router.navigateTo(context, "/maps/buildings/${selectedBuilding.id}?cycling", transition: TransitionType.native);

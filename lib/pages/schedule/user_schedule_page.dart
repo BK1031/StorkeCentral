@@ -177,7 +177,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: SB_NAVY,
+          backgroundColor: ACTIVE_ACCENT_COLOR,
           title: Text(
             "${user.firstName}'s Schedule",
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -191,7 +191,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Card(
-                      color: SB_NAVY,
+                      color: ACTIVE_ACCENT_COLOR,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         width: MediaQuery.of(context).size.width,
@@ -218,7 +218,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                                 borderRadius: BorderRadius.circular(8),
                                 underline: Container(),
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                dropdownColor: SB_NAVY,
+                                dropdownColor: ACTIVE_ACCENT_COLOR,
                                 isDense: true,
                                 alignment: Alignment.centerRight,
                                 icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
@@ -243,7 +243,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                             borderRadius: BorderRadius.circular(8),
                             underline: Container(),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                            dropdownColor: SB_NAVY,
+                            dropdownColor: ACTIVE_ACCENT_COLOR,
                             isDense: true,
                             alignment: Alignment.center,
                             icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
@@ -345,7 +345,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                 child: Column(
                   children: [
                     Card(
-                      color: SB_NAVY,
+                      color: ACTIVE_ACCENT_COLOR,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         width: MediaQuery.of(context).size.width,
@@ -361,7 +361,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                             borderRadius: BorderRadius.circular(8),
                             underline: Container(),
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                            dropdownColor: SB_NAVY,
+                            dropdownColor: ACTIVE_ACCENT_COLOR,
                             isDense: true,
                             alignment: Alignment.center,
                             icon: const Icon(Icons.arrow_drop_down, color: Colors.white,),
@@ -383,7 +383,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
               visible: loading,
               child: Center(
                 child: RefreshProgressIndicator(
-                  backgroundColor: SB_NAVY,
+                  backgroundColor: ACTIVE_ACCENT_COLOR,
                   color: Colors.white,
                 ),
               ),

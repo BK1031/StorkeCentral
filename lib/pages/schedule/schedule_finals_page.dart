@@ -257,12 +257,12 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                   visible: userFinals.isNotEmpty,
                   child: fetchFinalsLoading ? Center(
                     child: RefreshProgressIndicator(
-                      backgroundColor: SB_NAVY,
+                      backgroundColor: ACTIVE_ACCENT_COLOR,
                       color: Colors.white,
                     ),
                   ) : Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
-                    color: SB_NAVY,
+                    color: ACTIVE_ACCENT_COLOR,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(512),
                       onTap: () {
@@ -296,14 +296,14 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                   const Padding(padding: EdgeInsets.all(4)),
                   fetchFinalsLoading ? Center(
                     child: RefreshProgressIndicator(
-                      backgroundColor: SB_NAVY,
+                      backgroundColor: ACTIVE_ACCENT_COLOR,
                       color: Colors.white,
                     ),
                   ) : SizedBox(
                     width: double.infinity,
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
-                      color: SB_NAVY,
+                      color: ACTIVE_ACCENT_COLOR,
                       child: const Text("Fetch Finals"),
                       onPressed: () {
                         if (kIsWeb) {
@@ -359,7 +359,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                               children: [
                                 Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                 Text(e.name, style: const TextStyle()),
-                                Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: SB_NAVY)),
+                                Text("${DateFormat("EEE, MMM d, yyyy h:mm a").format(e.startTime.toLocal())} - ${DateFormat("h:mm a").format(e.endTime.toLocal())}", style: TextStyle(color: ACTIVE_ACCENT_COLOR)),
                               ],
                             ),
                           ),
@@ -380,12 +380,12 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                     visible: userPasstime.userID != "",
                     child: fetchPasstimesLoading ? Center(
                       child: RefreshProgressIndicator(
-                        backgroundColor: SB_NAVY,
+                        backgroundColor: ACTIVE_ACCENT_COLOR,
                         color: Colors.white,
                       ),
                     ) : Card(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(512)),
-                      color: SB_NAVY,
+                      color: ACTIVE_ACCENT_COLOR,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(512),
                         onTap: () {
@@ -419,14 +419,14 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                   const Padding(padding: EdgeInsets.all(4)),
                   fetchPasstimesLoading ? Center(
                     child: RefreshProgressIndicator(
-                      backgroundColor: SB_NAVY,
+                      backgroundColor: ACTIVE_ACCENT_COLOR,
                       color: Colors.white,
                     ),
                   ) : SizedBox(
                     width: double.infinity,
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
-                      color: SB_NAVY,
+                      color: ACTIVE_ACCENT_COLOR,
                       child: const Text("Fetch Passtimes"),
                       onPressed: () {
                         if (kIsWeb) {
@@ -466,7 +466,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
               visible: userPasstime.userID != "",
               child: Column(
                 children: [1, 2, 3].map((e) => Card(
-                  color: userPasstime.getCurrentPasstime() == e ? SB_NAVY : Theme.of(context).cardColor,
+                  color: userPasstime.getCurrentPasstime() == e ? ACTIVE_ACCENT_COLOR : Theme.of(context).cardColor,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(

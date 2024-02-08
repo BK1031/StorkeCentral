@@ -116,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                         padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                         child: Text(
                           "Friends",
-                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       ListTile(
@@ -166,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                           padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                           child: Text(
                             "Public Beta",
-                            style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                         ListTile(
