@@ -1,3 +1,4 @@
+import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -31,6 +32,12 @@ const darkTextColor = Color(0xFFE9E9E9);
 const darkBackgroundColor = Color(0xFF000000);
 const darkCardColor = Color(0xFF0D0D0D);
 const darkDividerColor = Color(0xFF545454);
+
+// CARD LOADING
+CardLoadingTheme getCardLoadingTheme(context) => CardLoadingTheme(
+  colorOne: Theme.of(context).brightness == Brightness.light ? Colors.grey[200]! : Colors.grey[900]!,
+  colorTwo: Theme.of(context).brightness == Brightness.light ? Colors.grey[300]! : darkCardColor.withAlpha(100),
+);
 
 /// Light style
 final ThemeData lightTheme = ThemeData(

@@ -1,5 +1,6 @@
 import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:storke_central/utils/theme.dart';
 
 class WaitzPlaceholder extends StatelessWidget {
   const WaitzPlaceholder({super.key});
@@ -9,11 +10,12 @@ class WaitzPlaceholder extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 8.0, right: 8.0),
       child: Column(
-          children: [0,1,2].map((e) => const CardLoading(
-            margin: EdgeInsets.all(8),
-            borderRadius: BorderRadius.all(Radius.circular(8)),
+          children: [0,1,2].map((e) => CardLoading(
+            margin: const EdgeInsets.all(8),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
             height: 150,
-            child: Padding(
+            cardLoadingTheme: getCardLoadingTheme(context),
+            child: const Padding(
               padding: EdgeInsets.all(8.0),
               child: Column(
                 children: [

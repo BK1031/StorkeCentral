@@ -1,5 +1,6 @@
 import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:storke_central/utils/theme.dart';
 
 class DiningPlaceholder extends StatelessWidget {
   const DiningPlaceholder({super.key});
@@ -19,6 +20,7 @@ class DiningPlaceholder extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
                 height: 150,
                 margin: const EdgeInsets.all(8),
+                cardLoadingTheme: getCardLoadingTheme(context),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   child: const Column(
