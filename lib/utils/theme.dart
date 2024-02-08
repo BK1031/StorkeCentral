@@ -27,7 +27,7 @@ const lightCardColor = Color(0xFFFFFFFF);
 const lightDividerColor = Color(0xFFA8A8A8);
 
 // Dark theme
-const darkTextColor = Color(0xFFFFFFFF);
+const darkTextColor = Color(0xFFE9E9E9);
 const darkBackgroundColor = Color(0xFF000000);
 const darkCardColor = Color(0xFF0D0D0D);
 const darkDividerColor = Color(0xFF545454);

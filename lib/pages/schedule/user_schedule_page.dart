@@ -177,7 +177,6 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: ACTIVE_ACCENT_COLOR,
           title: Text(
             "${user.firstName}'s Schedule",
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -271,6 +270,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                         startHour: 7,
                         endHour: 24,
                       ),
+                      todayHighlightColor: ACTIVE_ACCENT_COLOR,
                       selectionDecoration: BoxDecoration(),
                       allowDragAndDrop: false,
                       dataSource: MeetingDataSource(localCalendarMeetings),
