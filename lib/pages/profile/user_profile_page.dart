@@ -240,7 +240,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: Text(
           "@${user.userName}",
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -276,7 +275,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             const Padding(padding: EdgeInsets.all(2)),
             Text(
               showPronouns() ? "@${user.userName}  •  ${user.pronouns}" : "@${user.userName}",
-              style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const Padding(padding: EdgeInsets.all(4)),
             Text(
