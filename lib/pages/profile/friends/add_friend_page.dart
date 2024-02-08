@@ -2,8 +2,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
@@ -196,7 +196,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       // TODO: make this an actual mutual friends endpoint
       log("[add_friend_page] Retrieved suggested users");
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
-      for (int i = 0; i < responseJson["data"].length; i++) {
+      for (int i = 0; i < min(responseJson["data"].length, 30); i++) {
         User user = User.fromJson(responseJson["data"][i]);
         if (user.id != currentUser.id && !friends.any((element) => element.user.id == user.id)) {
           setState(() {
@@ -225,7 +225,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
         title: const Text(
           "Add Friend",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -244,7 +243,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                     padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                     child: Text(
                       "Add By Username",
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
@@ -308,7 +307,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                           ),
                                           Text(
                                             "@${searchedUser.userName}",
-                                            style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                            style: const TextStyle(fontSize: 16, color: Colors.grey),
                                           )
                                         ],
                                       ),
@@ -319,7 +318,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                           padding: const EdgeInsets.all(8),
                                           child: Center(child: RefreshProgressIndicator(
                                               color: Colors.white,
-                                              backgroundColor: SB_NAVY
+                                              backgroundColor: ACTIVE_ACCENT_COLOR
                                           ))
                                       ),
                                     ),
@@ -328,7 +327,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       visible: searchedUser.id != currentUser.id && !requests.any((element) => element.user.id == searchedUser.id) && !friends.any((element) => element.user.id == searchedUser.id) && !loadingList.contains(searchedUser.id),
                                       child: CupertinoButton(
                                         padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                        color: SB_NAVY,
+                                        color: ACTIVE_ACCENT_COLOR,
                                         child: const Row(
                                           children: [
                                             Icon(Icons.person_add, color: Colors.white),
@@ -385,7 +384,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                       visible: searchedUser.id != currentUser.id && requests.any((element) => element.fromUserID.contains(searchedUser.id)) && !loadingList.contains(searchedUser.id),
                                       child: CupertinoButton(
                                         padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                        color: SB_NAVY,
+                                        color: ACTIVE_ACCENT_COLOR,
                                         child: const Row(
                                           children: [
                                             Icon(Icons.person_add, color: Colors.white),
@@ -423,14 +422,14 @@ class _AddFriendPageState extends State<AddFriendPage> {
                       padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                       child: Text(
                         "Suggested Friends",
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     Visibility(
                       visible: refreshing,
                       child: Padding(
                         padding: const EdgeInsets.all(8),
-                        child: Center(child: RefreshProgressIndicator(color: Colors.white, backgroundColor: SB_NAVY,))
+                        child: Center(child: RefreshProgressIndicator(color: Colors.white, backgroundColor: ACTIVE_ACCENT_COLOR,))
                       ),
                     ),
                     Visibility(
@@ -475,7 +474,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                         ),
                                         Text(
                                           "@${suggestedFriends[index].userName}",
-                                          style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                                          style: const TextStyle(fontSize: 16, color: Colors.grey),
                                         )
                                       ],
                                     ),
@@ -486,7 +485,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                         padding: const EdgeInsets.all(8),
                                         child: Center(child: RefreshProgressIndicator(
                                             color: Colors.white,
-                                            backgroundColor: SB_NAVY
+                                            backgroundColor: ACTIVE_ACCENT_COLOR
                                         ))
                                     ),
                                   ),
@@ -495,7 +494,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     visible: suggestedFriends[index].id != currentUser.id && !requests.any((element) => element.user.id == suggestedFriends[index].id) && !friends.any((element) => element.user.id == suggestedFriends[index].id) && !loadingList.contains(suggestedFriends[index].id),
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                      color: SB_NAVY,
+                                      color: ACTIVE_ACCENT_COLOR,
                                       child: const Row(
                                         children: [
                                           Icon(Icons.person_add, color: Colors.white),
@@ -533,7 +532,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
                                     visible: suggestedFriends[index].id != currentUser.id && requests.any((element) => element.fromUserID.contains(suggestedFriends[index].id)) && !loadingList.contains(suggestedFriends[index].id),
                                     child: CupertinoButton(
                                       padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                      color: SB_NAVY,
+                                      color: ACTIVE_ACCENT_COLOR,
                                       child: const Row(
                                         children: [
                                           Icon(Icons.person_add, color: Colors.white),

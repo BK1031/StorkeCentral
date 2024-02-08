@@ -307,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                     visible: !upNextSubscription.status.contains("Done"),
                     child: Text(
                       upNextSubscription.status,
-                      style: TextStyle(color: upNextSubscription.status.contains("until") ? Colors.orangeAccent : SB_NAVY, fontSize: 12),
+                      style: TextStyle(color: upNextSubscription.status.contains("until") ? Colors.orangeAccent : ACTIVE_ACCENT_COLOR, fontSize: 12),
                     ),
                   )
                 ],
@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                   getUpNextSubscriptions();
                   Future.delayed(Duration.zero, () => router.pop(context));
                 },
-                color: SB_NAVY,
+                color: ACTIVE_ACCENT_COLOR,
                 child: const Text("Done"),
               ),
             )
@@ -655,27 +655,31 @@ class _HomePageState extends State<HomePage> {
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(Radius.circular(8)),
                             ),
+                            textColor: ACTIVE_ACCENT_COLOR,
                             tilePadding: const EdgeInsets.all(8),
                             childrenPadding: const EdgeInsets.all(8),
                             title: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      b.name,
-                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                    ),
-                                    const Padding(padding: EdgeInsets.all(2)),
-                                    Text(
-                                      "Capacity: ${b.people} / ${b.capacity}",
-                                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                    ),
-                                  ],
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        b.name,
+                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      ),
+                                      const Padding(padding: EdgeInsets.all(2)),
+                                      Text(
+                                        "Capacity: ${b.people} / ${b.capacity}",
+                                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const Padding(padding: EdgeInsets.all(4)),
                                 Text(
                                   b.summary,
                                   style: TextStyle(fontSize: 18, color: b.summary.contains("Very Busy") || b.summary.contains("Closed") ? SB_RED : b.summary.contains("Not Busy") ? Colors.green : SB_AMBER),

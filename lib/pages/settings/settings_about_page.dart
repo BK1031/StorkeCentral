@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class SettingsAboutPage extends StatefulWidget {
   const SettingsAboutPage({Key? key}) : super(key: key);
@@ -65,7 +65,6 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
         title: const Text(
           "About",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -85,7 +84,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Device",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -124,7 +123,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Network",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -163,12 +162,14 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Contributors",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
                       title: const Text("Bharat Kathi"),
-                      onTap: () {},
+                      onTap: () {
+                        launchUrlString("https://www.instagram.com/bk1031_official/");
+                      },
                     ),
                     ListTile(
                       title: const Text("Neel Tripathi"),
@@ -189,17 +190,24 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                       child: Text(
                         "Supporters",
                         // "Developer".toUpperCase(),
-                        style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ListTile(
-                      title: const Text("Alex Lopes"),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      title: const Text("Jake Schultz"),
-                      onTap: () {},
-                    ),
+                    Column(
+                      children: [
+                        "Adam Tatarkhanov",
+                        "Adrian Vu",
+                        "Alex Lopes",
+                        "Anthony Galvan",
+                        "Camron Hosseini",
+                        "Jake Schultz",
+                        "Jose Saavedra",
+                        "Zeke Feinglass"
+                      ].map((name) => ListTile(
+                        title: Text(name),
+                        onTap: () {},
+                      )).toList(),
+                    )
                   ],
                 ),
               ),

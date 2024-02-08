@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
@@ -67,7 +66,6 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
         title: const Text(
             "Public Beta",
             style: TextStyle(fontWeight: FontWeight.bold)
@@ -111,7 +109,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                     child: Text(
                       "Invited Users",
                       // "Developer".toUpperCase(),
-                      style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? SB_NAVY : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Visibility(

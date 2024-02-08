@@ -181,7 +181,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
             type: CoolAlertType.error,
             title: "GOLD Login Error",
             text: "Error saving credentials: ${jsonDecode(value.body)["data"]["message"]}",
-            backgroundColor: SB_NAVY,
+            backgroundColor: ACTIVE_ACCENT_COLOR,
             confirmBtnColor: SB_RED,
             confirmBtnText: "OK",
           );
@@ -323,7 +323,6 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: SB_NAVY,
         title: const Text(
           "GOLD Sync",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -393,7 +392,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         width: MediaQuery.of(context).size.width,
                         padding: const EdgeInsets.all(8),
                         child: CupertinoButton(
-                          color: SB_NAVY,
+                          color: ACTIVE_ACCENT_COLOR,
                           onPressed: () {
                             fetchGoldSchedule();
                           },
@@ -459,7 +458,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                         width: MediaQuery.of(context).size.width,
                         padding: const EdgeInsets.all(8),
                         child: CupertinoButton(
-                          color: SB_NAVY,
+                          color: ACTIVE_ACCENT_COLOR,
                           onPressed: () {
                             if (passwordController.text.isNotEmpty) saveCredentials();
                           },
@@ -549,7 +548,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                             },
                             child: Row(
                               children: [
-                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? SB_NAVY : Theme.of(context).textTheme.bodySmall!.color),
+                                Icon(goldSectionMap[s]! ? Icons.check_box : Icons.check_box_outline_blank, color: goldSectionMap[s]! ? ACTIVE_ACCENT_COLOR : Theme.of(context).textTheme.bodySmall!.color),
                                 const Padding(padding: EdgeInsets.all(8)),
                                 Expanded(
                                   child: Column(
@@ -557,7 +556,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                                     children: [
                                       Text("${s.enrollCode} - ${s.section == "0100" ? "Lecture" : "Section"} @ ${s.times.isNotEmpty ? "${s.times.first.building} ${s.times.first.room}" : "TBA"}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                       // Text("${s.times.first.building} ${s.times.first.room}", style: TextStyle(color: SB_NAVY)),
-                                      s.times.isNotEmpty ? Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: SB_NAVY)) : Container(),
+                                      s.times.isNotEmpty ? Text("${getListFromDayString(s.times.first.days).join(", ")} (${to12HourTime(s.times.first.beginTime)} - ${to12HourTime(s.times.first.endTime)})", style: TextStyle(color: ACTIVE_ACCENT_COLOR)) : Container(),
                                     ],
                                   ),
                                 ),
@@ -574,7 +573,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
                   width: MediaQuery.of(context).size.width,
                   padding: const EdgeInsets.all(8),
                   child: CupertinoButton(
-                    color: SB_NAVY,
+                    color: ACTIVE_ACCENT_COLOR,
                     onPressed: () {
                       if (goldCourses.isNotEmpty) {
                         generateUserSchedule(selectedQuarter.id);

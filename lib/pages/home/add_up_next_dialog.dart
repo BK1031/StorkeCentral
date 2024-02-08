@@ -64,7 +64,7 @@ class _AddUpNextDialogState extends State<AddUpNextDialog> {
                   ),
                   Icon(
                     upNextUserIDs.contains(friends[index].user.id) ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                    color: upNextUserIDs.contains(friends[index].user.id) ? SB_NAVY : Colors.grey,
+                    color: upNextUserIDs.contains(friends[index].user.id) ? ACTIVE_ACCENT_COLOR : Colors.grey,
                   )
                 ],
               ),

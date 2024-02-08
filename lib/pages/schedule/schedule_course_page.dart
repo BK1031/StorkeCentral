@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/foundation.dart';
@@ -185,8 +187,10 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: MapboxMap(
+                    styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
                     accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
                     onMapCreated: _onMapCreated,
+                    attributionButtonMargins: const Point(-32, -32),
                     initialCameraPosition: const CameraPosition(
                       target: LatLng(34.412278, -119.847787),
                       zoom: 14.0,
@@ -212,7 +216,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text("${scheduleItems.indexOf(e) == 0 ? "Lecture" : "Section"} (${to12HourTime(e.startTime)} - ${to12HourTime(e.endTime)})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                Text("${scheduleBuildings[scheduleItems.indexOf(e)].name} ${e.room}", style: TextStyle(color: SB_NAVY)),
+                                Text("${scheduleBuildings[scheduleItems.indexOf(e)].name} ${e.room}", style: TextStyle(color: ACTIVE_ACCENT_COLOR)),
                                 Text(getListFromDayString(e.days).join(", "), style: const TextStyle()),
                               ],
                             ),
