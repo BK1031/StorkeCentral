@@ -233,7 +233,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
               child: Row(
                   children: selectedDiningHall.meals.map((e) => Expanded(
                     child: CupertinoButton(
-                      padding: EdgeInsets.zero,
+                      padding: const EdgeInsets.only(left: 4, right: 4),
                       color: selectedMeal == e.name ? ACTIVE_ACCENT_COLOR : null,
                       onPressed: () {
                         _controller.animateToPage(selectedDiningHall.meals.indexWhere((element) => element.name == e.name), duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
@@ -242,7 +242,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(e.name.capitalize(), style: TextStyle(color: selectedMeal == e.name ? Colors.white : Theme.of(context).textTheme.labelLarge!.color)),
-                          Text("${DateFormat("jm").format(e.open.toLocal())} - ${DateFormat("jm").format(e.close.toLocal())}", style: TextStyle(fontSize: 13, color: selectedMeal == e.name ? Colors.white : ACTIVE_ACCENT_COLOR)),
+                          Text("${DateFormat("jm").format(e.open.toLocal())} - ${DateFormat("jm").format(e.close.toLocal())}", style: TextStyle(fontSize: 12, color: selectedMeal == e.name ? Colors.white : ACTIVE_ACCENT_COLOR)),
                         ],
                       ),
                     ),
@@ -297,7 +297,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                   elements: e.menuItems,
                   groupBy: (element) => element.station,
                   groupSeparatorBuilder: (String groupByValue) => Card(
-                    color: ACTIVE_ACCENT_COLOR,
+                    color: ACTIVE_ACCENT_COLOR.withOpacity(0.4),
                     child: Container(
                       height: 35,
                       padding: const EdgeInsets.all(8),
@@ -311,7 +311,7 @@ class _DiningHallPageState extends State<DiningHallPage> {
                         children: [
                           getMenuItemIcon(element),
                           const Padding(padding: EdgeInsets.all(4)),
-                          Text(element.name, style: const TextStyle(fontSize: 16)),
+                          Expanded(child: Text(element.name, style: const TextStyle(fontSize: 16))),
                         ],
                       ),
                     )
