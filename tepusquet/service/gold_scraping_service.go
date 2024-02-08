@@ -211,6 +211,7 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 				if strings.Contains(courseElement.MustText(), filterWord) {
 					utils.SugarLogger.Infoln("Filtered out from final times: " + filterWord)
 					filtered = true
+					counter++
 				}
 			}
 			if !filtered && courseElement.MustText() != "" {
@@ -254,8 +255,8 @@ func FetchFinalsForUserForQuarter(page *rod.Page, credential model.UserCredentia
 					EndTime:   endDate,
 					Quarter:   quarter,
 				})
+				counter++
 			}
-			counter++
 		}
 	})
 	if err != nil {
