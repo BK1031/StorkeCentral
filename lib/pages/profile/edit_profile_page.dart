@@ -77,7 +77,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
           "Edit Profile",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -104,13 +103,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             Text(
               "@${currentUser.userName}",
-              style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const Padding(padding: EdgeInsets.all(4)),
             TextField(
               controller: bioController,
               decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
                 contentPadding: EdgeInsets.all(8),
                 hintText: "Write your bio here...",
               ),
@@ -118,13 +120,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
               style: const TextStyle(fontSize: 18),
               onChanged: (input) {
                 editBio = input;
-                print(editBio);
-                print(currentUser.bio);
               },
             ),
             Row(
               children: [
-                const Text("Pronouns", style: TextStyle(color: Colors.black54, fontSize: 22),),
+                const Text("Pronouns", style: TextStyle(fontSize: 22),),
                 const Padding(padding: EdgeInsets.all(2)),
                 Expanded(
                   child: TextField(
@@ -144,7 +144,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             Row(
               children: [
-                const Text("Phone #", style: TextStyle(color: Colors.black54, fontSize: 22),),
+                const Text("Phone #", style: TextStyle(fontSize: 22),),
                 const Padding(padding: EdgeInsets.all(2)),
                 Expanded(
                   child: TextField(
@@ -167,7 +167,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Gender", style: TextStyle(color: Colors.black54, fontSize: 22),),
+                const Text("Gender", style: TextStyle(fontSize: 22),),
                 const Padding(padding: EdgeInsets.all(2)),
                 Card(
                   child: Padding(

@@ -151,7 +151,6 @@ class _FriendsPageState extends State<FriendsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: ACTIVE_ACCENT_COLOR,
         title: const Text(
           "Friends",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -191,7 +190,7 @@ class _FriendsPageState extends State<FriendsPage> {
                         position: badges.BadgePosition.topEnd(top: -10, end: -20),
                         showBadge: requests.where((element) => element.fromUserID != currentUser.id).isNotEmpty,
                         badgeContent: Text(requests.where((element) => element.fromUserID != currentUser.id).length.toString(), style: const TextStyle(color: Colors.white)),
-                        child: Text("Requests", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                        child: Text("Requests", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.labelLarge!.color)),
                       ),
                     ),
                   )
@@ -220,15 +219,15 @@ class _FriendsPageState extends State<FriendsPage> {
                     friends.isEmpty ? Center(
                       child: Container(
                         padding: const EdgeInsets.all(16),
-                        child: Column(
+                        child: const Column(
                           children: [
                             Icon(
                               CupertinoIcons.person_crop_circle_badge_xmark,
                               size: 100,
-                              color: Theme.of(context).textTheme.bodySmall!.color,
+                              color: Colors.grey,
                             ),
-                            const Padding(padding: EdgeInsets.all(4)),
-                            const Text("No friends 😔", style: TextStyle(fontSize: 16),),
+                            Padding(padding: EdgeInsets.all(4)),
+                            Text("No friends 😔", style: TextStyle(fontSize: 16),),
                           ],
                         ),
                       ),
@@ -271,7 +270,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                           ),
                                           Text(
                                             "@${friends[index].user.userName}",
-                                            style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodySmall!.color),
+                                            style: const TextStyle(fontSize: 16, color: Colors.grey),
                                           )
                                         ],
                                       ),
@@ -292,15 +291,15 @@ class _FriendsPageState extends State<FriendsPage> {
                 ) :  requests.isEmpty ? Center(
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
+                    child: const Column(
                       children: [
                         Icon(
                           CupertinoIcons.person_crop_circle_badge_xmark,
                           size: 100,
-                          color: Theme.of(context).textTheme.bodySmall!.color,
+                          color: Colors.grey,
                         ),
-                        const Padding(padding: EdgeInsets.all(4)),
-                        const Text("No friend requests"),
+                        Padding(padding: EdgeInsets.all(4)),
+                        Text("No friend requests"),
                       ],
                     ),
                   ),
@@ -342,7 +341,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                     ),
                                     Text(
                                       "@${requests[index].user.userName}",
-                                      style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                                     )
                                   ],
                                 ),

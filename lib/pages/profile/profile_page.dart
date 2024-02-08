@@ -1,4 +1,3 @@
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
@@ -70,7 +69,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
               const Padding(padding: EdgeInsets.all(2)),
               Text(
                 "@${currentUser.userName}",
-                style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.caption!.color),
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const Padding(padding: EdgeInsets.all(4)),
               Text(
@@ -116,7 +115,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                         padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                         child: Text(
                           "Friends",
-                          style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       ListTile(
@@ -166,7 +165,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                           padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0),
                           child: Text(
                             "Public Beta",
-                            style: TextStyle(color: AdaptiveTheme.of(context).brightness == Brightness.light ? ACTIVE_ACCENT_COLOR : Colors.white54, fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                         ListTile(
