@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:storke_central/utils/config.dart';
 import 'package:storke_central/utils/theme.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class SettingsAboutPage extends StatefulWidget {
   const SettingsAboutPage({Key? key}) : super(key: key);
@@ -166,7 +167,9 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                     ),
                     ListTile(
                       title: const Text("Bharat Kathi"),
-                      onTap: () {},
+                      onTap: () {
+                        launchUrlString("https://www.instagram.com/bk1031_official/");
+                      },
                     ),
                     ListTile(
                       title: const Text("Neel Tripathi"),
@@ -190,14 +193,21 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
                         style: TextStyle(color: ACTIVE_ACCENT_COLOR, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    ListTile(
-                      title: const Text("Alex Lopes"),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      title: const Text("Jake Schultz"),
-                      onTap: () {},
-                    ),
+                    Column(
+                      children: [
+                        "Adam Tatarkhanov",
+                        "Adrian Vu",
+                        "Alex Lopes",
+                        "Anthony Galvan",
+                        "Camron Hosseini",
+                        "Jake Schultz",
+                        "Jose Saavedra",
+                        "Zeke Feinglass"
+                      ].map((name) => ListTile(
+                        title: Text(name),
+                        onTap: () {},
+                      )).toList(),
+                    )
                   ],
                 ),
               ),
