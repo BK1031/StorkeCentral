@@ -86,7 +86,7 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
   void loadOfflineFinals() async {
     Trace trace = FirebasePerformance.instance.newTrace("loadOfflineFinals()");
     await trace.start();
-    if (prefs.containsKey("USER_FINALS")) {
+    if (prefs.containsKey("USER_FINALS") && selectedQuarter == currentQuarter) {
       setState(() {
         userFinals = prefs.getStringList("USER_FINALS")!.map((e) => UserFinal.fromJson(jsonDecode(e))).toList();
       });
@@ -164,6 +164,9 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
             });
             prefs.setString("USER_PASSTIME", jsonEncode(userPasstime).toString());
           } else {
+            setState(() {
+              userPasstime = UserPasstime();
+            });
             log("[schedule_finals_page] Failed to get passtime: ${value.body}", LogLevel.error);
           }
         });
@@ -182,10 +185,13 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
     Trace trace = FirebasePerformance.instance.newTrace("loadOfflinePasstime()");
     await trace.start();
     if (prefs.containsKey("USER_PASSTIME")) {
-      setState(() {
-        userPasstime = UserPasstime.fromJson(jsonDecode(prefs.getString("USER_PASSTIME")!));
-      });
-      log("[schedule_finals_page] Loaded passtime from cache.");
+      UserPasstime passtime = UserPasstime.fromJson(jsonDecode(prefs.getString("USER_PASSTIME")!));
+      if (passtime.quarter == currentPassQuarter.id) {
+        setState(() {
+          userPasstime = passtime;
+        });
+        log("[schedule_finals_page] Loaded passtime from cache.");
+      }
       if (offlineMode) {
         Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline passtime!"));
       }
