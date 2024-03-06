@@ -93,7 +93,7 @@ func CheckPasstimeNotificationsForAllUsers(og *sync.WaitGroup) {
 			defer wg.Done()
 			if GetPasstimeNotificationSettingForUser(p.UserID) {
 				if p.PassOneStart.Add(time.Minute).After(time.Now()) {
-					delta := int(p.PassOneStart.Sub(time.Now()).Minutes())
+					delta := int(p.PassOneStart.Sub(time.Now()).Minutes()) + 1
 					// Will sequentially send notifications at 5 minute intervals from 15 minutes.
 					if delta <= 16 {
 						// 15 minute reminder
@@ -115,7 +115,7 @@ func CheckPasstimeNotificationsForAllUsers(og *sync.WaitGroup) {
 						_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 1 at "+p.PassOneStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
 					}
 				} else if p.PassTwoStart.Add(time.Minute).After(time.Now()) {
-					delta := int(p.PassTwoStart.Sub(time.Now()).Minutes())
+					delta := int(p.PassTwoStart.Sub(time.Now()).Minutes()) + 1
 					// Will sequentially send notifications at 5 minute intervals from 15 minutes.
 					if delta <= 16 {
 						// 15 minute reminder
@@ -137,7 +137,7 @@ func CheckPasstimeNotificationsForAllUsers(og *sync.WaitGroup) {
 						_, _ = Discord.ChannelMessageSend(config.DiscordChannel, p.UserID+" Pass 2 at "+p.PassTwoStart.Format("3:04PM")+" ("+strconv.Itoa(delta)+" minutes)!")
 					}
 				} else if p.PassThreeStart.Add(time.Minute).After(time.Now()) {
-					delta := int(p.PassThreeStart.Sub(time.Now()).Minutes())
+					delta := int(p.PassThreeStart.Sub(time.Now()).Minutes()) + 1
 					println(delta)
 					// Will sequentially send notifications at 5 minute intervals from 15 minutes.
 					if delta <= 16 {
