@@ -31,7 +31,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.6.3+1");
+Version appVersion = Version("2.6.4+1");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
@@ -102,7 +102,7 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = winter24;
+Quarter currentQuarter = spring24;
 Quarter selectedQuarter = currentQuarter;
 List<Quarter> availableQuarters = [fall23, winter24, spring24];
 // Quarter for the next passtime
