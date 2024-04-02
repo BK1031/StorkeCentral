@@ -121,7 +121,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           log("[load_schedule_page] Fetched ${userCourses.length} courses from Gold");
           getCourseInformation(selectedQuarter.id);
         } else {
-          log("[load_schedule_page] Fetch error: ${jsonDecode(value.body)["data"]["message"]}", LogLevel.error);
+          log("[load_schedule_page] Fetch error: ${value.body}", LogLevel.error);
           duoPromptTimer.cancel();
           setState(() {
             state = 1;
@@ -171,8 +171,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
           deviceKey = encryptionKey;
           fetchGoldSchedule();
         } else {
-          log("[load_schedule_page] Error saving credentials: ${jsonDecode(value.body)["data"]["message"]}", LogLevel.error);
-          passwordController.clear();
+          log("[load_schedule_page] Error saving credentials: ${value.body}", LogLevel.error);
+          prefs.remove("CREDENTIALS_KEY");
           setState(() {
             state = 1;
           });
@@ -190,6 +190,7 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
     } catch(err) {
       log("[load_schedule_page] ${err.toString()}", LogLevel.error);
       AlertService.showErrorDialog(context, "Error Saving Credentials", err.toString(), () {});
+      prefs.remove("CREDENTIALS_KEY");
       setState(() {
         state = 0;
       });
