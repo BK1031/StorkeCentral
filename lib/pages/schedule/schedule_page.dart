@@ -36,7 +36,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
   final PageController _pageController = PageController();
   final CalendarController _controller = CalendarController();
 
-  bool passtimeExpanded = false;
+  bool showPasstimeAlert = false;
 
   @override
   bool get wantKeepAlive => false;
@@ -76,7 +76,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
           if (quarter == currentQuarter.id) {
             // We only want to persist/load the current quarter
             loadOfflineSchedule();
-            // getPasstime();
           } else {
             // Only show the loading indicator if we're not loading from offline storage
             setState(() => loading = true);
@@ -154,10 +153,12 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
         // Successfully got passtime
         setState(() {
           userPasstime = UserPasstime.fromJson(jsonDecode(utf8.decode(value.bodyBytes))["data"]);
+          if (userPasstime.quarter != currentPassQuarter.id) {
+            showPasstimeAlert = true;
+          } else {
+            showPasstimeAlert = false;
+          }
         });
-        if (DateTime.now().difference(userPasstime.createdAt).inDays > 7) {
-          log("[schedule_page] Passtime is older than 7 days!", LogLevel.warn);
-        }
       } else if (value.statusCode == 404) {
         log("[schedule_page] No passtime found for this quarter.", LogLevel.warn);
       } else {
@@ -165,20 +166,6 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
       }
     });
     trace.stop();
-  }
-
-  // Returns the next passtime start time based on the current date
-  // Will always return pass 3 is current date is after pass 1 and 2
-  Map<String, DateTime> getNextPasstime(UserPasstime passtime) {
-    Map<String, DateTime> returnMap = {};
-    if (passtime.passOneStart.isAfter(DateTime.now())) {
-      returnMap["Pass 1"] = passtime.passOneStart;
-    } else if (passtime.passTwoStart.isAfter(DateTime.now())) {
-      returnMap["Pass 2"] = passtime.passTwoStart;
-    } else {
-      returnMap["Pass 3"] = passtime.passThreeStart;
-    }
-    return returnMap;
   }
 
   // Function that actually creates the class events
@@ -306,25 +293,31 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                             ),
                           ),
                         )
-                    ) : Card(
-                        color: ACTIVE_ACCENT_COLOR,
-                        elevation: 4,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
-                            child: const Row(
-                              children: [
-                                Text("Finals & Registration", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                                Padding(padding: EdgeInsets.all(4)),
-                                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white)
-                              ],
+                    ) : Badge(
+                      label: const Text("Passtime missing!"),
+                      alignment: Alignment.topLeft,
+                      backgroundColor: SB_RED,
+                      isLabelVisible: showPasstimeAlert,
+                      child: Card(
+                          color: ACTIVE_ACCENT_COLOR,
+                          elevation: 4,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              _pageController.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
+                              child: const Row(
+                                children: [
+                                  Text("Finals & Registration", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                                  Padding(padding: EdgeInsets.all(4)),
+                                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.white)
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
+                      ),
                     ),
                   ],
                 ),
