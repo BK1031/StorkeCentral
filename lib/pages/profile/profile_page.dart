@@ -35,19 +35,6 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        floatingActionButton: Container(
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.all(8),
-          child: CupertinoButton(
-            color: SB_RED,
-            onPressed: () {
-              AuthService.signOut();
-              router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
-            },
-            child: const Text("Sign out", style: TextStyle(color: Colors.white),),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -186,7 +173,19 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
                   ),
                 ),
               ),
-              const Padding(padding: EdgeInsets.all(48)),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.all(8),
+                child: CupertinoButton(
+                  color: SB_RED,
+                  onPressed: () {
+                    AuthService.signOut();
+                    router.navigateTo(context, "/check-auth", transition: TransitionType.fadeIn, replace: true);
+                  },
+                  child: const Text("Sign out", style: TextStyle(color: Colors.white),),
+                ),
+              ),
+              const Padding(padding: EdgeInsets.all(16)),
             ],
           ),
         ),
