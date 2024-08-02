@@ -1,3 +1,5 @@
+// ignore_for_file: no_logic_in_create_state, must_be_immutable
+
 import 'dart:convert';
 import 'dart:math';
 
@@ -28,7 +30,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
   Building selectedBuilding = Building();
 
   MapboxMapController? mapController;
-  PageController _controller = PageController();
+  final PageController _controller = PageController();
   int currPage = 0;
 
   String navType = "walking";
@@ -94,7 +96,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
       ));
       await mapboxDirectionsRequest();
       animateCameraToBuilding();
-      final _fills = {
+      final fills = {
         "type": "FeatureCollection",
         "features": [
           {
@@ -108,7 +110,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
       await mapController!.removeLayer("lines");
       await mapController!.removeSource("fills");
       // Add new source and lineLayer
-      await mapController!.addSource("fills", GeojsonSourceProperties(data: _fills));
+      await mapController!.addSource("fills", GeojsonSourceProperties(data: fills));
       await mapController!.addLineLayer(
         "fills",
         "lines",
@@ -238,102 +240,100 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                         ],
                       ),
                     ),
-                    Container(
-                      child: Stack(
-                        children: [
-                          MapboxMap(
-                            styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
-                            accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
-                            onMapCreated: _onMapCreated,
-                            initialCameraPosition: const CameraPosition(
-                              target: LatLng(34.412278, -119.847787),
-                              zoom: 14.0,
-                            ),
-                            attributionButtonMargins: const Point(-32, -32),
-                            myLocationEnabled: true,
-                            dragEnabled: true,
+                    Stack(
+                      children: [
+                        MapboxMap(
+                          styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
+                          accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
+                          onMapCreated: _onMapCreated,
+                          initialCameraPosition: const CameraPosition(
+                            target: LatLng(34.412278, -119.847787),
+                            zoom: 14.0,
                           ),
-                          Visibility(
-                            visible: distance != 0.0,
-                            child: SafeArea(
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                width: double.infinity,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Card(
-                                      elevation: 4,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            SizedBox(
-                                              width: 45,
-                                              child: CupertinoButton(
-                                                padding: EdgeInsets.zero,
-                                                color: navType == "walking" ? ACTIVE_ACCENT_COLOR : null,
-                                                onPressed: () {
-                                                  setState(() {
-                                                    navType = "walking";
-                                                  });
-                                                  generateRoute();
-                                                },
-                                                child: Icon(Icons.directions_walk_rounded, color: navType == "walking" ? Colors.white : null),
-                                              ),
+                          attributionButtonMargins: const Point(-32, -32),
+                          myLocationEnabled: true,
+                          dragEnabled: true,
+                        ),
+                        Visibility(
+                          visible: distance != 0.0,
+                          child: SafeArea(
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              width: double.infinity,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Card(
+                                    elevation: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SizedBox(
+                                            width: 45,
+                                            child: CupertinoButton(
+                                              padding: EdgeInsets.zero,
+                                              color: navType == "walking" ? ACTIVE_ACCENT_COLOR : null,
+                                              onPressed: () {
+                                                setState(() {
+                                                  navType = "walking";
+                                                });
+                                                generateRoute();
+                                              },
+                                              child: Icon(Icons.directions_walk_rounded, color: navType == "walking" ? Colors.white : null),
                                             ),
-                                            const Padding(padding: EdgeInsets.all(4)),
-                                            SizedBox(
-                                              width: 45,
-                                              child: CupertinoButton(
-                                                padding: EdgeInsets.zero,
-                                                color: navType == "cycling" ? ACTIVE_ACCENT_COLOR : null,
-                                                onPressed: () {
-                                                  setState(() {
-                                                    navType = "cycling";
-                                                  });
-                                                  generateRoute();
-                                                },
-                                                child: Icon(Icons.directions_bike_rounded, color: navType == "cycling" ? Colors.white : null),
-                                              ),
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4)),
+                                          SizedBox(
+                                            width: 45,
+                                            child: CupertinoButton(
+                                              padding: EdgeInsets.zero,
+                                              color: navType == "cycling" ? ACTIVE_ACCENT_COLOR : null,
+                                              onPressed: () {
+                                                setState(() {
+                                                  navType = "cycling";
+                                                });
+                                                generateRoute();
+                                              },
+                                              child: Icon(Icons.directions_bike_rounded, color: navType == "cycling" ? Colors.white : null),
                                             ),
-                                            const Padding(padding: EdgeInsets.all(4)),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Text("${(distance * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(fontSize: 18),),
-                                                const Text("Distance"),
-                                              ],
-                                            ),
-                                            const Padding(padding: EdgeInsets.all(4),),
-                                            Container(
-                                              width: 1, // Thickness
-                                              height: 35,
-                                              color: Colors.grey,
-                                            ),
-                                            const Padding(padding: EdgeInsets.all(4),),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Text("${(duration / 60).round()} min", style: const TextStyle(fontSize: 18),),
-                                                const Text("Time"),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4)),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text("${(distance * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}", style: const TextStyle(fontSize: 18),),
+                                              const Text("Distance"),
+                                            ],
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4),),
+                                          Container(
+                                            width: 1, // Thickness
+                                            height: 35,
+                                            color: Colors.grey,
+                                          ),
+                                          const Padding(padding: EdgeInsets.all(4),),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text("${(duration / 60).round()} min", style: const TextStyle(fontSize: 18),),
+                                              const Text("Time"),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    )
-                                  ],
-                                ),
+                                    ),
+                                  )
+                                ],
                               ),
                             ),
-                          )
-                        ],
-                      ),
+                          ),
+                        )
+                      ],
                     )
                   ],
                 ),

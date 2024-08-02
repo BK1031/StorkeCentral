@@ -43,12 +43,12 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
 
   void getPreviousCodes() {
     FirebaseFirestore.instance.collection("beta").where("createdBy", isEqualTo: currentUser.id).get().then((value) {
-      value.docs.forEach((element) {
+      for (var element in value.docs) {
         element.get("uses").forEach((user) {
           log("[beta_invite_page] Adding user $user to previous invited users list");
           addUserToPreviousInvitedList(user.toString());
         });
-      });
+      }
     });
   }
 

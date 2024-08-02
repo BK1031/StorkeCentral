@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, duplicate_ignore
+// ignore_for_file: use_build_context_synchronously, duplicate_ignore, no_logic_in_create_state, must_be_immutable
 
 import 'dart:convert';
 

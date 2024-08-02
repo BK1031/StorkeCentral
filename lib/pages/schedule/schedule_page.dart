@@ -53,7 +53,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     super.initState();
     getUserSchedule(selectedQuarter.id);
     getPasstime();
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
   }

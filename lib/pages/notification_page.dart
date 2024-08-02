@@ -49,6 +49,7 @@ class _NotificationPageState extends State<NotificationPage> {
         });
       });
     } catch(err) {
+      // ignore: use_build_context_synchronously
       AlertService.showErrorSnackbar(context, "Failed to get notifications");
       log("[notifications_page] ${err.toString()}", LogLevel.error);
     }
@@ -64,6 +65,7 @@ class _NotificationPageState extends State<NotificationPage> {
       await AuthService.getAuthToken();
       await httpClient.post(Uri.parse("$API_HOST/notifications"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(notification));
     } catch(err) {
+      // ignore: use_build_context_synchronously
       AlertService.showErrorSnackbar(context, "Failed to mark notification as read");
       log("[notifications_page] ${err.toString()}", LogLevel.error);
     }
@@ -95,7 +97,7 @@ class _NotificationPageState extends State<NotificationPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("${notifications.where((element) => !element.read).length} unread notifications", style: TextStyle(fontSize: 16)),
+                  child: Text("${notifications.where((element) => !element.read).length} unread notifications", style: const TextStyle(fontSize: 16)),
                 ),
                 Visibility(
                   visible: notifications.any((element) => !element.read),

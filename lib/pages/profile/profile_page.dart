@@ -25,7 +25,7 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
     AuthService.verifyUserSession(context, "/profile");

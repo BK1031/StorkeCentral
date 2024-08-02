@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, no_logic_in_create_state, must_be_immutable
+
 import 'dart:convert';
 
 import 'package:calendar_view/calendar_view.dart';
@@ -271,7 +273,7 @@ class _UserSchedulePageState extends State<UserSchedulePage> {
                         endHour: 24,
                       ),
                       todayHighlightColor: ACTIVE_ACCENT_COLOR,
-                      selectionDecoration: BoxDecoration(),
+                      selectionDecoration: const BoxDecoration(),
                       allowDragAndDrop: false,
                       dataSource: MeetingDataSource(localCalendarMeetings),
                       cellEndPadding: 0,
