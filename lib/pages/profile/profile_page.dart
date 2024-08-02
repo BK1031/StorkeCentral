@@ -1,4 +1,5 @@
 import 'package:extended_image/extended_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,12 @@ class _ProfilePageState extends State<ProfilePage> with RouteAware {
     });
     AuthService.verifyUserSession(context, "/profile");
   }
+
+  void saveProfilePicture() async {
+    FirebaseStorage storage = FirebaseStorage.instance;
+    Reference ref = storage.ref().child("profile_pictures/${currentUser.id}");
+    // await ref.putFile(currentUser.profilePictureURL);
+}
 
   @override
   Widget build(BuildContext context) {

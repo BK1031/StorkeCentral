@@ -173,7 +173,7 @@ class _FriendsPageState extends State<FriendsPage> {
                         });
                         pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
-                      child: Text("My Friends", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                      child: Text("My Friends", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).buttonTheme.colorScheme!.primary)),
                     ),
                   ),
                   Expanded(

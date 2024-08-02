@@ -352,7 +352,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                               });
                               _controller.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                             },
-                            child: Text("Overview", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                            child: Text("Overview", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).buttonTheme.colorScheme!.primary)),
                           ),
                         ),
                         Expanded(
@@ -365,7 +365,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                 });
                                 _controller.animateToPage(1, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                               },
-                              child: Text("Floor plan", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).textTheme.button!.color))
+                              child: Text("Floor plan", style: TextStyle(color: currPage == 1 ? Colors.white : Theme.of(context).buttonTheme.colorScheme!.primary))
                           ),
                         ),
                         Expanded(
@@ -378,7 +378,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                                 });
                                 _controller.animateToPage(2, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                               },
-                              child: Text("Maps", style: TextStyle(color: currPage == 2 ? Colors.white : Theme.of(context).textTheme.button!.color))
+                              child: Text("Maps", style: TextStyle(color: currPage == 2 ? Colors.white : Theme.of(context).buttonTheme.colorScheme!.primary))
                           ),
                         )
                       ],

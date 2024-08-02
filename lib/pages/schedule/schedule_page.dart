@@ -477,7 +477,7 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.event_busy, size: 65, color: Theme.of(context).textTheme.caption!.color,),
+                                const Icon(Icons.event_busy, size: 65, color: Colors.grey),
                                 const Padding(padding: EdgeInsets.all(4),),
                                 const Text(
                                   "No Classes Found",
