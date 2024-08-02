@@ -19,7 +19,7 @@ class GoldCourse {
 
   GoldCourse.fromJson(Map<String, dynamic> json) {
     quarter = json["quarter"] ?? "";
-    courseID = json["courseId"].toString().replaceAll(" ", "") ?? "";
+    courseID = json["courseId"].toString().replaceAll(" ", "");
     title = json["title"] ?? "";
     description = json["description"] ?? "";
     college = json["college"] ?? "";

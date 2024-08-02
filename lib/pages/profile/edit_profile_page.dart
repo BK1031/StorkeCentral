@@ -103,7 +103,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             Text(
               "@${currentUser.userName}",
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const Padding(padding: EdgeInsets.all(4)),
             TextField(
