@@ -130,6 +130,11 @@ class _SchedulePageState extends State<SchedulePage> with RouteAware, AutomaticK
     if (prefs.containsKey("USER_SCHEDULE_ITEMS")) {
       setState(() {
         userScheduleItems = prefs.getStringList("USER_SCHEDULE_ITEMS")!.map((e) => UserScheduleItem.fromJson(jsonDecode(e))).toList();
+        if (userScheduleItems.isNotEmpty && userScheduleItems.first.quarter != currentQuarter.id) {
+          log("[schedule_page] Cached schedule items are not for the current quarter, clearing cache.", LogLevel.warn);
+          prefs.remove("USER_SCHEDULE_ITEMS");
+          userScheduleItems.clear();
+        }
       });
       log("[schedule_page] Loaded ${userScheduleItems.length} schedule items from cache.");
       buildCalendar();
