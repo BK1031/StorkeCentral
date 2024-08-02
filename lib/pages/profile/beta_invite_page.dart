@@ -120,6 +120,7 @@ class _BetaInvitePageState extends State<BetaInvitePage> {
                   ),
                   ListView.builder(
                     shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(8),
                     itemCount: invitedUsers.length,
                     itemBuilder: (context, index) {
