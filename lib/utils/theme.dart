@@ -20,8 +20,8 @@ Color SB_GREEN = const Color(0xFF00ca70);
 List<Color> SB_COLORS = [ACTIVE_ACCENT_COLOR, SB_GOLD, SB_LT_BLUE, SB_RED, SB_AMBER, SB_GREEN];
 
 // MAPBOX
-const MAPBOX_LIGHT_THEME = "mapbox://styles/bharat1031/clscx8i0f004901rbco9befg6";
-const MAPBOX_DARK_THEME = "mapbox://styles/bharat1031/clscx3ehu00hr01r6dxv9fjam";
+const MAPBOX_LIGHT_THEME = "mapbox://styles/mapbox/streets-v11";
+const MAPBOX_DARK_THEME = "mapbox://styles/mapbox/dark-v9";
 
 // LIGHT THEME
 const lightTextColor = Color(0xFF000000);
