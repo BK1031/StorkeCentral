@@ -54,9 +54,8 @@ dependencies:
   progress_indicators: ^1.0.0
   animated_snack_bar: ^0.3.1
   connectivity_plus: ^5.0.2
-  localstorage: ^4.0.1+4
   url_launcher: ^6.1.14
-  video_player: ^2.7.1
+#  video_player: ^2.7.1
   network_info_plus: ^4.0.2
   google_sign_in: ^6.1.5
   cool_alert: ^2.0.1
