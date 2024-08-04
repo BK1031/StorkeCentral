@@ -62,7 +62,7 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     if (AuthService.verifyUserSession(context, "/home")) {
       checkAppVersion();
       _determinePosition();
-      // if (!kIsWeb) _registerOneSignalListeners();
+      if (!kIsWeb) _registerOneSignalListeners();
       firebaseAnalytics();
       fetchBuildings();
       if (!offlineMode) {
@@ -168,19 +168,18 @@ class _TabBarControllerState extends State<TabBarController> with WidgetsBinding
     }
   }
 
-  // void _registerOneSignalListeners() {
-  //   OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
-  //     log("[tab_bar_controller] OneSignal notification received: ${event.notification.notificationId}");
-  //     fetchNotifications().then((value) {
-  //       log("[tab_bar_controller] You now have ${notifications.where((element) => !element.read).length} unread notifications");
-  //     });
-  //     event.complete(event.notification);
-  //   });
-  //   OneSignal.Notifications.setNotificationOpenedHandler((result) {
-  //     log("[tab_bar_controller] OneSignal notification opened: ${result.notification.notificationId}");
-  //     router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
-  //   });
-  // }
+  void _registerOneSignalListeners() {
+    OneSignal.Notifications.addClickListener((event) {
+      log("[tab_bar_controller] OneSignal notification clicked: ${event.notification.notificationId}");
+      router.navigateTo(context, "/notifications", transition: TransitionType.nativeModal);
+    });
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      log("[tab_bar_controller] OneSignal notification will display: ${event.notification.notificationId}");
+      fetchNotifications().then((value) {
+        log("[tab_bar_controller] You now have ${notifications.where((element) => !element.read).length} unread notifications");
+      });
+    });
+  }
 
   Future<void> fetchNotifications() async {
     Trace trace = FirebasePerformance.instance.newTrace("fetchNotifications()");
