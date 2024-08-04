@@ -243,7 +243,7 @@ class _BuildingDetailsPageState extends State<BuildingDetailsPage> {
                     Stack(
                       children: [
                         MapboxMap(
-                          styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
+                          styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? MAPBOX_LIGHT_THEME : MAPBOX_DARK_THEME,
                           accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
                           onMapCreated: _onMapCreated,
                           initialCameraPosition: const CameraPosition(
