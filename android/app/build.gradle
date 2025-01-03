@@ -73,7 +73,7 @@ android {
         minSdkVersion 31
         targetSdkVersion 34
         //noinspection HighAppVersionCode
-        versionCode 2007000001
+        versionCode 2007001001
         versionName flutterVersionName
     }
 
