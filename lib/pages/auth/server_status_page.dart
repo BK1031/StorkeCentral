@@ -53,14 +53,14 @@ class _ServerStatusPageState extends State<ServerStatusPage> {
 
   void getAllServiceStatuses() {
     List<String> services = status.keys.toList();
-    services.forEach((s) {
+    for (var s in services) {
       if (status[s] == "OFFLINE") {
         setState(() {
           status[s] = "LOADING";
         });
       }
       getServiceStatus(s);
-    });
+    }
   }
 
   Future<void> getServiceStatus(String service) async {

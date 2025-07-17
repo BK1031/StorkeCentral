@@ -173,7 +173,7 @@ class _FriendsPageState extends State<FriendsPage> {
                         });
                         pageController.animateToPage(0, duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                       },
-                      child: Text("My Friends", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).textTheme.button!.color)),
+                      child: Text("My Friends", style: TextStyle(color: currPage == 0 ? Colors.white : Theme.of(context).textTheme.labelLarge!.color)),
                     ),
                   ),
                   Expanded(
@@ -377,7 +377,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                 visible: requests[index].fromUserID == currentUser.id,
                                 child: CupertinoButton(
                                   padding: const EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
-                                  color: Theme.of(context).colorScheme.background,
+                                  color: Theme.of(context).scaffoldBackgroundColor,
                                   child: Row(
                                     children: [
                                       Icon(Icons.how_to_reg, color: Theme.of(context).iconTheme.color),

@@ -138,6 +138,7 @@ class _AuthCheckerPageState extends State<AuthCheckerPage> {
           }
         } catch (err) {
           log("[auth_checker_page] Exception caught on checkAuthState(): $err", LogLevel.error);
+
           // loadOfflineMode();
           // router.navigateTo(context, "/home", transition: TransitionType.fadeIn, replace: true, clearStack: true);
           trace.stop();

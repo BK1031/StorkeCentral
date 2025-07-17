@@ -26,8 +26,8 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
   MapboxMapController? mapController;
   bool _searching = false;
   bool _buildingSelected = false;
-  FocusNode _searchFocus = FocusNode();
-  TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
 
   List<Building> searchResults = [];
 
@@ -170,7 +170,7 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
       body: Stack(
         children: [
           MapboxMap(
-            styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
+            styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? MAPBOX_LIGHT_THEME : MAPBOX_DARK_THEME,
             accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
             onMapCreated: _onMapCreated,
             initialCameraPosition: const CameraPosition(
@@ -213,46 +213,44 @@ class _MapsPageState extends State<MapsPage> with RouteAware, AutomaticKeepAlive
                             ),
                           ),
                           Expanded(
-                            child: Container(
-                              child: ListView.builder(
-                                itemCount: searchResults.length,
-                                itemBuilder: (context, index) {
-                                  return Card(
-                                    child: InkWell(
-                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                      onTap: () {
-                                        selectBuilding(searchResults[index]);
-                                      },
-                                      child: Row(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: const BorderRadius.all(Radius.circular(8)),
-                                            child: ExtendedImage.network(
-                                              searchResults[index].pictureURL,
-                                              fit: BoxFit.cover,
-                                              height: 50,
-                                              width: 50,
-                                            ),
+                            child: ListView.builder(
+                              itemCount: searchResults.length,
+                              itemBuilder: (context, index) {
+                                return Card(
+                                  child: InkWell(
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                    onTap: () {
+                                      selectBuilding(searchResults[index]);
+                                    },
+                                    child: Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                          child: ExtendedImage.network(
+                                            searchResults[index].pictureURL,
+                                            fit: BoxFit.cover,
+                                            height: 50,
+                                            width: 50,
                                           ),
-                                          const Padding(padding: EdgeInsets.all(4)),
-                                          Expanded(
-                                            child: Text(
-                                              searchResults[index].name,
-                                              style: const TextStyle(fontSize: 14),
-                                            ),
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(4)),
+                                        Expanded(
+                                          child: Text(
+                                            searchResults[index].name,
+                                            style: const TextStyle(fontSize: 14),
                                           ),
-                                          const Padding(padding: EdgeInsets.all(4)),
-                                          Text(
-                                            "${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}",
-                                            style: TextStyle(fontSize: 14, color: ACTIVE_ACCENT_COLOR),
-                                          ),
-                                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey,),
-                                        ],
-                                      ),
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(4)),
+                                        Text(
+                                          "${(buildings[index].distanceFromUser * UNITS_CONVERSION[PREF_UNITS]!).round()} ${PREF_UNITS.toLowerCase()}",
+                                          style: TextStyle(fontSize: 14, color: ACTIVE_ACCENT_COLOR),
+                                        ),
+                                        const Icon(Icons.arrow_forward_ios_rounded, color: Colors.grey,),
+                                      ],
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
