@@ -34,6 +34,7 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
 
   @override
   void initState() {
+    super.initState();
     queryDeviceInfo();
     queryNetworkInfo();
   }
@@ -50,8 +51,8 @@ class _SettingsAboutPageState extends State<SettingsAboutPage> {
 
   Future<void> queryNetworkInfo() async {
     final info = NetworkInfo();
-    var wifiName = await info.getWifiName(); // FooNetwor
-    var wifiIP = await info.getWifiIP(); // 192.168.1.43
+    var wifiName = await info.getWifiName();
+    var wifiIP = await info.getWifiIP();
     var connectivityResult = await (Connectivity().checkConnectivity());
     setState(() {
       if (connectivityResult == ConnectivityResult.wifi) connectionType = "WiFi";

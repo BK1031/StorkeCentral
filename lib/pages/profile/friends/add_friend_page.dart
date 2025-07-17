@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_performance/firebase_performance.dart';
@@ -196,15 +195,15 @@ class _AddFriendPageState extends State<AddFriendPage> {
       // TODO: make this an actual mutual friends endpoint
       log("[add_friend_page] Retrieved suggested users");
       var responseJson = jsonDecode(utf8.decode(response.bodyBytes));
-      for (int i = 0; i < min(responseJson["data"].length, 30); i++) {
+      for (int i = 0; i < responseJson["data"].length; i++) {
         User user = User.fromJson(responseJson["data"][i]);
         if (user.id != currentUser.id && !friends.any((element) => element.user.id == user.id)) {
-          setState(() {
             suggestedFriends.add(user);
-          });
         }
       }
       setState(() {
+        suggestedFriends.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        suggestedFriends = suggestedFriends.sublist(0, 20);
         refreshing = false;
       });
     } else {

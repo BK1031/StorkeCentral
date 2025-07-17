@@ -158,8 +158,8 @@ class _LoadSchedulePageState extends State<LoadSchedulePage> {
       String encryptionKey = Aes256Gcm.keygen(32);
       log("[load_schedule_page] Generated encryption key: ${encryptionKey.substring(0,32)}...", LogLevel.info);
 
-      final encryptedUsername = await Aes256Gcm.encrypt(usernameController.value.text, encryptionKey);
-      final encryptedPassword = await Aes256Gcm.encrypt(passwordController.value.text, encryptionKey);
+      final encryptedUsername = Aes256Gcm.encrypt(usernameController.value.text, encryptionKey);
+      final encryptedPassword = Aes256Gcm.encrypt(passwordController.value.text, encryptionKey);
       await http.post(Uri.parse("$API_HOST/users/credentials/${currentUser.id}"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN", "SC-Device-Key": encryptionKey}, body: jsonEncode({
         "user_id": currentUser.id,
         "username": encryptedUsername,

@@ -31,7 +31,7 @@ var httpClient = http.Client();
 
 late SharedPreferences prefs;
 
-Version appVersion = Version("2.6.4+1");
+Version appVersion = Version("2.7.1+1");
 Version stableVersion = Version("1.0.0+1");
 
 String API_HOST = "https://api.storkecentr.al";
@@ -102,13 +102,57 @@ Map<String, double> UNITS_CONVERSION = {
 };
 
 // Quarter Information
-Quarter currentQuarter = spring24;
+Quarter currentQuarter = winter25;
 Quarter selectedQuarter = currentQuarter;
-List<Quarter> availableQuarters = [fall23, winter24, spring24];
+List<Quarter> availableQuarters = [fall24, winter25];
 // Quarter for the next passtime
-Quarter currentPassQuarter = spring24;
+Quarter currentPassQuarter = winter25;
 
 // Quarters
+Quarter winter25 = Quarter.fromJson({
+  "id": "20251",
+  "name": "Winter 2025",
+  "firstDayOfClasses": "2025-01-06 00:00:00.000",
+  "lastDayOfClasses": "2025-03-14 23:59:00.000",
+  "firstDayOfFinals": "2025-03-15 00:00:00.000",
+  "lastDayOfFinals": "2025-03-21 23:59:00.000",
+  "weeks": [
+    "2025-01-04 00:00:00.000", // Week 0
+    "2025-01-05 00:00:00.000", // Week 1
+    "2025-01-12 00:00:00.000", // Week 2
+    "2025-01-19 00:00:00.000", // Week 3
+    "2025-01-26 00:00:00.000", // Week 4
+    "2025-02-02 00:00:00.000", // Week 5
+    "2025-02-09 00:00:00.000", // Week 6
+    "2025-02-16 00:00:00.000", // Week 7
+    "2025-02-23 00:00:00.000", // Week 8
+    "2025-03-02 00:00:00.000", // Week 9
+    "2025-03-09 00:00:00.000", // Week 10
+  ]
+});
+
+Quarter fall24 = Quarter.fromJson({
+  "id": "20244",
+  "name": "Fall 2024",
+  "firstDayOfClasses": "2024-09-26 00:00:00.000",
+  "lastDayOfClasses": "2024-12-06 23:59:00.000",
+  "firstDayOfFinals": "2024-12-07 00:00:00.000",
+  "lastDayOfFinals": "2024-12-13 23:59:00.000",
+  "weeks": [
+    "2024-09-22 00:00:00.000", // Week 0
+    "2024-09-29 00:00:00.000", // Week 1
+    "2024-10-06 00:00:00.000", // Week 2
+    "2024-10-13 00:00:00.000", // Week 3
+    "2024-10-20 00:00:00.000", // Week 4
+    "2024-10-27 00:00:00.000", // Week 5
+    "2024-11-03 00:00:00.000", // Week 6
+    "2024-11-10 00:00:00.000", // Week 7
+    "2024-11-17 00:00:00.000", // Week 8
+    "2024-11-24 00:00:00.000", // Week 9
+    "2024-12-01 00:00:00.000", // Week 10
+  ]
+});
+
 Quarter spring24 = Quarter.fromJson({
   "id": "20242",
   "name": "Spring 2024",

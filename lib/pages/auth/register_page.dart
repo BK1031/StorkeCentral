@@ -326,7 +326,7 @@ class _RegisterPageState extends State<RegisterPage> {
         children: [
           OutlinedButton(
             style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         side: const BorderSide(color: Colors.red)

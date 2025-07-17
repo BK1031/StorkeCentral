@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, no_logic_in_create_state, must_be_immutable
+
 import 'dart:convert';
 import 'dart:math';
 
@@ -187,7 +189,7 @@ class _ScheduleCoursePageState extends State<ScheduleCoursePage> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: MapboxMap(
-                    styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? "" : MAPBOX_DARK_THEME,
+                    styleString: AdaptiveTheme.of(context).brightness == Brightness.light ? MAPBOX_LIGHT_THEME : MAPBOX_DARK_THEME,
                     accessToken: kIsWeb ? MAPBOX_PUBLIC_TOKEN : MAPBOX_ACCESS_TOKEN,
                     onMapCreated: _onMapCreated,
                     attributionButtonMargins: const Point(-32, -32),

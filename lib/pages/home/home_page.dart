@@ -346,7 +346,7 @@ class _HomePageState extends State<HomePage> {
                   if (!upNextUserIDs.contains(currentUser.id)) {
                     upNextUserIDs.insert(0, currentUser.id);
                   }
-                  var response = await httpClient.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/next/subscribed"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(upNextUserIDs));
+                  await httpClient.post(Uri.parse("$API_HOST/users/schedule/${currentUser.id}/next/subscribed"), headers: {"SC-API-KEY": SC_API_KEY, "Authorization": "Bearer $SC_AUTH_TOKEN"}, body: jsonEncode(upNextUserIDs));
                   getUpNextSubscriptions();
                   Future.delayed(Duration.zero, () => router.pop(context));
                 },
