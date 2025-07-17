@@ -44,24 +44,24 @@ class _HeaderState extends State<Header> {
                       onPressed: () {
                         router.navigateTo(context, "/beta", transition: TransitionType.fadeIn);
                       },
-                      child: Text("Beta", style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: "Product Sans"),),
+                      child: const Text("Beta", style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: "Product Sans"),),
                     ),
                     CupertinoButton(
                       onPressed: () {
                         router.navigateTo(context, "/features", transition: TransitionType.fadeIn);
                       },
-                      child: Text("Features", style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: "Product Sans"),),
+                      child: const Text("Features", style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: "Product Sans"),),
                     ),
                     CupertinoButton(
                       onPressed: () {
                         launchUrl(Uri.parse("https://docs.storkecentr.al"));
                       },
-                      child: Text("Docs", style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: "Product Sans"),),
+                      child: const Text("Docs", style: TextStyle(color: Colors.white, fontSize: 24, fontFamily: "Product Sans"),),
                     ),
                     const Padding(padding: EdgeInsets.all(8)),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white, side: BorderSide(color: Colors.white, width: 2),
+                        foregroundColor: Colors.white, side: const BorderSide(color: Colors.white, width: 2),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),

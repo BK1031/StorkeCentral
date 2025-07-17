@@ -65,7 +65,7 @@ class _LoggerPageState extends State<LoggerPage> {
             CupertinoButton(
               color: darkCardColor,
               padding: const EdgeInsets.all(8),
-              child: Row(
+              child: const Row(
                 children: [],
               ),
               onPressed: () {},

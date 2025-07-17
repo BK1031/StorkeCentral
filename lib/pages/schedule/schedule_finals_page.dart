@@ -89,6 +89,11 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
     if (prefs.containsKey("USER_FINALS") && selectedQuarter == currentQuarter) {
       setState(() {
         userFinals = prefs.getStringList("USER_FINALS")!.map((e) => UserFinal.fromJson(jsonDecode(e))).toList();
+        if (userFinals.isNotEmpty && userFinals.first.quarter != currentQuarter.id) {
+          log("[schedule_page] Cached finals are not for the current quarter, clearing cache.", LogLevel.warn);
+          prefs.remove("USER_FINALS");
+          userScheduleItems.clear();
+        }
       });
       log("[schedule_finals_page] Loaded ${userFinals.length} finals from cache.");
       if (offlineMode) {
@@ -191,6 +196,9 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
           userPasstime = passtime;
         });
         log("[schedule_finals_page] Loaded passtime from cache.");
+      } else {
+        log("[schedule_page] Cached passtimes are not for the current pass quarter, clearing cache.", LogLevel.warn);
+        prefs.remove("USER_PASSTIME");
       }
       if (offlineMode) {
         Future.delayed(Duration.zero, () => AlertService.showSuccessSnackbar(context, "Loaded offline passtime!"));
@@ -484,11 +492,11 @@ class _ScheduleFinalsPageState extends State<ScheduleFinalsPage> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                DateFormat("M/dd/yyyy hh:mm a").format(userPasstime.getPasstime(e)[0].toLocal()),
+                                DateFormat("M/dd/yyyy h:mm a").format(userPasstime.getPasstime(e)[0].toLocal()),
                                 style: TextStyle(color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)
                               ),
                               Text(
-                                DateFormat("M/dd/yyyy hh:mm a").format(userPasstime.getPasstime(e)[1].toLocal()),
+                                DateFormat("M/dd/yyyy h:mm a").format(userPasstime.getPasstime(e)[1].toLocal()),
                                 style: TextStyle(color: userPasstime.getCurrentPasstime() == e ? Colors.white : null)
                               ),
                             ],

@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names, non_constant_identifier_names
+
 import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,8 +20,8 @@ Color SB_GREEN = const Color(0xFF00ca70);
 List<Color> SB_COLORS = [ACTIVE_ACCENT_COLOR, SB_GOLD, SB_LT_BLUE, SB_RED, SB_AMBER, SB_GREEN];
 
 // MAPBOX
-const MAPBOX_LIGHT_THEME = "mapbox://styles/bharat1031/clscx8i0f004901rbco9befg6";
-const MAPBOX_DARK_THEME = "mapbox://styles/bharat1031/clscx3ehu00hr01r6dxv9fjam";
+const MAPBOX_LIGHT_THEME = "mapbox://styles/mapbox/streets-v11";
+const MAPBOX_DARK_THEME = "mapbox://styles/mapbox/dark-v9";
 
 // LIGHT THEME
 const lightTextColor = Color(0xFF000000);
@@ -47,8 +49,7 @@ final ThemeData lightTheme = ThemeData(
     secondary: ACTIVE_ACCENT_COLOR,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
-    surface: Colors.transparent,
-    background: lightBackgroundColor,
+    surface: lightBackgroundColor,
     surfaceTint: Colors.transparent,
   ),
   fontFamily: "Product Sans",
@@ -91,10 +92,9 @@ final ThemeData darkTheme = ThemeData(
   colorScheme: const ColorScheme.dark().copyWith(
     primary: SC_PINK,
     secondary: SC_PINK,
-    background: darkBackgroundColor,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
-    surface: Colors.transparent,
+    surface: darkBackgroundColor,
     surfaceTint: Colors.transparent,
   ),
   fontFamily: "Product Sans",

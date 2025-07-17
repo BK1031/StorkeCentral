@@ -29,7 +29,7 @@ class _FooterState extends State<Footer> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
+                    SizedBox(
                       width: 250,
                       // color: Colors.greenAccent,
                       child: Column(
@@ -267,69 +267,65 @@ class _FooterState extends State<Footer> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      // width: 250,
-                      // color: Colors.greenAccent,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Explore, Connect,\nThrive",
-                            style: TextStyle(color: SB_LT_BLUE, fontSize: 28, fontWeight: FontWeight.bold),
-                          ),
-                          const Padding(padding: EdgeInsets.all(8)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              InkWell(
-                                borderRadius: BorderRadius.circular(32),
-                                onTap: () {
-                                  launchUrl(Uri.parse("https://twitter.com/storkecentral"));
-                                },
-                                child: Image.asset(
-                                  "images/icons/twitter.png",
-                                  color: Colors.white,
-                                  height: 32,
-                                ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Explore, Connect,\nThrive",
+                          style: TextStyle(color: SB_LT_BLUE, fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                        const Padding(padding: EdgeInsets.all(8)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            InkWell(
+                              borderRadius: BorderRadius.circular(32),
+                              onTap: () {
+                                launchUrl(Uri.parse("https://twitter.com/storkecentral"));
+                              },
+                              child: Image.asset(
+                                "images/icons/twitter.png",
+                                color: Colors.white,
+                                height: 32,
                               ),
-                              InkWell(
-                                borderRadius: BorderRadius.circular(32),
-                                onTap: () {
-                                  launchUrl(Uri.parse("https://instagram.com/storkecentral"));
-                                },
-                                child: Image.asset(
-                                  "images/icons/instagram.png",
-                                  color: Colors.white,
-                                  height: 32,
-                                ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(32),
+                              onTap: () {
+                                launchUrl(Uri.parse("https://instagram.com/storkecentral"));
+                              },
+                              child: Image.asset(
+                                "images/icons/instagram.png",
+                                color: Colors.white,
+                                height: 32,
                               ),
-                              InkWell(
-                                borderRadius: BorderRadius.circular(32),
-                                onTap: () {
-                                  launchUrl(Uri.parse("https://tiktok.com/@storkecentral"));
-                                },
-                                child: Image.asset(
-                                  "images/icons/tiktok.png",
-                                  color: Colors.white,
-                                  height: 32,
-                                ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(32),
+                              onTap: () {
+                                launchUrl(Uri.parse("https://tiktok.com/@storkecentral"));
+                              },
+                              child: Image.asset(
+                                "images/icons/tiktok.png",
+                                color: Colors.white,
+                                height: 32,
                               ),
-                              InkWell(
-                                borderRadius: BorderRadius.circular(32),
-                                onTap: () {
-                                  launchUrl(Uri.parse("https://www.youtube.com/playlist?list=PLEjpQIEos_asOWcqOmBZMsAWdamz9b51e"));
-                                },
-                                child: Image.asset(
-                                  "images/icons/youtube.png",
-                                  color: Colors.white,
-                                  height: 32,
-                                ),
-                              )
-                            ],
-                          )
-                        ],
-                      ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(32),
+                              onTap: () {
+                                launchUrl(Uri.parse("https://www.youtube.com/playlist?list=PLEjpQIEos_asOWcqOmBZMsAWdamz9b51e"));
+                              },
+                              child: Image.asset(
+                                "images/icons/youtube.png",
+                                color: Colors.white,
+                                height: 32,
+                              ),
+                            )
+                          ],
+                        )
+                      ],
                     ),
                     const Padding(padding: EdgeInsets.all(8)),
                     Row(
